@@ -13,8 +13,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.SparseArray
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.mountains.bledemo.util.ToastUtil
 import com.orhanobut.logger.Logger
@@ -22,22 +20,20 @@ import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-import java.util.concurrent.locks.ReentrantReadWriteLock
 
 
 class BleManager private constructor() {
     private var context: Context? = null
     private lateinit var bluetoothManager: BluetoothManager
     private lateinit var adapter: BluetoothAdapter
+    //数据读写不能并发，所以使用线程池和ReentrantLock来保证串行
     private lateinit var threadPoolExecutor:ThreadPoolExecutor
     private var scanResultListener: ScanResultListener? = null
     private var connectDeviceListener: ConnectDeviceListener? = null
     private var connectDevice: BluetoothDevice? = null
     //蓝牙GATT
     private var bluetoothGatt : BluetoothGatt? = null
-    private var bleCallbackMap  = hashMapOf<BluetoothGattCharacteristic,BleCallback>()
 
     //搜索时间
     private var scanDelayed = 15*1000L
@@ -51,7 +47,9 @@ class BleManager private constructor() {
 
     companion object {
         private var instance: BleManager? = null
-        val lock = Object()
+        val lock = ReentrantLock()
+        val condition = lock.newCondition()
+        private var bleCallbackMap  = hashMapOf<String,BleCallback>()
 
         const val PERMISSION_FRAGMENT_TAG = "PERMISSION_FRAGMENT_TAG"
         const val STOP_SCAN_MSG = 100
@@ -160,12 +158,51 @@ class BleManager private constructor() {
 
         override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicRead(gatt, characteristic, status)
-            Logger.d(String(characteristic!!.value))
-            synchronized(lock){
-                lock.notify()
+            Logger.i("onCharacteristicRead,status:$status")
+
+            try {
+                lock.lock()
+                condition.signal()
+                val bleCallback = bleCallbackMap.get(characteristic?.uuid.toString())
+                if(status != BluetoothGatt.GATT_SUCCESS){
+                    bleCallback?.onFail()
+                }else{
+                    Logger.d(String(characteristic!!.value))
+                    bleCallback?.onSuccess()
+                }
+            }catch (e:Exception){
+                e.printStackTrace()
+            }finally {
+                lock.unlock()
+            }
+
+        }
+
+        override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+            super.onCharacteristicWrite(gatt, characteristic, status)
+            Logger.i("onCharacteristicWrite,status:$status")
+
+            try {
+                lock.lock()
+                condition.signal()
+                val bleCallback = bleCallbackMap.get(characteristic?.uuid.toString())
+                if(status != BluetoothGatt.GATT_SUCCESS){
+                    bleCallback?.onFail()
+                }else{
+                    Logger.d(String(characteristic!!.value))
+                    bleCallback?.onSuccess()
+                }
+            }catch (e:Exception){
+                e.printStackTrace()
+            }finally {
+                lock.unlock()
             }
         }
 
+        override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
+            super.onCharacteristicChanged(gatt, characteristic)
+
+        }
 
     }
 
@@ -202,7 +239,7 @@ class BleManager private constructor() {
         if (!isBlueToothEnable()) {
             val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
 
-            getSuperFragment(activity).startActivityForResult(intent, object : SuperFragment.ActivityResultListener {
+            SuperFragment.getSuperFragment(activity).startActivityForResult(intent, object : SuperFragment.ActivityResultListener {
                 override fun onActivityResult(resultCode: Int, data: Intent?) {
                     if (resultCode == Activity.RESULT_OK) {
                         listener.onEnableSuccess()
@@ -228,7 +265,7 @@ class BleManager private constructor() {
         }
 
         scanResultListener = listener
-        getSuperFragment(activity).requestPermissions(
+        SuperFragment.getSuperFragment(activity).requestPermissions(
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
             object : SuperFragment.PermissionListener {
                 override fun onRequestSuccess() {
@@ -313,7 +350,7 @@ class BleManager private constructor() {
             //未找到特征
             callBack.onFail()
         }else{
-            threadPoolExecutor.execute(ReadCharacteristicRunnable(bluetoothGatt!!, characteristic))
+            threadPoolExecutor.execute(ReadCharacteristicRunnable(bluetoothGatt!!, characteristic,callBack))
         }
     }
 
@@ -333,32 +370,59 @@ class BleManager private constructor() {
             //未找到特征
             callBack.onFail()
         }else{
-            threadPoolExecutor.execute(WriteCharacteristicRunnable(bluetoothGatt!!, characteristic, data))
+            threadPoolExecutor.execute(WriteCharacteristicRunnable(bluetoothGatt!!, characteristic, data,callBack))
         }
     }
 
-
-
-
-    class WriteCharacteristicRunnable(val bluetoothGatt:BluetoothGatt,val characteristic:BluetoothGattCharacteristic,val data:ByteArray):Runnable{
+    abstract class BaseCharacteristicRunnable(val uuid:String, val bleCallback: BleCallback) : Runnable{
         override fun run() {
-            characteristic.setValue(data)
-            val success = bluetoothGatt.writeCharacteristic(characteristic)
-            if(!success){
+            try {
+                lock.lock()
+                bleCallbackMap.put(uuid,bleCallback)
 
-            }
-        }
-    }
+                val isSuccess = bleHandle()
 
-    class ReadCharacteristicRunnable(val bluetoothGatt:BluetoothGatt,val characteristic:BluetoothGattCharacteristic):Runnable{
-        override fun run() {
-            synchronized(lock){
-                val success = bluetoothGatt.readCharacteristic(characteristic)
-                if(!success){
+                if (!isSuccess) {
+                    bleCallback.onFail()
                     return
                 }
-                lock.wait(3000)
+
+                //等待设备返回数据
+                val isTimeout = !condition.await(3, TimeUnit.SECONDS)
+
+                if(isTimeout){//超时
+                    bleCallback.onFail()
+                }
+            }catch (e:Exception){
+                e.printStackTrace()
+            }finally {
+                bleCallbackMap.remove(uuid)
+                lock.unlock()
             }
+        }
+
+        abstract fun bleHandle():Boolean
+
+    }
+
+    class WriteCharacteristicRunnable(
+        val bluetoothGatt: BluetoothGatt,
+        val characteristic: BluetoothGattCharacteristic,
+        val data: ByteArray, bleCallback: BleCallback
+    ) : BaseCharacteristicRunnable(characteristic.uuid.toString(), bleCallback) {
+        override fun bleHandle(): Boolean {
+            characteristic.setValue(data)
+            return bluetoothGatt.writeCharacteristic(characteristic)
+        }
+    }
+
+    class ReadCharacteristicRunnable(
+        val bluetoothGatt: BluetoothGatt,
+        val characteristic: BluetoothGattCharacteristic,
+        bleCallback: BleCallback
+    ) : BaseCharacteristicRunnable(characteristic.uuid.toString(), bleCallback) {
+        override fun bleHandle(): Boolean {
+            return bluetoothGatt.readCharacteristic(characteristic)
         }
     }
 
@@ -389,84 +453,6 @@ class BleManager private constructor() {
         fun onSuccess()
 
         fun onFail()
-    }
-
-
-    private fun getSuperFragment(activity: FragmentActivity): SuperFragment {
-        val supportFragmentManager = activity.supportFragmentManager
-        var superFragment = supportFragmentManager.findFragmentByTag(PERMISSION_FRAGMENT_TAG)
-        if (superFragment == null) {
-            val transaction = supportFragmentManager.beginTransaction()
-            superFragment = SuperFragment()
-            transaction.add(superFragment, PERMISSION_FRAGMENT_TAG)
-            transaction.commitNow()
-        }
-        return superFragment as SuperFragment
-    }
-
-    class SuperFragment : Fragment() {
-        private val permissionListenerList: SparseArray<PermissionListener> = SparseArray<PermissionListener>()
-        private val activityListenerList: SparseArray<ActivityResultListener> = SparseArray<ActivityResultListener>()
-        private val random: Random = Random()
-
-        fun startActivityForResult(intent: Intent, listener: ActivityResultListener) {
-            val requestCode = makeRequestCode()
-            activityListenerList.put(requestCode, listener)
-            startActivityForResult(intent, requestCode)
-        }
-
-        fun requestPermissions(permissionArray: Array<String>, listener: PermissionListener) {
-            val requestCode = makeRequestCode()
-            permissionListenerList.put(requestCode, listener)
-            requestPermissions(permissionArray, requestCode)
-        }
-
-        override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<out String>,
-            grantResults: IntArray
-        ) {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-            val listener = permissionListenerList.get(requestCode) ?: return
-            permissionListenerList.remove(requestCode)
-            for (result in grantResults) {
-                if (result != PackageManager.PERMISSION_GRANTED) {
-                    listener.onRequestFail()
-                    return
-                }
-            }
-            listener.onRequestSuccess()
-        }
-
-        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-            super.onActivityResult(requestCode, resultCode, data)
-            val listener = activityListenerList.get(requestCode) ?: return
-            activityListenerList.remove(requestCode)
-            listener.onActivityResult(resultCode, data)
-        }
-
-        /**
-         * 随机生成唯一的requestCode，最多尝试10次
-         */
-        private fun makeRequestCode(): Int {
-            var requestCode: Int
-            var tryCount = 0
-            do {
-                requestCode = random.nextInt(0x0000FFFF)
-                tryCount++
-            } while ((permissionListenerList.indexOfKey(requestCode) >= 0 || activityListenerList.indexOfKey(requestCode) >= 0) && tryCount < 10)
-            return requestCode
-        }
-
-        interface PermissionListener {
-            fun onRequestSuccess()
-
-            fun onRequestFail()
-        }
-
-        interface ActivityResultListener {
-            fun onActivityResult(resultCode: Int, data: Intent?)
-        }
     }
 
 

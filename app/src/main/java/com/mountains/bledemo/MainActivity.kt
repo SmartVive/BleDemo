@@ -54,21 +54,21 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         btnRead.setOnClickListener {
             bleManager.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :BleManager.BleCallback{
                 override fun onSuccess() {
-
+                    Logger.d("readCharacteristicSuccess")
                 }
 
                 override fun onFail() {
-
+                    Logger.d("readCharacteristicFail")
                 }
 
             })
             bleManager.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :BleManager.BleCallback{
                 override fun onSuccess() {
-
+                    Logger.d("readCharacteristicSuccess")
                 }
 
                 override fun onFail() {
-
+                    Logger.d("readCharacteristicFail")
                 }
 
             })

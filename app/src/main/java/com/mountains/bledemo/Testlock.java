@@ -55,27 +55,32 @@ class TestClass implements Runnable{
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
+                   /* try {
                         Thread.sleep(3000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
-                    }
+                    }*/
+                    System.out.println("等待");
                     readLock.lock();
                     condition.signal();
                     readLock.unlock();
 
 
-                    System.out.println("1234");
+                    System.out.println("5678");
                 }
             }).start();
 
             try {
-                condition.await();
+                Thread.sleep(2000);
+               // boolean await = condition.await(4, TimeUnit.SECONDS);
+                //System.out.println("result:"+await);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             System.out.println("1234");
+
             readLock.unlock();
+            System.out.println("解锁");
 
 
     }

@@ -15,19 +15,17 @@ fun main(args: Array<String>) {
 internal class TestClass3 : Runnable {
 
     private val readLock = ReentrantLock()
-    private val  condition= readLock.newCondition()
+    private val condition = readLock.newCondition()
     override fun run() {
-        synchronized(readLock){
+        readLock.lock()
+        Thread(Runnable {
+            Thread.sleep(6000)
             readLock.lock()
-            Thread(Runnable {
-                Thread.sleep(6000)
-                condition.signal()
-            }).start()
-            condition.await()
-            println("1234")
+            condition.signal()
             readLock.unlock()
-        }
-
-
+        }).start()
+        condition.await()
+        println("1234")
+        readLock.unlock()
     }
 }
