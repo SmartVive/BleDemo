@@ -8,8 +8,9 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import com.mountains.bledemo.base.BaseActivity
-import com.mountains.bledemo.ble.BleControl
-import com.mountains.bledemo.ble.BleManager
+import com.mountains.bledemo.ble.*
+import com.mountains.bledemo.ble.callback.CommCallBack
+import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.locks.ReentrantLock
@@ -17,6 +18,8 @@ import java.util.concurrent.locks.ReentrantLock
 
 class MainActivity : BaseActivity<MainPresenter>(), MainView {
     val bleManager by lazy { BleManager.getInstance() }
+    private var bleDevice : BleDevice? = null
+
     override fun createPresenter(): MainPresenter {
         return MainPresenter()
     }
@@ -53,28 +56,34 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         }
 
         btnRead.setOnClickListener {
-            bleManager.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :BleControl.BleCallback{
-                override fun onSuccess() {
+
+            bleDevice?.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :CommCallBack{
+
+                override fun onSuccess(byteArray: ByteArray?) {
                     Logger.d("readCharacteristicSuccess")
                 }
 
-                override fun onFail() {
-                    Logger.d("readCharacteristicFail")
-                }
-
-            })
-            bleManager.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :BleControl.BleCallback{
-                override fun onSuccess() {
-                    Logger.d("readCharacteristicSuccess")
-                }
-
-                override fun onFail() {
-                    Logger.d("readCharacteristicFail")
+                override fun onFail(exception: BleException) {
+                    Logger.d("readCharacteristicFail:${exception.message}")
                 }
 
             })
 
+            bleDevice?.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :CommCallBack{
+
+                override fun onSuccess(byteArray: ByteArray?) {
+                    Logger.d("readCharacteristicSuccess")
+                }
+
+                override fun onFail(exception: BleException) {
+                    Logger.d("readCharacteristicFail")
+                }
+
+            })
         }
+
+
+
     }
 
     private fun scanDevice(){
@@ -99,18 +108,21 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
 
     private fun connect(device:BluetoothDevice){
-        bleManager.connectDevice(device,object :BleManager.ConnectDeviceListener{
-            override fun connectSuccess() {
-                showToast("连接成功")
+
+        bleManager.connectDevice(device,object :ConnectCallback{
+            override fun connectSuccess(bleDevice: BleDevice) {
+                showToast("连接成功:${bleDevice.device.name}")
+                this@MainActivity.bleDevice = bleDevice
             }
 
-            override fun connectFail() {
-                showToast("连接失败")
+            override fun connectFail(exception: BleException) {
+                showToast("连接失败：${exception.message}")
             }
 
             override fun disconnect() {
                 showToast("断开连接")
             }
+
         })
     }
 

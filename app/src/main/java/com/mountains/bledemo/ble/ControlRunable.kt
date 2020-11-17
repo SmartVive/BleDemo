@@ -3,35 +3,38 @@ package com.mountains.bledemo.ble
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
+import com.mountains.bledemo.ble.callback.CommCallBack
 import java.util.concurrent.TimeUnit
 
 abstract class BaseControlRunnable : Runnable{
     override fun run() {
         val uuid = getKey()
-        val bleCallback = getCallBack()
+        val commCallback = getCallBack()
         try {
-            BleControl.lock.lock()
-            BleControl.bleCallbackMap.put(uuid,bleCallback)
+            BleGlobal.lock.lock()
+            BleGlobal.commCallbackMap.put(uuid,commCallback)
 
             val isSuccess = bleHandle()
 
             if (!isSuccess) {
-                bleCallback.onFail()
+                val bleException = BleException(BleException.COMM_UNKNOWN_ERROR_CODE, "unKnown error !!")
+                commCallback.onFail(bleException)
                 return
             }
 
             //等待设备返回数据
-            val isTimeout = !BleControl.condition.await(3, TimeUnit.SECONDS)
+            val isTimeout = !BleGlobal.condition.await(3, TimeUnit.SECONDS)
 
             if(isTimeout){
                 //超时
-                bleCallback.onFail()
+                val bleException = BleException(BleException.COMM_TIMEOUT_CODE, "comm timeout !!")
+                commCallback.onFail(bleException)
             }
         }catch (e:Exception){
             e.printStackTrace()
         }finally {
-            BleControl.bleCallbackMap.remove(uuid)
-            BleControl.lock.unlock()
+            BleGlobal.commCallbackMap.remove(uuid)
+            BleGlobal.lock.unlock()
         }
     }
 
@@ -39,21 +42,21 @@ abstract class BaseControlRunnable : Runnable{
 
     abstract fun getKey():String
 
-    abstract fun getCallBack(): BleControl.BleCallback
+    abstract fun getCallBack(): CommCallBack
 }
 
 class ReadCharacteristicRunnable(
     val bluetoothGatt: BluetoothGatt,
     val characteristic: BluetoothGattCharacteristic,
-    val bleCallback: BleControl.BleCallback
+    val commCallback: CommCallBack
 ) : BaseControlRunnable() {
 
     override fun getKey(): String {
         return characteristic.uuid.toString()
     }
 
-    override fun getCallBack(): BleControl.BleCallback {
-        return bleCallback
+    override fun getCallBack(): CommCallBack {
+        return commCallback
     }
 
     override fun bleHandle(): Boolean {
@@ -65,15 +68,15 @@ class WriteCharacteristicRunnable(
     val bluetoothGatt: BluetoothGatt,
     val characteristic: BluetoothGattCharacteristic,
     val data: ByteArray,
-    val bleCallback: BleControl.BleCallback
+    val commCallback: CommCallBack
 ) : BaseControlRunnable() {
 
     override fun getKey(): String {
         return characteristic.uuid.toString()
     }
 
-    override fun getCallBack(): BleControl.BleCallback {
-        return bleCallback
+    override fun getCallBack(): CommCallBack {
+        return commCallback
     }
 
     override fun bleHandle(): Boolean {
@@ -86,14 +89,14 @@ class WriteDescriptorRunnable(
     val bluetoothGatt: BluetoothGatt,
     val descriptor: BluetoothGattDescriptor,
     val data: ByteArray,
-    val bleCallback: BleControl.BleCallback
+    val commCallback: CommCallBack
 ): BaseControlRunnable(){
     override fun getKey(): String {
         return descriptor.uuid.toString()
     }
 
-    override fun getCallBack(): BleControl.BleCallback {
-        return bleCallback
+    override fun getCallBack(): CommCallBack {
+        return commCallback
     }
 
     override fun bleHandle(): Boolean {
@@ -106,14 +109,14 @@ class WriteDescriptorRunnable(
 class ReadDescriptorRunnable(
     val bluetoothGatt: BluetoothGatt,
     val descriptor: BluetoothGattDescriptor,
-    val bleCallback: BleControl.BleCallback
+    val commCallback: CommCallBack
 ): BaseControlRunnable(){
     override fun getKey(): String {
         return descriptor.uuid.toString()
     }
 
-    override fun getCallBack(): BleControl.BleCallback {
-        return bleCallback
+    override fun getCallBack(): CommCallBack {
+        return commCallback
     }
 
     override fun bleHandle(): Boolean {
