@@ -27,13 +27,12 @@ class BleManager private constructor() {
     private var context: Context? = null
     private lateinit var bluetoothManager: BluetoothManager
     private lateinit var adapter: BluetoothAdapter
-    //数据读写不能并发，所以使用线程池和ReentrantLock来保证串行
-    private lateinit var threadPoolExecutor:ThreadPoolExecutor
     private var scanResultListener: ScanResultListener? = null
     private var connectDeviceListener: ConnectDeviceListener? = null
     private var connectDevice: BluetoothDevice? = null
     //蓝牙GATT
     private var bluetoothGatt : BluetoothGatt? = null
+    private var connectionState = 0
 
     //搜索时间
     private var scanDelayed = 15*1000L
@@ -47,9 +46,6 @@ class BleManager private constructor() {
 
     companion object {
         private var instance: BleManager? = null
-        val lock = ReentrantLock()
-        val condition = lock.newCondition()
-        private var bleCallbackMap  = hashMapOf<String,BleCallback>()
 
         const val PERMISSION_FRAGMENT_TAG = "PERMISSION_FRAGMENT_TAG"
         const val STOP_SCAN_MSG = 100
@@ -112,6 +108,7 @@ class BleManager private constructor() {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
             Logger.i("onConnectionStateChange,status:$status,newState:$newState")
+            connectionState = newState
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 //已连接
                 Logger.d("已连接")
@@ -159,49 +156,31 @@ class BleManager private constructor() {
         override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicRead(gatt, characteristic, status)
             Logger.i("onCharacteristicRead,status:$status")
-
-            try {
-                lock.lock()
-                condition.signal()
-                val bleCallback = bleCallbackMap.get(characteristic?.uuid.toString())
-                if(status != BluetoothGatt.GATT_SUCCESS){
-                    bleCallback?.onFail()
-                }else{
-                    Logger.d(String(characteristic!!.value))
-                    bleCallback?.onSuccess()
-                }
-            }catch (e:Exception){
-                e.printStackTrace()
-            }finally {
-                lock.unlock()
-            }
-
+            BleControl.onCharacteristicRead(gatt, characteristic, status)
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicWrite(gatt, characteristic, status)
             Logger.i("onCharacteristicWrite,status:$status")
+            BleControl.onCharacteristicWrite(gatt, characteristic, status)
+        }
 
-            try {
-                lock.lock()
-                condition.signal()
-                val bleCallback = bleCallbackMap.get(characteristic?.uuid.toString())
-                if(status != BluetoothGatt.GATT_SUCCESS){
-                    bleCallback?.onFail()
-                }else{
-                    Logger.d(String(characteristic!!.value))
-                    bleCallback?.onSuccess()
-                }
-            }catch (e:Exception){
-                e.printStackTrace()
-            }finally {
-                lock.unlock()
-            }
+        override fun onDescriptorRead(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
+            super.onDescriptorRead(gatt, descriptor, status)
+            Logger.i("onDescriptorRead,status:$status")
+            BleControl.onDescriptorRead(gatt, descriptor, status)
+        }
+
+        override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
+            super.onDescriptorWrite(gatt, descriptor, status)
+            Logger.i("onDescriptorWrite,status:$status")
+            BleControl.onDescriptorWrite(gatt, descriptor, status)
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
             super.onCharacteristicChanged(gatt, characteristic)
-
+            Logger.i("onCharacteristicChanged")
+            BleControl.onCharacteristicChanged(gatt, characteristic)
         }
 
     }
@@ -211,9 +190,6 @@ class BleManager private constructor() {
         this.context = context
         bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         adapter = bluetoothManager.adapter
-
-        //数据操作线程池
-        threadPoolExecutor = ThreadPoolExecutor(1, 1, 0, TimeUnit.NANOSECONDS, LinkedBlockingQueue())
     }
 
     private fun isSupportBle():Boolean{
@@ -334,95 +310,54 @@ class BleManager private constructor() {
         //bluetoothGatt = null
     }
 
+    fun isConnect():Boolean{
+        if(connectionState == BluetoothGatt.STATE_CONNECTED && bluetoothGatt!=null && bluetoothGatt!!.device!=null){
+            return true
+        }
+        return false
+    }
+
     /**
-     * 读取数据
+     * 读取特征
      */
-    fun readCharacteristic(serviceUUID: String, characteristicUUID:String,callBack:BleCallback){
-        val service:BluetoothGattService? = bluetoothGatt?.getService(UUID.fromString(serviceUUID))
-        val characteristic = service?.getCharacteristic(UUID.fromString(characteristicUUID))
-        if (bluetoothGatt == null){
-            //gatt为空
-            callBack.onFail()
-        }else if(service == null){
-            //未找到服务
-            callBack.onFail()
-        }else if (characteristic == null){
-            //未找到特征
-            callBack.onFail()
+    fun readCharacteristic(serviceUUID: String, characteristicUUID:String,callBack: BleControl.BleCallback){
+        if (isConnect()){
+            BleControl.commit(BleControl.READ_CHARACTERISTIC_TYPE,bluetoothGatt,serviceUUID,characteristicUUID,null,null,callBack)
         }else{
-            threadPoolExecutor.execute(ReadCharacteristicRunnable(bluetoothGatt!!, characteristic,callBack))
+            callBack.onFail()
         }
     }
 
     /**
-     * 写入数据
+     * 写入特征
      */
-    fun writeCharacteristic(serviceUUID: String, characteristicUUID:String,data:ByteArray,callBack:BleCallback){
-        val service:BluetoothGattService? = bluetoothGatt?.getService(UUID.fromString(serviceUUID))
-        val characteristic = service?.getCharacteristic(UUID.fromString(characteristicUUID))
-        if (bluetoothGatt == null){
-            //gatt为空
-            callBack.onFail()
-        }else if(service == null){
-            //未找到服务
-            callBack.onFail()
-        }else if (characteristic == null){
-            //未找到特征
-            callBack.onFail()
+    fun writeCharacteristic(serviceUUID: String, characteristicUUID:String,data:ByteArray,callBack: BleControl.BleCallback){
+        if (isConnect()){
+            BleControl.commit(BleControl.WRITE_CHARACTERISTIC_TYPE,bluetoothGatt,serviceUUID,characteristicUUID,null,data,callBack)
         }else{
-            threadPoolExecutor.execute(WriteCharacteristicRunnable(bluetoothGatt!!, characteristic, data,callBack))
+            callBack.onFail()
         }
     }
 
-    abstract class BaseCharacteristicRunnable(val uuid:String, val bleCallback: BleCallback) : Runnable{
-        override fun run() {
-            try {
-                lock.lock()
-                bleCallbackMap.put(uuid,bleCallback)
-
-                val isSuccess = bleHandle()
-
-                if (!isSuccess) {
-                    bleCallback.onFail()
-                    return
-                }
-
-                //等待设备返回数据
-                val isTimeout = !condition.await(3, TimeUnit.SECONDS)
-
-                if(isTimeout){//超时
-                    bleCallback.onFail()
-                }
-            }catch (e:Exception){
-                e.printStackTrace()
-            }finally {
-                bleCallbackMap.remove(uuid)
-                lock.unlock()
-            }
-        }
-
-        abstract fun bleHandle():Boolean
-
-    }
-
-    class WriteCharacteristicRunnable(
-        val bluetoothGatt: BluetoothGatt,
-        val characteristic: BluetoothGattCharacteristic,
-        val data: ByteArray, bleCallback: BleCallback
-    ) : BaseCharacteristicRunnable(characteristic.uuid.toString(), bleCallback) {
-        override fun bleHandle(): Boolean {
-            characteristic.setValue(data)
-            return bluetoothGatt.writeCharacteristic(characteristic)
+    /**
+     * 读取属性
+     */
+    fun readDescriptor(serviceUUID: String,characteristicUUID:String,descriptorUUID: String,callBack: BleControl.BleCallback){
+        if (isConnect()){
+            BleControl.commit(BleControl.READ_DESCRIPTOR_TYPE,bluetoothGatt,serviceUUID,characteristicUUID,descriptorUUID,null,callBack)
+        }else{
+            callBack.onFail()
         }
     }
 
-    class ReadCharacteristicRunnable(
-        val bluetoothGatt: BluetoothGatt,
-        val characteristic: BluetoothGattCharacteristic,
-        bleCallback: BleCallback
-    ) : BaseCharacteristicRunnable(characteristic.uuid.toString(), bleCallback) {
-        override fun bleHandle(): Boolean {
-            return bluetoothGatt.readCharacteristic(characteristic)
+    /**
+     * 写入属性
+     */
+    fun writeDescriptor(serviceUUID: String,characteristicUUID:String,descriptorUUID: String,data:ByteArray,callBack: BleControl.BleCallback){
+        if (isConnect()){
+            BleControl.commit(BleControl.WRITE_DESCRIPTOR_TYPE,bluetoothGatt,serviceUUID,characteristicUUID,descriptorUUID,data,callBack)
+        }else{
+            callBack.onFail()
         }
     }
 
@@ -448,12 +383,5 @@ class BleManager private constructor() {
 
         fun disconnect()
     }
-
-    interface BleCallback{
-        fun onSuccess()
-
-        fun onFail()
-    }
-
 
 }

@@ -8,6 +8,7 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import com.mountains.bledemo.base.BaseActivity
+import com.mountains.bledemo.ble.BleControl
 import com.mountains.bledemo.ble.BleManager
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_main.*
@@ -52,7 +53,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         }
 
         btnRead.setOnClickListener {
-            bleManager.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :BleManager.BleCallback{
+            bleManager.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :BleControl.BleCallback{
                 override fun onSuccess() {
                     Logger.d("readCharacteristicSuccess")
                 }
@@ -62,7 +63,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
                 }
 
             })
-            bleManager.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :BleManager.BleCallback{
+            bleManager.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :BleControl.BleCallback{
                 override fun onSuccess() {
                     Logger.d("readCharacteristicSuccess")
                 }
