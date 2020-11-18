@@ -7,7 +7,9 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import com.mountains.bledemo.R
 import com.mountains.bledemo.util.DisplayUtil
+import com.orhanobut.logger.Logger
 
 
 class StepsView : View {
@@ -15,21 +17,24 @@ class StepsView : View {
     private var maxSteps = 5000
 
     //现在步数画笔
-    val numberPaint: Paint
+    lateinit var numberPaint: Paint
 
     //圆环画笔
-    val ringPaint: Paint
+    lateinit var ringPaint: Paint
 
     //文字画笔
-    val textPaint: Paint
+    lateinit var textPaint: Paint
 
     //圆环宽度
-    val ringWidth = 50f
+    var ringWidth = 0f
 
-    val numberFontMetrics = Paint.FontMetrics()
+    //文字偏移
+    var numberOffset: Float = 0f
+    var textOffset: Float = 0f
 
-    val textFontMetrics = Paint.FontMetrics()
-
+    //we文字大小
+    var numberTextSize = 0f
+    var textSize = 0f
 
     constructor(context: Context?) : this(context, null)
     constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -37,9 +42,19 @@ class StepsView : View {
         context,
         attrs,
         defStyleAttr
-    )
+    ) {
+        context ?: return
+        val attributeSet = context.obtainStyledAttributes(attrs, R.styleable.StepsView)
+        ringWidth = attributeSet.getDimension(R.styleable.StepsView_ringWidth, DisplayUtil.dp2px(context, 16f).toFloat())
+        numberTextSize = attributeSet.getDimension(R.styleable.StepsView_numberTextSize, ringWidth*3f)
+        textSize = attributeSet.getDimension(R.styleable.StepsView_textSize, ringWidth*1.5f)
+        attributeSet.recycle()
 
-    init {
+        init()
+    }
+
+
+    fun init() {
         ringPaint = Paint()
         ringPaint.isAntiAlias = true
         ringPaint.style = Paint.Style.STROKE
@@ -48,44 +63,46 @@ class StepsView : View {
         numberPaint = Paint()
         numberPaint.isAntiAlias = true
         numberPaint.setColor(Color.WHITE)
-        numberPaint.textSize = DisplayUtil.dp2px(context, 48f).toFloat()
+        numberPaint.textSize = numberTextSize
         numberPaint.setTextAlign(Paint.Align.CENTER)
+        val numberFontMetrics = Paint.FontMetrics()
         numberPaint.getFontMetrics(numberFontMetrics)
+        numberOffset = (numberFontMetrics.descent + numberFontMetrics.ascent) / 2
 
         textPaint = Paint()
         textPaint.isAntiAlias = true
         textPaint.setColor(Color.WHITE)
-        textPaint.textSize = DisplayUtil.dp2px(context, 24f).toFloat()
+        textPaint.textSize = textSize
         textPaint.setTextAlign(Paint.Align.CENTER)
+        val textFontMetrics = Paint.FontMetrics()
         textPaint.getFontMetrics(textFontMetrics)
-
+        textOffset = (textFontMetrics.descent + textFontMetrics.ascent) / 2
 
         Thread(Runnable {
-            while (true){
+            while (true) {
                 setCurrentSteps(++currentSteps)
                 Thread.sleep(20)
             }
         }).start()
     }
 
-    fun setCurrentSteps(current:Int){
+    fun setCurrentSteps(current: Int) {
         currentSteps = current
-        invalidate()
+        postInvalidate()
     }
 
-    fun getCurrentSteps():Int{
+    fun getCurrentSteps(): Int {
         return currentSteps
     }
 
-    fun setMaxSteps(max:Int){
+    fun setMaxSteps(max: Int) {
         maxSteps = max
         postInvalidate()
     }
 
-    fun getMaxSteps():Int{
+    fun getMaxSteps(): Int {
         return maxSteps
     }
-
 
 
     override fun onDraw(canvas: Canvas) {
@@ -104,16 +121,15 @@ class StepsView : View {
         //画圆环
         ringPaint.color = Color.parseColor("#69F0AE")
         var progress = ((currentSteps.toDouble() / maxSteps.toDouble()) * 360).toFloat()
-        if(progress>360){
+        if (progress > 360) {
             progress = 360f
         }
         canvas.drawArc(left, top, right, bottom, -90f, progress, false, ringPaint)
 
         //画步数文字
-        val numberOffset = (numberFontMetrics.descent + numberFontMetrics.ascent) / 2
         canvas.drawText(currentSteps.toString(), measuredWidth / 2f, measuredHeight / 2f - numberOffset, numberPaint)
 
-        val textHeight = ((measuredHeight / 2f - numberOffset - top) / 2)  - ((textFontMetrics.descent + textFontMetrics.ascent)/2)
-        canvas.drawText("步数", measuredWidth / 2f,textHeight,textPaint)
+        val textHeight = ((measuredHeight / 2f - numberOffset - top) / 2) - textOffset
+        canvas.drawText("步数", measuredWidth / 2f, textHeight, textPaint)
     }
 }
