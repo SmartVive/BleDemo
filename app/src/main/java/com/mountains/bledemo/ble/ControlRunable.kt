@@ -23,7 +23,7 @@ abstract class BaseControlRunnable : Runnable{
             }
 
             //等待设备返回数据
-            val isTimeout = !BleGlobal.condition.await(3, TimeUnit.SECONDS)
+            val isTimeout = !BleGlobal.condition.await(BleConfiguration.commTimeout, TimeUnit.MILLISECONDS)
 
             if(isTimeout){
                 //超时
@@ -123,3 +123,25 @@ class ReadDescriptorRunnable(
         return bluetoothGatt.readDescriptor(descriptor)
     }
 }
+
+class EnableNotifyRunnable(
+    val bluetoothGatt: BluetoothGatt,
+    val characteristic: BluetoothGattCharacteristic,
+    val descriptor: BluetoothGattDescriptor,
+    val data: ByteArray,
+    val commCallback: CommCallBack
+): BaseControlRunnable(){
+    override fun getKey(): String {
+        return descriptor.uuid.toString()
+    }
+
+    override fun getCallBack(): CommCallBack {
+        return commCallback
+    }
+
+    override fun bleHandle(): Boolean {
+        descriptor.setValue(data)
+        return bluetoothGatt.writeDescriptor(descriptor) && bluetoothGatt.setCharacteristicNotification(characteristic,true)
+    }
+}
+

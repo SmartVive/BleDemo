@@ -8,6 +8,7 @@ import android.os.Looper
 import android.os.Message
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.ble.callback.CommCallBack
+import com.mountains.bledemo.helper.SportDataDecodeHelper
 import com.orhanobut.logger.Logger
 import java.util.*
 
@@ -49,6 +50,7 @@ class BleDevice(val device: BluetoothDevice) {
         val WRITE_CHARACTERISTIC_TYPE = 1
         val READ_DESCRIPTOR_TYPE = 2
         val WRITE_DESCRIPTOR_TYPE = 3
+        val ENABLE_NOTIFY_TYPE = 4
     }
 
     val handler = object : Handler(Looper.getMainLooper()) {
@@ -183,7 +185,7 @@ class BleDevice(val device: BluetoothDevice) {
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
             super.onCharacteristicChanged(gatt, characteristic)
             Logger.i("onCharacteristicChanged")
-
+            SportDataDecodeHelper().decode(characteristic?.value)
         }
     }
 
@@ -278,6 +280,18 @@ class BleDevice(val device: BluetoothDevice) {
         commit(WRITE_DESCRIPTOR_TYPE,serviceUUID,characteristicUUID,descriptorUUID,data,callBack)
     }
 
+    fun enableNotify(serviceUUID: String,characteristicUUID: String,descriptorUUID: String,isEnable:Boolean,callBack:CommCallBack){
+        val data:ByteArray
+        if(isEnable){
+            //开启
+            data = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+        }else{
+            //关闭
+            data = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+        }
+        commit(ENABLE_NOTIFY_TYPE,serviceUUID,characteristicUUID,descriptorUUID,data,callBack)
+    }
+
     private fun commit(type:Int,serviceUUID: String,characteristicUUID: String,descriptorUUID: String?,data: ByteArray?,callBack: CommCallBack){
 
         if (!isConnected()){
@@ -310,12 +324,12 @@ class BleDevice(val device: BluetoothDevice) {
             val bleException = BleException(BleException.NOT_FOUND_CHARACTERISTIC_CODE,"not found BluetoothGattCharacteristic !!")
             callBack.onFail(bleException)
             return
-        }else if ((type == READ_DESCRIPTOR_TYPE || type == WRITE_DESCRIPTOR_TYPE) && descriptor == null){
+        }else if ((type == READ_DESCRIPTOR_TYPE || type == WRITE_DESCRIPTOR_TYPE || type == ENABLE_NOTIFY_TYPE) && descriptor == null){
             //未找到属性
             val bleException = BleException(BleException.NOT_FOUND_DESCRIPTOR_CODE,"not found BluetoothGattDescriptor !!")
             callBack.onFail(bleException)
             return
-        }else if ((type == WRITE_CHARACTERISTIC_TYPE || type == WRITE_DESCRIPTOR_TYPE) && data == null){
+        }else if ((type == WRITE_CHARACTERISTIC_TYPE || type == WRITE_DESCRIPTOR_TYPE || type == ENABLE_NOTIFY_TYPE) && data == null){
             //写入数据为null
             val bleException = BleException(BleException.DATA_IS_NULL_CODE,"data is null !!")
             callBack.onFail(bleException)
@@ -337,6 +351,9 @@ class BleDevice(val device: BluetoothDevice) {
             }
             WRITE_DESCRIPTOR_TYPE->{
                 BleGlobal.bleCommThreadPoll.execute(WriteDescriptorRunnable(bluetoothGatt!!, descriptor!!,data!!,callBack))
+            }
+            ENABLE_NOTIFY_TYPE->{
+                BleGlobal.bleCommThreadPoll.execute(EnableNotifyRunnable(bluetoothGatt!!, characteristic,descriptor!!,data!!,callBack))
             }
         }
     }

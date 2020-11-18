@@ -17,6 +17,8 @@ import com.mountains.bledemo.ble.callback.CommCallBack
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.bean.CardItemData
 import com.mountains.bledemo.ble.BleManager
+import com.mountains.bledemo.helper.BaseUUID
+import com.mountains.bledemo.helper.CommHelper
 import com.mountains.bledemo.util.DisplayUtil
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_main.*
@@ -91,20 +93,33 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
             })
 
-            bleDevice?.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :CommCallBack{
+        }
 
+        btnWrite.setOnClickListener {
+            bleDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.checkHeartRate(1),object : CommCallBack{
                 override fun onSuccess(byteArray: ByteArray?) {
-                    Logger.d("readCharacteristicSuccess")
+                    Logger.d("onSuccess")
                 }
 
                 override fun onFail(exception: BleException) {
-                    Logger.d("readCharacteristicFail")
+                    Logger.d("onFail:${exception.message}")
                 }
 
             })
         }
 
+        btnOpenNotify.setOnClickListener {
+            bleDevice?.enableNotify(BaseUUID.SERVICE,BaseUUID.NOTIFY,BaseUUID.DESC,true,object : CommCallBack{
+                override fun onSuccess(byteArray: ByteArray?) {
+                    Logger.d("开启通知成功")
+                }
 
+                override fun onFail(exception: BleException) {
+                    Logger.d("开启通知失败：${exception.message}")
+                }
+
+            })
+        }
 
     }
 
@@ -112,7 +127,8 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         bleManager.startScan(this,object :BleManager.ScanResultListener{
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 Logger.d(result.device?.name)
-                if (result.device?.name == "GIONEE F106"){
+                if (result.device?.name == "X10pro"){
+                    Logger.d("正在连接")
                     connect(result.device)
                 }
             }

@@ -10,4 +10,7 @@ object BleConfiguration {
 
     //连接重试次数
     var maxRetryCount:Int = 5
+
+    //通信超时时间
+    var commTimeout:Long = 5*1000
 }
