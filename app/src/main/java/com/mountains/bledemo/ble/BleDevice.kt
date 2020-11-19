@@ -2,13 +2,10 @@ package com.mountains.bledemo.ble
 
 import android.bluetooth.*
 import android.content.Context
-import android.os.Build
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
+import android.os.*
+import androidx.core.os.bundleOf
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.ble.callback.CommCallBack
-import com.mountains.bledemo.helper.SportDataDecodeHelper
 import com.orhanobut.logger.Logger
 import java.util.*
 
@@ -31,6 +28,9 @@ class BleDevice(val device: BluetoothDevice) {
     //设备gatt
     var bluetoothGatt:BluetoothGatt? = null
 
+    //通知回调
+    var notifyCallBackList = LinkedList<CommCallBack>()
+    private set
 
     companion object {
         //连接成功
@@ -45,6 +45,12 @@ class BleDevice(val device: BluetoothDevice) {
         //断开连接
         const val DISCONNECT_MSG = 700
 
+        //通信成功
+        const val COMM_SUCCESS_MSG = 800
+
+        //通信失败
+        const val COMM_FAIL_MSG = 900
+
 
         val READ_CHARACTERISTIC_TYPE = 0
         val WRITE_CHARACTERISTIC_TYPE = 1
@@ -52,6 +58,7 @@ class BleDevice(val device: BluetoothDevice) {
         val WRITE_DESCRIPTOR_TYPE = 3
         val ENABLE_NOTIFY_TYPE = 4
     }
+
 
     val handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
@@ -76,6 +83,12 @@ class BleDevice(val device: BluetoothDevice) {
                     val bleException = BleException(BleException.CONNECT_TIMEOUT_CODE, "连接超时")
                     connectCallback?.connectFail(bleException)
                     removeMessages(CONNECT_TIMEOUT_MSG)
+                }
+                COMM_SUCCESS_MSG->{
+
+                }
+                COMM_FAIL_MSG->{
+
                 }
             }
 
@@ -185,7 +198,15 @@ class BleDevice(val device: BluetoothDevice) {
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
             super.onCharacteristicChanged(gatt, characteristic)
             Logger.i("onCharacteristicChanged")
-            SportDataDecodeHelper().decode(characteristic?.value)
+            //SportDataDecodeHelper().decode(characteristic?.value)
+            for (callBack in notifyCallBackList){
+                if(characteristic != null){
+                    callBack.onSuccess(characteristic.value)
+                }else{
+                    callBack.onFail(BleException(BleException.COMM_UNKNOWN_ERROR_CODE,"characteristic is null!!"))
+                }
+
+            }
         }
     }
 
@@ -280,6 +301,9 @@ class BleDevice(val device: BluetoothDevice) {
         commit(WRITE_DESCRIPTOR_TYPE,serviceUUID,characteristicUUID,descriptorUUID,data,callBack)
     }
 
+    /**
+     * 开启通知
+     */
     fun enableNotify(serviceUUID: String,characteristicUUID: String,descriptorUUID: String,isEnable:Boolean,callBack:CommCallBack){
         val data:ByteArray
         if(isEnable){
@@ -290,6 +314,21 @@ class BleDevice(val device: BluetoothDevice) {
             data = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
         }
         commit(ENABLE_NOTIFY_TYPE,serviceUUID,characteristicUUID,descriptorUUID,data,callBack)
+    }
+
+
+    /**
+     * 添加通知回调
+     */
+    fun addNotifyCallBack(callBack: CommCallBack){
+        notifyCallBackList.add(callBack)
+    }
+
+    /**
+     * 删除通知回调
+     */
+    fun removeNotifyCallBack(callBack: CommCallBack){
+        notifyCallBackList.remove(callBack)
     }
 
     private fun commit(type:Int,serviceUUID: String,characteristicUUID: String,descriptorUUID: String?,data: ByteArray?,callBack: CommCallBack){
@@ -359,16 +398,19 @@ class BleDevice(val device: BluetoothDevice) {
     }
 
 
-    fun commResult(status:Int,uuid:String?,data: ByteArray?){
+    /**
+     * 通信结果，回调数据到接口
+     */
+    private fun commResult(status:Int,uuid:String?,data: ByteArray?){
         try {
             BleGlobal.lock.lock()
             BleGlobal.condition.signal()
-            val bleCallback = BleGlobal.commCallbackMap.get(uuid)
+            val commCallback = BleGlobal.commCallbackMap.get(uuid)
             if(status != BluetoothGatt.GATT_SUCCESS){
-                bleCallback?.onFail(BleException(BleException.COMM_UNKNOWN_ERROR_CODE,"unKnown error !!"))
+                commCallback?.onFail(BleException(BleException.COMM_UNKNOWN_ERROR_CODE,"unKnown error !!"))
             }else{
                 Logger.d(data)
-                bleCallback?.onSuccess(data)
+                commCallback?.onSuccess(data)
             }
         }catch (e:Exception){
             e.printStackTrace()
@@ -377,4 +419,16 @@ class BleDevice(val device: BluetoothDevice) {
         }
     }
 
+    private fun commSuccessCallBack(callBack: CommCallBack,data: ByteArray){
+        val message = Message.obtain()
+        message.what = COMM_SUCCESS_MSG
+        val bundle = Bundle()
+        bundle.putParcelable("",callBack)
+        message.data = bundleOf(Pair("",callBack))
+        message.obj =
+    }
+
+    private fun commFailCallBack(callBack: CommCallBack,bleException: BleException){
+
+    }
 }

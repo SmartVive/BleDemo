@@ -1,8 +1,9 @@
 package com.mountains.bledemo.ble.callback
 
+import android.os.Parcelable
 import com.mountains.bledemo.ble.BleException
 
-interface CommCallBack {
+interface CommCallBack : Parcelable {
     //通信成功
     fun onSuccess(byteArray: ByteArray?)
 

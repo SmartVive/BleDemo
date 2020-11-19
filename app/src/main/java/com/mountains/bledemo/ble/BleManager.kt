@@ -9,7 +9,6 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
@@ -17,6 +16,7 @@ import androidx.fragment.app.FragmentActivity
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.util.ToastUtil
 import com.orhanobut.logger.Logger
+import java.lang.Exception
 
 
 class BleManager private constructor() {
@@ -63,7 +63,7 @@ class BleManager private constructor() {
 
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
-            scanResultListener?.onScanFailed(errorCode)
+            scanResultListener?.onScanFailed(BleException(BleException.SCAN_UNKNOWN_ERROR_CODE,"ScanCallback:onScanFailed($errorCode)"))
             scanResultListener = null
         }
     }
@@ -91,7 +91,7 @@ class BleManager private constructor() {
      */
     fun enableBlueTooth(activity: FragmentActivity,listener:BlueToothEnableListener) {
         if (!isSupportBle()){
-            listener.onEnableFail()
+            listener.onEnableFail(BleException(BleException.BLE_NOT_SUPPORT,"此设备不支持ble蓝牙"))
             return
         }
 
@@ -103,7 +103,7 @@ class BleManager private constructor() {
                     if (resultCode == Activity.RESULT_OK) {
                         listener.onEnableSuccess()
                     }else{
-                        listener.onEnableFail()
+                        listener.onEnableFail(BleException(BleException.ENABLE_PERMISSION_DENIED_CODE,"获取权限失败"))
                     }
                 }
 
@@ -139,7 +139,8 @@ class BleManager private constructor() {
                 }
 
                 override fun onRequestFail() {
-                    ToastUtil.show("未开启权限无法搜索蓝牙")
+                    //ToastUtil.show("未开启权限无法搜索蓝牙")
+                    listener.onScanFailed(BleException(BleException.SCAN_PERMISSION_DENIED_CODE,"获取权限失败"))
                 }
 
             })
@@ -150,6 +151,7 @@ class BleManager private constructor() {
      */
     fun stopScan() {
         adapter.bluetoothLeScanner?.stopScan(scanCallback)
+        scanResultListener?.onScanComplete()
         scanResultListener = null
     }
 
@@ -169,14 +171,13 @@ class BleManager private constructor() {
 
     interface BlueToothEnableListener{
         fun onEnableSuccess()
-        fun onEnableFail()
-        fun notSupportBle()
+        fun onEnableFail(bleException: BleException)
     }
 
     interface ScanResultListener {
         fun onScanResult(callbackType: Int, result: ScanResult)
 
-        fun onScanFailed(errorCode: Int)
+        fun onScanFailed(bleException: BleException)
 
         fun onScanComplete()
     }

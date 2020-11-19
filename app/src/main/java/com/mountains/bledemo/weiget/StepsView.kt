@@ -78,12 +78,6 @@ class StepsView : View {
         textPaint.getFontMetrics(textFontMetrics)
         textOffset = (textFontMetrics.descent + textFontMetrics.ascent) / 2
 
-        Thread(Runnable {
-            while (true) {
-                setCurrentSteps(++currentSteps)
-                Thread.sleep(20)
-            }
-        }).start()
     }
 
     fun setCurrentSteps(current: Int) {

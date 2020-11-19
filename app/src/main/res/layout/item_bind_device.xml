@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    xmlns:tool="http://schemas.android.com/tools">
+
+    <ImageView
+        android:id="@+id/ivDeviceIcon"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_card_device"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvDeviceName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ivDeviceIcon"
+        android:textColor="@color/mainTextColor"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/tvDeviceAddress"
+        tool:text="X10Pro"/>
+
+    <TextView
+        android:id="@+id/tvDeviceAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/subTextColor"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        tool:text="F4:3B:34:21:D3:U7"
+        app:layout_constraintStart_toStartOf="@id/tvDeviceName"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDeviceName"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

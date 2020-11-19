@@ -6,160 +6,136 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <androidx.core.widget.NestedScrollView
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/layoutStep"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_step"
-                android:fitsSystemWindows="true">
-
-                <com.mountains.bledemo.weiget.StepsView
-                    android:id="@+id/stepsView"
-                    android:layout_width="196dp"
-                    android:layout_height="196dp"
-                    android:layout_marginTop="24dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:numberTextSize="48dp"
-                    app:ringWidth="16dp"
-                    app:textSize="24dp" />
-
-                <TextView
-                    android:id="@+id/tvMileage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0.00"
-                    android:textColor="@color/white"
-                    android:textSize="16dp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@id/tvMileageTitle"
-                    app:layout_constraintEnd_toEndOf="@id/tvMileageTitle"
-                    app:layout_constraintStart_toStartOf="@id/tvMileageTitle" />
-
-                <TextView
-                    android:id="@+id/tvGoal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="36dp"
-                    android:text="0"
-                    android:textColor="@color/white"
-                    android:textSize="16dp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@id/tvGoalTitle"
-                    app:layout_constraintEnd_toEndOf="@id/tvGoalTitle"
-                    app:layout_constraintStart_toStartOf="@id/tvGoalTitle"
-                    app:layout_constraintTop_toBottomOf="@id/stepsView"
-                    app:layout_constraintVertical_chainStyle="packed" />
-
-
-                <TextView
-                    android:id="@+id/tvCalorie"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textColor="@color/white"
-                    android:textSize="16dp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toTopOf="@id/tvCalorieTitle"
-                    app:layout_constraintEnd_toEndOf="@id/tvCalorieTitle"
-                    app:layout_constraintStart_toStartOf="@id/tvCalorieTitle" />
-
-
-                <TextView
-                    android:id="@+id/tvMileageTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="里程km"
-                    android:textColor="@color/white"
-                    android:textSize="16dp"
-                    app:layout_constraintBottom_toBottomOf="@id/tvGoalTitle"
-                    app:layout_constraintEnd_toStartOf="@id/tvGoalTitle"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <TextView
-                    android:id="@+id/tvGoalTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    android:gravity="center"
-                    android:text="目标步数"
-                    android:textColor="@color/white"
-                    android:textSize="16dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/tvCalorieTitle"
-                    app:layout_constraintStart_toEndOf="@id/tvMileageTitle"
-                    app:layout_constraintTop_toBottomOf="@id/tvGoal" />
-
-
-                <TextView
-                    android:id="@+id/tvCalorieTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="大卡"
-                    android:textColor="@color/white"
-                    android:textSize="16dp"
-                    app:layout_constraintBottom_toBottomOf="@id/tvGoalTitle"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/tvGoalTitle" />
-
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:overScrollMode="never" />
+                android:orientation="vertical">
 
-        </LinearLayout>
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/layoutStep"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_step"
+                    android:fitsSystemWindows="true">
 
-    </androidx.core.widget.NestedScrollView>
+                    <com.mountains.bledemo.weiget.StepsView
+                        android:id="@+id/stepsView"
+                        android:layout_width="196dp"
+                        android:layout_height="196dp"
+                        android:layout_marginTop="24dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:numberTextSize="48dp"
+                        app:ringWidth="16dp"
+                        app:textSize="24dp" />
+
+                    <TextView
+                        android:id="@+id/tvMileage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0.00"
+                        android:textColor="@color/white"
+                        android:textSize="16dp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toTopOf="@id/tvMileageTitle"
+                        app:layout_constraintEnd_toEndOf="@id/tvMileageTitle"
+                        app:layout_constraintStart_toStartOf="@id/tvMileageTitle" />
+
+                    <TextView
+                        android:id="@+id/tvGoal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="36dp"
+                        android:text="0"
+                        android:textColor="@color/white"
+                        android:textSize="16dp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toTopOf="@id/tvGoalTitle"
+                        app:layout_constraintEnd_toEndOf="@id/tvGoalTitle"
+                        app:layout_constraintStart_toStartOf="@id/tvGoalTitle"
+                        app:layout_constraintTop_toBottomOf="@id/stepsView"
+                        app:layout_constraintVertical_chainStyle="packed" />
 
 
-    <Button
-        android:id="@+id/btnScan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="扫描设备"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/btnRead"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="读取数据"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btnScan" />
+                    <TextView
+                        android:id="@+id/tvCalorie"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/white"
+                        android:textSize="16dp"
+                        android:textStyle="bold"
+                        app:layout_constraintBottom_toTopOf="@id/tvCalorieTitle"
+                        app:layout_constraintEnd_toEndOf="@id/tvCalorieTitle"
+                        app:layout_constraintStart_toStartOf="@id/tvCalorieTitle" />
 
 
-    <Button
-        android:id="@+id/btnWrite"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="发送数据"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btnRead" />
+                    <TextView
+                        android:id="@+id/tvMileageTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="里程km"
+                        android:textColor="@color/white"
+                        android:textSize="16dp"
+                        app:layout_constraintBottom_toBottomOf="@id/tvGoalTitle"
+                        app:layout_constraintEnd_toStartOf="@id/tvGoalTitle"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvGoalTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
+                        android:gravity="center"
+                        android:text="目标步数"
+                        android:textColor="@color/white"
+                        android:textSize="16dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/tvCalorieTitle"
+                        app:layout_constraintStart_toEndOf="@id/tvMileageTitle"
+                        app:layout_constraintTop_toBottomOf="@id/tvGoal" />
 
 
-    <Button
-        android:id="@+id/btnOpenNotify"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="开启通知"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btnWrite" />
+                    <TextView
+                        android:id="@+id/tvCalorieTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="大卡"
+                        android:textColor="@color/white"
+                        android:textSize="16dp"
+                        app:layout_constraintBottom_toBottomOf="@id/tvGoalTitle"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/tvGoalTitle" />
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:overScrollMode="never" />
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

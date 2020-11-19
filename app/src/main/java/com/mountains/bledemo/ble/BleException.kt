@@ -3,6 +3,24 @@ package com.mountains.bledemo.ble
 class BleException(val code:Int,val message:String) {
     companion object{
         /**
+         * 启动蓝牙
+         */
+        //不支持ble
+        const val BLE_NOT_SUPPORT = 30
+        //没有权限
+        const val ENABLE_PERMISSION_DENIED_CODE = 31
+
+
+        /**
+         * 搜索
+         */
+        //没有权限
+        const val SCAN_PERMISSION_DENIED_CODE = 20
+        //未知错误
+        const val SCAN_UNKNOWN_ERROR_CODE = 21
+
+
+        /**
          * 连接错误
          */
         const val CONNECT_FAIL_CODE = 1

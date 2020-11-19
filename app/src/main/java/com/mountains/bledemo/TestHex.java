@@ -1,19 +1,16 @@
-package com.mountains.bledemo.util;
+package com.mountains.bledemo;
 
-public class HexUtil {
+public class TestHex {
 
-
-    /**
-     * byte[] 转16进制字符串
-     */
-    public static String bytes2HexString(byte[] b) {
-        StringBuilder sb = new StringBuilder();
-        for(int i=0;i<b.length;i++) {
-            sb.append(String.format("%02x", b[i]));
-        }
-        return sb.toString();
+    public static void main(String[] value){
+        byte[] bytes = new byte[4];
+        bytes[0] = 0;
+        bytes[1] = 0;
+        bytes[2] = 10;
+        bytes[3] = 53;
+        int i = bytesToInt(subBytes(bytes,0,3));
+        System.out.println(i);
     }
-
 
     /**
      * byte[]转int
@@ -21,13 +18,12 @@ public class HexUtil {
     public static int bytesToInt(byte[] bytes) {
         int value = 0;
         // 由高位到低位
-        for (int i = 0; i < bytes.length; i++) {
+        for (int i = 0; i < 4; i++) {
             int shift = (4 - 1 - i) * 8;
             value += (bytes[i] & 0x000000FF) << shift;// 往高位游
         }
         return value;
     }
-
 
     /**
      * 截取 byte[]
@@ -40,3 +36,4 @@ public class HexUtil {
         return result;
     }
 }
+

@@ -10,8 +10,19 @@ class ItemDataAdapter(layoutResId:Int,data:MutableList<CardItemData>) : BaseQuic
 
     override fun convert(holder: BaseViewHolder, item: CardItemData) {
         holder.setImageResource(R.id.ivIcon,item.iconSrc)
-        holder.setText(R.id.tvValue,item.value)
-        holder.setText(R.id.tvTime,"最后一次:${item.time}")
+        if (item.value != null){
+            holder.setVisible(R.id.tvValue,true)
+            holder.setText(R.id.tvValue,item.value)
+        }else{
+            holder.setVisible(R.id.tvValue,false)
+        }
+
+        if (item.time != null){
+            holder.setVisible(R.id.tvTime,true)
+            holder.setText(R.id.tvTime,"最后一次:${item.time}")
+        }else{
+            holder.setVisible(R.id.tvTime,false)
+        }
         holder.setText(R.id.tvName,item.name)
     }
 }

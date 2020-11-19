@@ -2,9 +2,11 @@ package com.mountains.bledemo
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanResult
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.telecom.ConnectionService
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
@@ -17,16 +19,23 @@ import com.mountains.bledemo.ble.callback.CommCallBack
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.bean.CardItemData
 import com.mountains.bledemo.ble.BleManager
+import com.mountains.bledemo.event.SportEvent
 import com.mountains.bledemo.helper.BaseUUID
 import com.mountains.bledemo.helper.CommHelper
+import com.mountains.bledemo.helper.SportDataDecodeHelper
+import com.mountains.bledemo.service.DeviceConnectService
+import com.mountains.bledemo.ui.activity.BindDeviceActivity
 import com.mountains.bledemo.util.DisplayUtil
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_main.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 
 class MainActivity : BaseActivity<MainPresenter>(), MainView {
-    val bleManager by lazy { BleManager.getInstance() }
-    private var bleDevice : BleDevice? = null
 
     val itemDataList = mutableListOf<CardItemData>()
     val itemDataAdapter by lazy { ItemDataAdapter(R.layout.item_data,itemDataList) }
@@ -39,6 +48,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        EventBus.getDefault().register(this)
 
         val window: Window = window
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
@@ -50,125 +60,59 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         initItemData()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        DeviceConnectService.connectedDevice?.disconnect()
+        EventBus.getDefault().unregister(this)
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onMessageEvent(sportEvent: SportEvent){
+        val sportBean = sportEvent.sportBean
+        val bigDecimal = BigDecimal(sportBean.mileage.toDouble()/1000)
+        val mileage = bigDecimal.setScale(2, RoundingMode.HALF_UP).toString()
+        tvCalorie.text = "${sportBean.calorie}"
+        tvMileage.text = mileage
+        stepsView.setCurrentSteps(sportBean.steps)
+    }
+
     private  fun initView(){
         recyclerView.apply {
             layoutManager = GridLayoutManager(context,2)
             addItemDecoration(ItemDataDecoration(DisplayUtil.dp2px(context,12f)))
-            adapter = itemDataAdapter.apply {
-                setOnItemClickListener { adapter, view, position ->
-
+            adapter = itemDataAdapter
+        }
+        itemDataAdapter.setOnItemClickListener { adapter, view, position ->
+            when(itemDataList[position].itemType){
+                CardItemData.DEVICE_TYPE->{
+                    val intent = Intent(this@MainActivity, BindDeviceActivity::class.java)
+                    startActivity(intent)
                 }
             }
-        }
-
-
-        btnScan.setOnClickListener {
-            bleManager.enableBlueTooth(this,object :BleManager.BlueToothEnableListener{
-                override fun onEnableSuccess() {
-                    scanDevice()
-                }
-
-                override fun onEnableFail() {
-                    showToast("打开蓝牙失败")
-                }
-
-                override fun notSupportBle() {
-                    showToast("不支持当前设备")
-                }
-            })
 
         }
 
-        btnRead.setOnClickListener {
-
-            bleDevice?.readCharacteristic("00001800-0000-1000-8000-00805f9b34fb","00002a00-0000-1000-8000-00805f9b34fb",object :CommCallBack{
-
+        swipeRefreshLayout.setOnRefreshListener {
+            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getDeviceInfo(),object : CommCallBack{
                 override fun onSuccess(byteArray: ByteArray?) {
-                    Logger.d("readCharacteristicSuccess")
+                    swipeRefreshLayout.isRefreshing = false
                 }
 
                 override fun onFail(exception: BleException) {
-                    Logger.d("readCharacteristicFail:${exception.message}")
+                    swipeRefreshLayout.isRefreshing = false
                 }
-
-            })
-
-        }
-
-        btnWrite.setOnClickListener {
-            bleDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.checkHeartRate(1),object : CommCallBack{
-                override fun onSuccess(byteArray: ByteArray?) {
-                    Logger.d("onSuccess")
-                }
-
-                override fun onFail(exception: BleException) {
-                    Logger.d("onFail:${exception.message}")
-                }
-
             })
         }
-
-        btnOpenNotify.setOnClickListener {
-            bleDevice?.enableNotify(BaseUUID.SERVICE,BaseUUID.NOTIFY,BaseUUID.DESC,true,object : CommCallBack{
-                override fun onSuccess(byteArray: ByteArray?) {
-                    Logger.d("开启通知成功")
-                }
-
-                override fun onFail(exception: BleException) {
-                    Logger.d("开启通知失败：${exception.message}")
-                }
-
-            })
-        }
-
     }
 
-    private fun scanDevice(){
-        bleManager.startScan(this,object :BleManager.ScanResultListener{
-            override fun onScanResult(callbackType: Int, result: ScanResult) {
-                Logger.d(result.device?.name)
-                if (result.device?.name == "X10pro"){
-                    Logger.d("正在连接")
-                    connect(result.device)
-                }
-            }
-
-            override fun onScanFailed(errorCode: Int) {
-                Logger.e("onScanFailed:$errorCode")
-            }
-
-            override fun onScanComplete() {
-                Logger.d("onScanComplete")
-            }
-
-        })
-    }
-
-
-    private fun connect(device:BluetoothDevice){
-
-        bleManager.connectDevice(device,object :ConnectCallback{
-            override fun connectSuccess(bleDevice: BleDevice) {
-                showToast("连接成功:${bleDevice.device.name}")
-                this@MainActivity.bleDevice = bleDevice
-            }
-
-            override fun connectFail(exception: BleException) {
-                showToast("连接失败：${exception.message}")
-            }
-
-            override fun disconnect() {
-                showToast("断开连接")
-            }
-
-        })
-    }
 
     private fun initItemData(){
+        val deviceCard = CardItemData(CardItemData.DEVICE_TYPE, R.drawable.ic_card_device, null, null, "设备")
         val heartCard = CardItemData(CardItemData.HEART_TYPE, R.drawable.ic_card_heart, "0 - 0bpm", "暂无数据", "心率记录")
         val bloodPressureCard = CardItemData(CardItemData.BLOOD_PRESSURE_TYPE, R.drawable.ic_card_blood_pressure, "0 / 0mmHg", "暂无数据", "血压记录")
         val bloodOxygenCard = CardItemData(CardItemData.BLOOD_OXYGEN_TYPE, R.drawable.ic_card_blood_oxygen, "0 - 0%", "暂无数据", "血氧记录")
         val sleepCard = CardItemData(CardItemData.SLEEP_TYPE, R.drawable.ic_card_sleep, "0h 0min", "暂无数据", "睡眠记录")
+        itemDataList.add(deviceCard)
         itemDataList.add(heartCard)
         itemDataList.add(bloodPressureCard)
         itemDataList.add(bloodOxygenCard)
@@ -176,9 +120,10 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         itemDataAdapter.notifyDataSetChanged()
     }
 
+
+
     //边距
     class ItemDataDecoration(val margin:Int) : RecyclerView.ItemDecoration() {
-
 
         override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
             super.getItemOffsets(outRect, view, parent, state)

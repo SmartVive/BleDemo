@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import com.mountains.bledemo.ble.callback.CommCallBack
+import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 
 abstract class BaseControlRunnable : Runnable{

@@ -27,4 +27,12 @@ object CommHelper {
         return bArr
     }
 
+    //获取设备信息
+    fun getDeviceInfo(): ByteArray{
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 1
+        bArr[2] = 2
+        return bArr
+    }
 }

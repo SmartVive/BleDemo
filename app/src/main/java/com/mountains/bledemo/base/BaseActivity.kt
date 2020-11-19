@@ -1,5 +1,6 @@
 package com.mountains.bledemo.base
 
+import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -14,8 +15,9 @@ abstract class BaseActivity<P : BasePresenter<*>> : AppCompatActivity(),BaseView
         super.onCreate(savedInstanceState)
         presenter = createPresenter()
         presenter.attachView(this)
-
     }
+
+    fun getContext(): Context = this
 
     override fun onDestroy() {
         super.onDestroy()

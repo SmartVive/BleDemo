@@ -44,4 +44,9 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
 
     implementation 'com.haibin:calendarview:3.7.0'
+
+    implementation 'org.greenrobot:eventbus:3.2.0'
+
+    implementation 'com.hjq:titlebar:8.2'
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
