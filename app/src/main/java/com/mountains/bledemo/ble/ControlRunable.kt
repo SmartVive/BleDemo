@@ -3,8 +3,9 @@ package com.mountains.bledemo.ble
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
-import com.mountains.bledemo.ble.callback.CommCallBack
-import java.util.concurrent.Callable
+import android.os.Bundle
+import android.os.Message
+import com.mountains.bledemo.ble.callback.CommCallback
 import java.util.concurrent.TimeUnit
 
 abstract class BaseControlRunnable : Runnable{
@@ -18,8 +19,9 @@ abstract class BaseControlRunnable : Runnable{
             val isSuccess = bleHandle()
 
             if (!isSuccess) {
-                val bleException = BleException(BleException.COMM_UNKNOWN_ERROR_CODE, "unKnown error !!")
-                commCallback.onFail(bleException)
+                //val bleException = BleException(BleException.COMM_UNKNOWN_ERROR_CODE, "unKnown error !!")
+                //commCallback.onFail(bleException)
+                CallBackHandler.sendCommFailMsg(uuid,BleException(BleException.COMM_UNKNOWN_ERROR_CODE, "unKnown error !!"))
                 return
             }
 
@@ -28,13 +30,14 @@ abstract class BaseControlRunnable : Runnable{
 
             if(isTimeout){
                 //超时
-                val bleException = BleException(BleException.COMM_TIMEOUT_CODE, "comm timeout !!")
-                commCallback.onFail(bleException)
+                //val bleException = BleException(BleException.COMM_TIMEOUT_CODE, "comm timeout !!")
+                //commCallback.onFail(bleException)
+                CallBackHandler.sendCommFailMsg(uuid,BleException(BleException.COMM_TIMEOUT_CODE, "comm timeout !!"))
             }
         }catch (e:Exception){
             e.printStackTrace()
         }finally {
-            BleGlobal.commCallbackMap.remove(uuid)
+            //BleGlobal.commCallbackMap.remove(uuid)
             BleGlobal.lock.unlock()
         }
     }
@@ -43,20 +46,20 @@ abstract class BaseControlRunnable : Runnable{
 
     abstract fun getKey():String
 
-    abstract fun getCallBack(): CommCallBack
+    abstract fun getCallBack(): CommCallback
 }
 
 class ReadCharacteristicRunnable(
     val bluetoothGatt: BluetoothGatt,
     val characteristic: BluetoothGattCharacteristic,
-    val commCallback: CommCallBack
+    val commCallback: CommCallback
 ) : BaseControlRunnable() {
 
     override fun getKey(): String {
         return characteristic.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallBack {
+    override fun getCallBack(): CommCallback {
         return commCallback
     }
 
@@ -69,14 +72,14 @@ class WriteCharacteristicRunnable(
     val bluetoothGatt: BluetoothGatt,
     val characteristic: BluetoothGattCharacteristic,
     val data: ByteArray,
-    val commCallback: CommCallBack
+    val commCallback: CommCallback
 ) : BaseControlRunnable() {
 
     override fun getKey(): String {
         return characteristic.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallBack {
+    override fun getCallBack(): CommCallback {
         return commCallback
     }
 
@@ -90,13 +93,13 @@ class WriteDescriptorRunnable(
     val bluetoothGatt: BluetoothGatt,
     val descriptor: BluetoothGattDescriptor,
     val data: ByteArray,
-    val commCallback: CommCallBack
+    val commCallback: CommCallback
 ): BaseControlRunnable(){
     override fun getKey(): String {
         return descriptor.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallBack {
+    override fun getCallBack(): CommCallback {
         return commCallback
     }
 
@@ -110,13 +113,13 @@ class WriteDescriptorRunnable(
 class ReadDescriptorRunnable(
     val bluetoothGatt: BluetoothGatt,
     val descriptor: BluetoothGattDescriptor,
-    val commCallback: CommCallBack
+    val commCallback: CommCallback
 ): BaseControlRunnable(){
     override fun getKey(): String {
         return descriptor.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallBack {
+    override fun getCallBack(): CommCallback {
         return commCallback
     }
 
@@ -130,13 +133,13 @@ class EnableNotifyRunnable(
     val characteristic: BluetoothGattCharacteristic,
     val descriptor: BluetoothGattDescriptor,
     val data: ByteArray,
-    val commCallback: CommCallBack
+    val commCallback: CommCallback
 ): BaseControlRunnable(){
     override fun getKey(): String {
         return descriptor.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallBack {
+    override fun getCallBack(): CommCallback {
         return commCallback
     }
 

@@ -1,12 +1,9 @@
 package com.mountains.bledemo
 
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.le.ScanResult
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.telecom.ConnectionService
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
@@ -15,18 +12,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.mountains.bledemo.adapter.ItemDataAdapter
 import com.mountains.bledemo.base.BaseActivity
 import com.mountains.bledemo.ble.*
-import com.mountains.bledemo.ble.callback.CommCallBack
-import com.mountains.bledemo.ble.callback.ConnectCallback
+import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.bean.CardItemData
-import com.mountains.bledemo.ble.BleManager
 import com.mountains.bledemo.event.SportEvent
 import com.mountains.bledemo.helper.BaseUUID
 import com.mountains.bledemo.helper.CommHelper
-import com.mountains.bledemo.helper.SportDataDecodeHelper
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.ui.activity.BindDeviceActivity
 import com.mountains.bledemo.util.DisplayUtil
-import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_main.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -93,7 +86,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         }
 
         swipeRefreshLayout.setOnRefreshListener {
-            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getDeviceInfo(),object : CommCallBack{
+            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getDeviceInfo(),object : CommCallback{
                 override fun onSuccess(byteArray: ByteArray?) {
                     swipeRefreshLayout.isRefreshing = false
                 }

@@ -1,6 +1,10 @@
 package com.mountains.bledemo.ble
 
-class BleException(val code:Int,val message:String) {
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
+class BleException(val code:Int,val message:String):Parcelable {
     companion object{
         /**
          * 启动蓝牙

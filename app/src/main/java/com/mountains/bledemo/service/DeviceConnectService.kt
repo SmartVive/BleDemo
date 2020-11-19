@@ -7,7 +7,7 @@ import android.os.IBinder
 import com.mountains.bledemo.ble.BleDevice
 import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.BleManager
-import com.mountains.bledemo.ble.callback.CommCallBack
+import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.helper.BaseUUID
 import com.mountains.bledemo.helper.DeviceInfoDataDecodeHelper
@@ -64,7 +64,7 @@ class DeviceConnectService : Service() {
      * 开启通知
      */
     fun enableNotify(){
-        connectedDevice?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY, BaseUUID.DESC,true,object : CommCallBack {
+        connectedDevice?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY, BaseUUID.DESC,true,object : CommCallback {
             override fun onSuccess(byteArray: ByteArray?) {
                 Logger.d("开启通知成功")
                 initNotifyCallBack()
@@ -81,7 +81,7 @@ class DeviceConnectService : Service() {
      * 通知回调
      */
     private fun initNotifyCallBack(){
-        connectedDevice?.addNotifyCallBack(object : CommCallBack{
+        connectedDevice?.addNotifyCallBack(object : CommCallback{
             override fun onSuccess(byteArray: ByteArray?) {
                 //解析数据
                 sportDataDecodeHelper.decode(byteArray)

@@ -1,6 +1,7 @@
 package com.mountains.bledemo.ble
 
-import com.mountains.bledemo.ble.callback.CommCallBack
+import com.mountains.bledemo.ble.callback.CommCallback
+import com.mountains.bledemo.ble.callback.ConnectCallback
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -11,5 +12,27 @@ object BleGlobal {
     val bleCommThreadPoll: ThreadPoolExecutor = ThreadPoolExecutor(1, 1, 0, TimeUnit.NANOSECONDS, LinkedBlockingQueue())
     val lock = ReentrantLock()
     val condition = lock.newCondition()
-    val commCallbackMap  = hashMapOf<String, CommCallBack>()
+    //通信回调，key为uuid
+    val commCallbackMap  = hashMapOf<String, CommCallback>()
+    //连接状态回调,key为设备mac
+    val connectCallbackMap = hashMapOf<String,ConnectCallback>()
+
+
+
+    /**
+     * 根据设备获取连接回调接口
+     */
+    fun getConnectCallback(mac:String) : ConnectCallback?{
+        return connectCallbackMap[mac]
+    }
+
+    /**
+     * 根据设备获取连接回调接口
+     */
+    fun putConnectCallback(mac:String,callback: ConnectCallback){
+        connectCallbackMap.put(mac,callback)
+    }
+
+
+
 }
