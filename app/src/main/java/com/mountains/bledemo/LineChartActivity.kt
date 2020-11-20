@@ -11,7 +11,7 @@ class LineChartActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.acitivy_line_chart)
 
-        val xAxisData = lineChartView.xAxisDatas
+      /*  val xAxisData = lineChartView.xAxisDatas
         xAxisData.add("00:00")
         xAxisData.add("04:00")
         xAxisData.add("08:00")
@@ -28,6 +28,6 @@ class LineChartActivity : AppCompatActivity() {
         datas.add(LineChartEntity(87f))
         datas.add(LineChartEntity(58f))
         datas.add(LineChartEntity(70f))
-        lineChartView.postInvalidate()
+        lineChartView.postInvalidate()*/
     }
 }

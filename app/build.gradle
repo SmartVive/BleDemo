@@ -49,6 +49,4 @@ dependencies {
 
     implementation 'com.hjq:titlebar:8.2'
     implementation 'com.google.code.gson:gson:2.8.6'
-
-    implementation 'com.inuker.bluetooth:library:1.4.0'
 }

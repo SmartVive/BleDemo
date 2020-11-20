@@ -8,12 +8,12 @@ import org.greenrobot.eventbus.EventBus
 
 class SportDataDecodeHelper : IDataDecodeHelper{
     override fun decode(bArr: ByteArray?) {
-        Logger.d(bArr)
         if (HexUtil.bytes2HexString(bArr).startsWith("050701")) {
+            Logger.d(bArr)
             Logger.i("实时运动数据:解析开始")
-            val steps: Int = HexUtil.bytesToInt(HexUtil.subBytes(bArr, 3, 6) )
-            val mileage: Int = HexUtil.bytesToInt(HexUtil.subBytes(bArr, 7, 10))
-            val calorie: Int = HexUtil.bytesToInt(HexUtil.subBytes(bArr, 11, 14))
+            val steps: Int = HexUtil.bytes2Int(HexUtil.subBytes(bArr, 3, 6) )
+            val mileage: Int = HexUtil.bytes2Int(HexUtil.subBytes(bArr, 7, 10))
+            val calorie: Int = HexUtil.bytes2Int(HexUtil.subBytes(bArr, 11, 14))
             val z = steps == 0 && (mileage > 0 || calorie > 0)
             val z2 = calorie > 10000
             val z3 = steps > 99999
