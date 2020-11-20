@@ -8,14 +8,13 @@ import android.util.AttributeSet
 import android.view.View
 import com.mountains.bledemo.util.DisplayUtil
 import com.orhanobut.logger.Logger
-import java.text.SimpleDateFormat
 import java.util.*
 
 class HistogramView : View {
     //y轴个数
-    var yAxisCount = 8
+    var yAxisCount = 9
     //x轴个数
-    var xAxisCount = 6
+    var xAxisCount = 7
     //x、y轴画笔
     lateinit var axisPaint: Paint
     //x、y轴宽度
@@ -59,67 +58,93 @@ class HistogramView : View {
 
 
 
-        for (i in 0 until 72){
+        for (i in 0 .. 72){
             val random = Random()
             val value = (random.nextDouble() * 100 + 30).toInt()
             val histogramEntity = HistogramEntity(100, i * 20)
             datas.add(histogramEntity)
         }
-        datas
+
     }
 
+
+    var xAxisLeft:Float = 0f
+    var xAxisRight:Float = 0f
+    var xAxisTop:Float = 0f
+
+    var yAxisLeft:Float = 0f
+    var yAxisTop:Float = 0f
+    var yAxisBottom:Float = 0f
+
+    //x轴长度
+    var xAxisWidth = 0f
+    //y轴长度
+    var yAxisHeight = 0f
+
+    //x轴分割线两点距离
+    var xDivideDistance = 0f
+    //y轴分割线两点距离
+    var yDivideDistance = 0f
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        xAxisLeft = xAxisMargin
+        xAxisRight = measuredWidth - xAxisMargin
+        xAxisTop = measuredHeight - xAxisMargin
+
+        yAxisLeft = xAxisMargin
+        yAxisTop = xAxisMargin
+        yAxisBottom = measuredHeight - xAxisMargin
+
+        xAxisWidth = xAxisRight - xAxisLeft
+
+        yAxisHeight = yAxisBottom - yAxisTop
+
+        //x轴分割线两点距离
+        xDivideDistance = xAxisWidth / (xAxisLength)
+        //y轴分割线两点距离
+        yDivideDistance = yAxisHeight / (yAxisCount-1)
+
+        Logger.e("$xDivideDistance")
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         //画x轴
-        val xAxisStartX = xAxisMargin
-        val xAxisStartY = measuredHeight - xAxisMargin
-        val xAxisEndX = measuredWidth - xAxisMargin
-        val xAxisEndY = xAxisStartY
-        canvas.drawLine(xAxisStartX, xAxisStartY, xAxisEndX, xAxisEndY, axisPaint)
+        canvas.drawLine(xAxisLeft, xAxisTop, xAxisRight, xAxisTop, axisPaint)
 
         //画y轴
-        val yAxisStartX = yAxisMargin
-        val yAxisStartY = yAxisMargin
-        val yAxisEndX = yAxisMargin
-        val yAxisEndY = measuredHeight - yAxisMargin
-        canvas.drawLine(yAxisStartX, yAxisStartY, yAxisEndX, yAxisEndY, axisPaint)
+        canvas.drawLine(yAxisLeft, yAxisTop, yAxisLeft, yAxisBottom, axisPaint)
 
-        //画x轴单位分割线
-        //x轴长度
-        val xAxisWidth = xAxisEndX - xAxisStartX
-        //x轴两点距离
-        val xDistance = xAxisWidth / xAxisCount
+        //画x轴分割线
         for (i in 0 until xAxisCount) {
-            val startX = (i + 1) * xDistance + xAxisStartX
-            val startY = xAxisStartY - 10
+            val startX = getXAxisDivideX(i)
+            val startY = xAxisTop - 10
             val endX = startX
-            val endY = xAxisStartY
+            val endY = xAxisTop
             canvas.drawLine(startX, startY, endX, endY, axisPaint)
         }
 
+        //画x轴变量
+        for (i in 0 until xAxisCount) {
+            val x = getXAxisValueX(i)
+            val y = xAxisTop + 50
+            //val min = ((xAxisLength/xAxisCount) * i  + (xAxisLength/xAxisCount) * (i+1)) / 2
+            val min = xAxisLength / (xAxisCount-1) * i
+            canvas.drawText(min2Hour(min), x, y, axisPaint)
+        }
 
-        //画y轴单位分割线
-        //y轴长度
-        val yAxisHeight = yAxisEndY - yAxisStartY
-        //y轴两点距离
-        val yDistance = yAxisHeight / (yAxisCount + 1)
+
+        //画y轴分割线
         for (i in 0 until yAxisCount) {
-            val startX = yAxisStartX
-            val startY = yAxisEndY - (i + 1) * yDistance
+            val startX = yAxisLeft
+            val startY = yAxisBottom - i * yDivideDistance
             val endX = startX + 10
             val endY = startY
             canvas.drawLine(startX, startY, endX, endY, axisPaint)
         }
 
-        //画x轴数值
-        for (i in 0 .. xAxisCount) {
-            val x = (i) * xDistance + xAxisStartX
-            val y = xAxisStartY + 50
-            val min = xAxisLength / xAxisCount * i
-            canvas.drawText(min2Hour(min), x, y, axisPaint)
-        }
 
         //遍历y轴数据，计算y轴最大值最小值
         var max = Float.MIN_VALUE
@@ -128,16 +153,16 @@ class HistogramView : View {
             max = Math.max(max, data.value.toFloat())
             min = Math.min(min, data.value.toFloat())
         }
-        Logger.e("$max,$min")
+        max *= 1.1f
+        min *= 0.9f
 
-         max *= 1.1f
-         min /= 1.1f
+
          //y值数据间隔
-         val yDataDistance = (max  - min) / yAxisCount
+         val yDataDistance = (max  - min) / (yAxisCount-1)
          //画y轴数值
          for(i in 0 until yAxisCount){
-             val x = yAxisStartX - 40
-             val y = yAxisEndY - (i+1) * yDistance - textOffset
+             val x = yAxisLeft - 40
+             val y = yAxisBottom - i * yDivideDistance - textOffset
              val value = (yDataDistance * i + min).toInt().toString()
              canvas.drawText(value,x,y,axisPaint)
          }
@@ -146,11 +171,11 @@ class HistogramView : View {
         for(data in datas){
             val time = data.time.toFloat()
             val value = data.value
-
-            val x = (time / xAxisLength) * xAxisWidth + xAxisStartX
-
-            val y = yAxisEndY -(yAxisHeight/yAxisCount+1)*(value / (max - min))
-            canvas.drawLine(x,xAxisStartY,x,y,valuePaint)
+            //val x = (time / xAxisLength) * xAxisWidth + xAxisLeft
+            val x = xAxisLeft + time * xDivideDistance + 0.5f * xDivideDistance
+            val y = yAxisBottom - yDivideDistance *((value - min)/yDataDistance)
+            Logger.e("${time * xDivideDistance + 0.5f * xDivideDistance}")
+            canvas.drawLine(x,xAxisTop,x,y,valuePaint)
         }
     }
 
@@ -167,4 +192,18 @@ class HistogramView : View {
         return "$hourStr:$minStr"
     }
 
+    /**获取x轴第num个变量横坐标
+     * 取两个分割线中间横坐标
+     */
+    private fun getXAxisValueX(num:Int):Float{
+        return xAxisLeft + (num*(xAxisLength/(xAxisCount-1))*xDivideDistance)+0.5f*xDivideDistance
+    }
+
+
+    /**
+     * 获取第num个分割线横坐标
+     */
+    private fun getXAxisDivideX(num:Int):Float{
+        return (num) * (xAxisLength.toFloat()/(xAxisCount.toFloat()-1))*xDivideDistance + xAxisLeft
+    }
 }
