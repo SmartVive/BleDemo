@@ -14,7 +14,7 @@ class BindDevicePresenter : BasePresenter<BindDeviceView>() {
     fun startScan(activity: FragmentActivity) {
         view?.onStartScan()
         BleManager.getInstance().startScan(activity, object : BleManager.ScanResultListener {
-            override fun onScanResult(callbackType: Int, result: ScanResult) {
+            override fun onScanResult(result: ScanResult) {
                 Logger.d(result.device?.name)
                 filterDevice(result)
             }

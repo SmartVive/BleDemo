@@ -7,22 +7,19 @@ import android.os.Message
 
 object CallBackHandler {
     //连接成功
-    const val CONNECT_SUCCESS_MSG = 400
-
-    //连接超时
-    const val CONNECT_TIMEOUT_MSG = 500
+    const val CONNECT_SUCCESS_MSG = 100
 
     //连接失败
-    const val CONNECT_FAIL_MSG = 600
+    const val CONNECT_FAIL_MSG = 200
 
     //断开连接
-    const val DISCONNECT_MSG = 700
+    const val DISCONNECT_MSG = 400
 
     //通信成功
-    const val COMM_SUCCESS_MSG = 800
+    const val COMM_SUCCESS_MSG = 500
 
     //通信失败
-    const val COMM_FAIL_MSG = 900
+    const val COMM_FAIL_MSG = 600
 
     const val MAC_KEY = "address"
     const val BLE_EXCEPTION_KEY = "bleException"
@@ -39,7 +36,6 @@ object CallBackHandler {
                     mac?.let {
                         val connectCallback = BleGlobal.getConnectCallback(mac)
                         connectCallback?.connectSuccess(bleDevice)
-                        removeMessages(CONNECT_TIMEOUT_MSG)
                     }
 
                 }
@@ -49,7 +45,6 @@ object CallBackHandler {
                     if (mac != null && exception != null){
                         val connectCallback = BleGlobal.getConnectCallback(mac)
                         connectCallback?.connectFail(exception)
-                        removeMessages(CONNECT_TIMEOUT_MSG)
                     }
                 }
                 DISCONNECT_MSG -> {
@@ -57,7 +52,6 @@ object CallBackHandler {
                     mac?.let {
                         val connectCallback = BleGlobal.getConnectCallback(mac)
                         connectCallback?.disconnect()
-                        removeMessages(CONNECT_TIMEOUT_MSG)
                     }
                 }
                 COMM_SUCCESS_MSG->{
@@ -95,9 +89,10 @@ object CallBackHandler {
         handler.sendMessage(message)
     }
 
-    fun sendConnectSuccessMsg(mac:String){
+    fun sendConnectSuccessMsg(mac:String,bleDevice: BleDevice){
         val message = getConnectMsg(mac)
         message.what = CONNECT_SUCCESS_MSG
+        message.obj = bleDevice
         handler.sendMessage(message)
     }
 
@@ -113,7 +108,6 @@ object CallBackHandler {
         val bundle = Bundle()
         bundle.putString(MAC_KEY,mac)
         message.data = bundle
-        message.obj = this
         return message
     }
 

@@ -49,4 +49,6 @@ dependencies {
 
     implementation 'com.hjq:titlebar:8.2'
     implementation 'com.google.code.gson:gson:2.8.6'
+
+    implementation 'org.litepal.guolindev:core:3.2.2'
 }

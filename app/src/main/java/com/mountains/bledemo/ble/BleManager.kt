@@ -14,9 +14,7 @@ import android.os.Looper
 import android.os.Message
 import androidx.fragment.app.FragmentActivity
 import com.mountains.bledemo.ble.callback.ConnectCallback
-import com.mountains.bledemo.util.ToastUtil
 import com.orhanobut.logger.Logger
-import java.lang.Exception
 
 
 class BleManager private constructor() {
@@ -29,7 +27,11 @@ class BleManager private constructor() {
         private var instance: BleManager? = null
 
         const val PERMISSION_FRAGMENT_TAG = "PERMISSION_FRAGMENT_TAG"
-        const val STOP_SCAN_MSG = 100
+        const val BLE_EXCEPTION_KEY = "bleException"
+        const val SCAN_RESULT_MSG = 100
+        const val SCAN_FAIL_MSG = 200
+        const val SCAN_COMPLETE_MSG = 300
+        const val SCAN_TIMEOUT_MSG = 400
 
         fun getInstance(): BleManager {
             if (instance == null) {
@@ -44,8 +46,24 @@ class BleManager private constructor() {
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
             when (msg.what) {
-                STOP_SCAN_MSG -> {
+                SCAN_RESULT_MSG->{
+                    val obj = msg.obj
+                    if (obj is ScanResult){
+                        scanResultListener?.onScanResult(obj)
+                    }
+                }
+                SCAN_FAIL_MSG->{
+                    val bleException = msg.data.getParcelable<BleException>(BLE_EXCEPTION_KEY)
+                    bleException?.let {
+                        scanResultListener?.onScanFailed(bleException)
+                        scanResultListener = null
+                    }
+                }
+                SCAN_COMPLETE_MSG->{
                     scanResultListener?.onScanComplete()
+                    scanResultListener = null
+                }
+                SCAN_TIMEOUT_MSG->{
                     stopScan()
                 }
             }
@@ -56,15 +74,18 @@ class BleManager private constructor() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             super.onScanResult(callbackType, result)
             result?.let {
-                scanResultListener?.onScanResult(callbackType, result)
+                val message = handler.obtainMessage(SCAN_RESULT_MSG)
+                message.obj = result
+                handler.sendMessage(message)
             }
 
         }
 
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
-            scanResultListener?.onScanFailed(BleException(BleException.SCAN_UNKNOWN_ERROR_CODE,"ScanCallback:onScanFailed($errorCode)"))
-            scanResultListener = null
+            val message = handler.obtainMessage(SCAN_FAIL_MSG)
+            message.data.putParcelable(BLE_EXCEPTION_KEY,BleException(BleException.SCAN_UNKNOWN_ERROR_CODE,"ScanCallback:onScanFailed($errorCode)"))
+            handler.sendMessage(message)
         }
     }
 
@@ -76,7 +97,7 @@ class BleManager private constructor() {
     }
 
     private fun isSupportBle():Boolean{
-        if(context!= null && context!!.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) && adapter!= null){
+        if(context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) && adapter!= null){
             return true
         }
         return false
@@ -91,7 +112,7 @@ class BleManager private constructor() {
      */
     fun enableBlueTooth(activity: FragmentActivity,listener:BlueToothEnableListener) {
         if (!isSupportBle()){
-            listener.onEnableFail(BleException(BleException.BLE_NOT_SUPPORT,"此设备不支持ble蓝牙"))
+            listener.onEnableFail(BleException(BleException.BLE_NOT_SUPPORT_CODE,"此设备不支持ble蓝牙"))
             return
         }
 
@@ -103,7 +124,7 @@ class BleManager private constructor() {
                     if (resultCode == Activity.RESULT_OK) {
                         listener.onEnableSuccess()
                     }else{
-                        listener.onEnableFail(BleException(BleException.ENABLE_PERMISSION_DENIED_CODE,"获取权限失败"))
+                        listener.onEnableFail(BleException(BleException.BLE_ENABLE_FAIL_CODE,"打开蓝牙失败"))
                     }
                 }
 
@@ -134,13 +155,15 @@ class BleManager private constructor() {
                     adapter.bluetoothLeScanner?.startScan(null, scanSettings, scanCallback)
 
                     //限定扫描时间，到达就停止扫描
-                    handler.removeMessages(STOP_SCAN_MSG)
-                    handler.sendEmptyMessageDelayed(STOP_SCAN_MSG, BleConfiguration.scanDelayed)
+                    handler.removeMessages(SCAN_TIMEOUT_MSG)
+                    handler.sendEmptyMessageDelayed(SCAN_TIMEOUT_MSG, BleConfiguration.scanTimeout)
                 }
 
                 override fun onRequestFail() {
                     //ToastUtil.show("未开启权限无法搜索蓝牙")
-                    listener.onScanFailed(BleException(BleException.SCAN_PERMISSION_DENIED_CODE,"获取权限失败"))
+                    val message = handler.obtainMessage(SCAN_FAIL_MSG)
+                    message.data.putParcelable(BLE_EXCEPTION_KEY,BleException(BleException.SCAN_PERMISSION_DENIED_CODE,"获取权限失败"))
+                    handler.sendMessage(message)
                 }
 
             })
@@ -151,8 +174,8 @@ class BleManager private constructor() {
      */
     fun stopScan() {
         adapter.bluetoothLeScanner?.stopScan(scanCallback)
-        scanResultListener?.onScanComplete()
-        scanResultListener = null
+        val message = handler.obtainMessage(SCAN_COMPLETE_MSG)
+        handler.sendMessage(message)
     }
 
 
@@ -175,7 +198,7 @@ class BleManager private constructor() {
     }
 
     interface ScanResultListener {
-        fun onScanResult(callbackType: Int, result: ScanResult)
+        fun onScanResult(result: ScanResult)
 
         fun onScanFailed(bleException: BleException)
 

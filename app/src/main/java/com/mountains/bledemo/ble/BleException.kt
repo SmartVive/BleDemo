@@ -10,9 +10,9 @@ class BleException(val code:Int,val message:String):Parcelable {
          * 启动蓝牙
          */
         //不支持ble
-        const val BLE_NOT_SUPPORT = 30
-        //没有权限
-        const val ENABLE_PERMISSION_DENIED_CODE = 31
+        const val BLE_NOT_SUPPORT_CODE = 30
+        //打开蓝牙失败
+        const val BLE_ENABLE_FAIL_CODE = 31
 
 
         /**

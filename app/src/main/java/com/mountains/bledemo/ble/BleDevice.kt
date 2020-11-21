@@ -22,7 +22,6 @@ class BleDevice(val device: BluetoothDevice) {
     //当前重试次数
     var currentRetryCount = 0
 
-
     //设备gatt
     var bluetoothGatt:BluetoothGatt? = null
 
@@ -31,23 +30,8 @@ class BleDevice(val device: BluetoothDevice) {
     private set
 
     companion object {
-        //连接成功
-        const val CONNECT_SUCCESS_MSG = 400
-
         //连接超时
-        const val CONNECT_TIMEOUT_MSG = 500
-
-        //连接失败
-        const val CONNECT_FAIL_MSG = 600
-
-        //断开连接
-        const val DISCONNECT_MSG = 700
-
-        //通信成功
-        const val COMM_SUCCESS_MSG = 800
-
-        //通信失败
-        const val COMM_FAIL_MSG = 900
+        const val CONNECT_TIMEOUT_MSG = 300
 
 
         val READ_CHARACTERISTIC_TYPE = 0
@@ -56,75 +40,23 @@ class BleDevice(val device: BluetoothDevice) {
         val WRITE_DESCRIPTOR_TYPE = 3
         val ENABLE_NOTIFY_TYPE = 4
 
-        const val MAC_KEY = "address"
-        const val BLE_EXCEPTION_KEY = "bleException"
-        const val UUID_KEY = "address"
+    }
 
-        val handler = object : Handler(Looper.getMainLooper()) {
-            override fun handleMessage(msg: Message) {
-                super.handleMessage(msg)
-                val data = msg.data
-                when(msg.what){
-                    CONNECT_SUCCESS_MSG -> {
-                        val mac = data.getString(MAC_KEY)
-                        val bleDevice = msg.obj as BleDevice
-                        mac?.let {
-                            val connectCallback = BleGlobal.getConnectCallback(mac)
-                            connectCallback?.connectSuccess(bleDevice)
-                            removeMessages(CONNECT_TIMEOUT_MSG)
-                        }
 
-                    }
-                    CONNECT_FAIL_MSG -> {
-                        val mac = data.getString(MAC_KEY)
-                        val exception = data.getParcelable<BleException>(BLE_EXCEPTION_KEY)
-                        if (mac != null && exception != null){
-                            val connectCallback = BleGlobal.getConnectCallback(mac)
-                            connectCallback?.connectFail(exception)
-                            removeMessages(CONNECT_TIMEOUT_MSG)
-                        }
-                    }
-                    DISCONNECT_MSG -> {
-                        val mac = data.getString(MAC_KEY)
-                        mac?.let {
-                            val connectCallback = BleGlobal.getConnectCallback(mac)
-                            connectCallback?.disconnect()
-                            removeMessages(CONNECT_TIMEOUT_MSG)
-                        }
-                    }
-                    CONNECT_TIMEOUT_MSG -> {
-                        val mac = data.getString(MAC_KEY)
-                        mac?.let {
-                            val connectCallback = BleGlobal.getConnectCallback(mac)
-                            val bleException = BleException(BleException.CONNECT_TIMEOUT_CODE, "连接超时")
-                            connectCallback?.connectFail(bleException)
-                            removeMessages(CONNECT_TIMEOUT_MSG)
-                        }
-
-                    }
-                    COMM_SUCCESS_MSG->{
-                        val uuid = data.getString(UUID_KEY)
-                        val data = msg.obj as ByteArray
-                        uuid?.let {
-                            val callback = BleGlobal.commCallbackMap.get(uuid)
-                            callback?.onSuccess(data)
-                        }
-                    }
-                    COMM_FAIL_MSG->{
-                        val uuid = data.getString(UUID_KEY)
-                        val exception = data.getParcelable<BleException>(BLE_EXCEPTION_KEY)
-                        if (uuid != null && exception != null){
-                            val callback = BleGlobal.commCallbackMap.get(uuid)
-                            callback?.onFail(exception)
-                        }
-
+    val handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when(msg.what){
+                CONNECT_TIMEOUT_MSG -> {
+                    if(canReconnect()){
+                        reconnection()
+                    }else{
+                        sendConnectFailMsg( BleException(BleException.CONNECT_TIMEOUT_CODE, "连接超时"))
                     }
                 }
-
             }
         }
     }
-
 
 
 
@@ -418,10 +350,10 @@ class BleDevice(val device: BluetoothDevice) {
             BleGlobal.lock.lock()
             BleGlobal.condition.signal()
             if(status != BluetoothGatt.GATT_SUCCESS){
-                CallBackHandler.sendCommFailMsg(uuid,BleException(BleException.COMM_UNKNOWN_ERROR_CODE,"unKnown error:$status !!"))
+                sendCommFailMsg(uuid,BleException(BleException.COMM_UNKNOWN_ERROR_CODE,"unKnown error:$status !!"))
             }else{
                 Logger.d(data)
-                CallBackHandler.sendCommSuccessMsg(uuid,data)
+                sendCommSuccessMsg(uuid,data)
             }
 
         }catch (e:Exception){
@@ -434,59 +366,38 @@ class BleDevice(val device: BluetoothDevice) {
 
     private fun sendConnectFailMsg(bleException: BleException){
         currentRetryCount = 0
-        val message = getConnectMsg()
-        message.what = CONNECT_FAIL_MSG
-        message.data.putParcelable(BLE_EXCEPTION_KEY,bleException)
-        handler.sendMessage(message)
+        removeConnectTimeoutMsg()
+        CallBackHandler.sendConnectFailMsg(device.address,bleException)
     }
 
     private fun sendConnectSuccessMsg(){
         currentRetryCount = 0
-        val message = getConnectMsg()
-        message.what = CONNECT_SUCCESS_MSG
-        handler.sendMessage(message)
+        removeConnectTimeoutMsg()
+        CallBackHandler.sendConnectSuccessMsg(device.address,this)
     }
 
     private fun sendDisconnectMsg(){
         currentRetryCount = 0
-        val message = getConnectMsg()
-        message.what = DISCONNECT_MSG
-        handler.sendMessage(message)
+        removeConnectTimeoutMsg()
+        CallBackHandler.sendDisconnectMsg(device.address)
     }
 
     private fun sendConnectTimeoutMsg(){
-        val message = getConnectMsg()
+        val message = Message.obtain()
         message.what = CONNECT_TIMEOUT_MSG
         handler.removeMessages(CONNECT_TIMEOUT_MSG)
         handler.sendMessageDelayed(message,BleConfiguration.connectTimeout)
     }
 
-    private fun getConnectMsg():Message{
-        val message = Message.obtain()
-        val bundle = Bundle()
-        bundle.putString(MAC_KEY,device.address)
-        message.data = bundle
-        message.obj = this
-        return message
+    private fun removeConnectTimeoutMsg(){
+        handler.removeMessages(CONNECT_TIMEOUT_MSG)
     }
 
     private fun sendCommSuccessMsg(uuid: String?, data: ByteArray?){
-        val message = Message.obtain()
-        val bundle = Bundle()
-        bundle.putString(UUID_KEY,uuid)
-        message.what = COMM_SUCCESS_MSG
-        message.obj = data
-        message.data = bundle
-        handler.sendMessage(message)
+        CallBackHandler.sendCommSuccessMsg(uuid,data)
     }
 
     private fun sendCommFailMsg(uuid: String?, bleException: BleException){
-        val message = Message.obtain()
-        val bundle = Bundle()
-        bundle.putString(UUID_KEY,uuid)
-        bundle.putParcelable(BLE_EXCEPTION_KEY,bleException)
-        message.what = COMM_FAIL_MSG
-        message.data = bundle
-        handler.sendMessage(message)
+        CallBackHandler.sendCommFailMsg(uuid,bleException)
     }
 }

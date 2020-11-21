@@ -11,9 +11,9 @@ import com.orhanobut.logger.Logger
 import java.util.*
 
 class HistogramView : View {
-    //y轴个数
+    //y轴分割线个数
     var yAxisCount = 9
-    //x轴个数
+    //x轴分割线个数
     var xAxisCount = 7
     //x、y轴画笔
     lateinit var axisPaint: Paint
@@ -26,7 +26,11 @@ class HistogramView : View {
     //y轴边距
     var yAxisMargin = 80f
 
-    var xAxisLength = 1440
+    var xAxisLength = 120
+
+    //单位秒
+    var xAxisStartTime:Float = 0f
+    var xAxisEndTime:Float = 86400f
 
     var datas: MutableList<HistogramEntity> = mutableListOf()
 
@@ -54,14 +58,14 @@ class HistogramView : View {
         valuePaint = Paint()
         valuePaint.isAntiAlias = true
         valuePaint.setColor(Color.RED)
-        valuePaint.strokeWidth = 3f
+        valuePaint.strokeWidth = 1f
 
 
 
-        for (i in 0 .. 72){
+        for (i in 0 .. 60){
             val random = Random()
             val value = (random.nextDouble() * 100 + 30).toInt()
-            val histogramEntity = HistogramEntity(100, i * 20)
+            val histogramEntity = HistogramEntity(value, i * 1440)
             datas.add(histogramEntity)
         }
 
@@ -86,6 +90,9 @@ class HistogramView : View {
     //y轴分割线两点距离
     var yDivideDistance = 0f
 
+    //x轴两个变量距离
+    var xValueDistance = 0f
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         xAxisLeft = xAxisMargin
@@ -101,9 +108,12 @@ class HistogramView : View {
         yAxisHeight = yAxisBottom - yAxisTop
 
         //x轴分割线两点距离
-        xDivideDistance = xAxisWidth / (xAxisLength)
+        xDivideDistance = xAxisWidth / (xAxisCount - 1)
         //y轴分割线两点距离
         yDivideDistance = yAxisHeight / (yAxisCount-1)
+
+        //x轴两个变量距离
+        xValueDistance = xAxisWidth/(xAxisEndTime-xAxisStartTime)
 
         Logger.e("$xDivideDistance")
     }
@@ -130,9 +140,9 @@ class HistogramView : View {
         for (i in 0 until xAxisCount) {
             val x = getXAxisValueX(i)
             val y = xAxisTop + 50
-            //val min = ((xAxisLength/xAxisCount) * i  + (xAxisLength/xAxisCount) * (i+1)) / 2
-            val min = xAxisLength / (xAxisCount-1) * i
-            canvas.drawText(min2Hour(min), x, y, axisPaint)
+            //val min = xAxisLength / (xAxisCount-1) * i
+            val second = (xAxisEndTime-xAxisStartTime) / (xAxisCount-1) * i
+            canvas.drawText(second2Hour(second.toInt()), x, y, axisPaint)
         }
 
 
@@ -155,6 +165,8 @@ class HistogramView : View {
         }
         max *= 1.1f
         min *= 0.9f
+        //max = 110f
+        //min = 90f
 
 
          //y值数据间隔
@@ -167,22 +179,39 @@ class HistogramView : View {
              canvas.drawText(value,x,y,axisPaint)
          }
 
+
         //画数值
-        for(data in datas){
-            val time = data.time.toFloat()
-            val value = data.value
-            //val x = (time / xAxisLength) * xAxisWidth + xAxisLeft
-            val x = xAxisLeft + time * xDivideDistance + 0.5f * xDivideDistance
+        for (i in 0 until  xAxisLength){
+            val startTime = i* ((xAxisEndTime-xAxisStartTime)/xAxisLength)
+            val endTime = (i+1)* ((xAxisEndTime-xAxisStartTime)/xAxisLength)
+
+            var sumValue = 0f
+            var count = 0
+            for(data in datas){
+                if (startTime<=data.time && endTime>data.time){
+                    sumValue+=data.value
+                    count++
+                }
+            }
+
+            //多个数值用一条线显示时，显示平均值
+            val value = sumValue/count
             val y = yAxisBottom - yDivideDistance *((value - min)/yDataDistance)
-            Logger.e("${time * xDivideDistance + 0.5f * xDivideDistance}")
-            canvas.drawLine(x,xAxisTop,x,y,valuePaint)
+            var left = xAxisLeft + startTime * xValueDistance
+            var right = xAxisLeft + endTime * xValueDistance
+
+            left += (right-left)*0.3f
+            right -= (right-left)*0.3f
+            //Logger.e("$left,$right")
+            canvas.drawRect(left,y,right,xAxisTop,valuePaint)
         }
+
     }
 
 
-    fun min2Hour(min: Int): String {
-        var hourStr = (min / 60).toString()
-        var minStr = (min % 60).toString()
+    fun second2Hour(second: Int): String {
+        var hourStr = (second/60 / 60).toString()
+        var minStr = (second/60 % 60).toString()
         if(hourStr.length == 1){
             hourStr = "0$hourStr"
         }
@@ -195,8 +224,8 @@ class HistogramView : View {
     /**获取x轴第num个变量横坐标
      * 取两个分割线中间横坐标
      */
-    private fun getXAxisValueX(num:Int):Float{
-        return xAxisLeft + (num*(xAxisLength/(xAxisCount-1))*xDivideDistance)+0.5f*xDivideDistance
+    private fun getXAxisValueX(num: Int): Float {
+        return xAxisLeft + num*xDivideDistance +  0.5f * xValueDistance
     }
 
 
@@ -204,6 +233,6 @@ class HistogramView : View {
      * 获取第num个分割线横坐标
      */
     private fun getXAxisDivideX(num:Int):Float{
-        return (num) * (xAxisLength.toFloat()/(xAxisCount.toFloat()-1))*xDivideDistance + xAxisLeft
+        return num * xDivideDistance  + xAxisLeft
     }
 }

@@ -3,7 +3,7 @@ package com.mountains.bledemo.helper
 object CommHelper {
 
     //查找手机，（震动）
-    fun findDevice(flag:Boolean):ByteArray{
+    fun findDevice(flag: Boolean): ByteArray {
         val bArr = ByteArray(20)
         bArr[0] = 5
         bArr[1] = 5
@@ -28,11 +28,32 @@ object CommHelper {
     }
 
     //获取设备信息
-    fun getDeviceInfo(): ByteArray{
+    fun getDeviceInfo(): ByteArray {
         val bArr = ByteArray(20)
         bArr[0] = 5
         bArr[1] = 1
         bArr[2] = 2
         return bArr
     }
+
+    fun getHistoryHeartRateData(): ByteArray {
+        val bArr = ByteArray(20)
+        bArr[0] = 5;
+        bArr[1] = 7
+        bArr[2] = 7
+        return bArr
+    }
+
+    /**
+     * 步数历史记录
+     */
+    fun getHistorySportData(): ByteArray {
+        val bArr = ByteArray(20)
+        bArr[0] = 5;
+        bArr[1] = 7
+        bArr[2] = 3
+        return bArr;
+    }
+
+
 }
