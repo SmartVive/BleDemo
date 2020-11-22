@@ -3,7 +3,6 @@ package com.mountains.bledemo.ble
 import android.bluetooth.*
 import android.content.Context
 import android.os.*
-import androidx.core.os.bundleOf
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.orhanobut.logger.Logger
@@ -25,9 +24,7 @@ class BleDevice(val device: BluetoothDevice) {
     //设备gatt
     var bluetoothGatt:BluetoothGatt? = null
 
-    //通知回调
-    var notifyCallBackList = LinkedList<CommCallback>()
-    private set
+
 
     companion object {
         //连接超时
@@ -51,9 +48,10 @@ class BleDevice(val device: BluetoothDevice) {
                     if(canReconnect()){
                         reconnection()
                     }else{
-                        sendConnectFailMsg( BleException(BleException.CONNECT_TIMEOUT_CODE, "连接超时"))
+                        sendConnectFailMsg(BleException(BleException.CONNECT_TIMEOUT_CODE, "连接超时"))
                     }
                 }
+
             }
         }
     }
@@ -73,7 +71,7 @@ class BleDevice(val device: BluetoothDevice) {
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 close()
                 if (status == BluetoothGatt.GATT_SUCCESS) {
-                    //已断开
+                    //已断开,主动断开
                     Logger.d("设备已断开:${gatt?.device?.name}")
                     sendDisconnectMsg()
                 } else {
@@ -104,7 +102,7 @@ class BleDevice(val device: BluetoothDevice) {
                     Logger.d("发现服务失败,正在重试:${gatt?.device?.name}")
                     reconnection()
                 }else{
-                    Logger.d("发现服务失败:${gatt?.device?.name}")
+                    Logger.d("超过重连次数，发现服务失败:${gatt?.device?.name}")
                     sendConnectFailMsg(BleException(BleException.CONNECT_FAIL_CODE,"发现服务失败"))
                 }
             }
@@ -139,18 +137,11 @@ class BleDevice(val device: BluetoothDevice) {
             commResult(status,descriptor?.uuid.toString(),descriptor?.value)
         }
 
-        override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
+        override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic) {
             super.onCharacteristicChanged(gatt, characteristic)
             Logger.i("onCharacteristicChanged")
             //SportDataDecodeHelper().decode(characteristic?.value)
-            for (callBack in notifyCallBackList){
-                if(characteristic != null){
-                    callBack.onSuccess(characteristic.value)
-                }else{
-                    callBack.onFail(BleException(BleException.COMM_UNKNOWN_ERROR_CODE,"characteristic is null!!"))
-                }
-
-            }
+            sendNotifyMsg(characteristic.value)
         }
     }
 
@@ -162,14 +153,7 @@ class BleDevice(val device: BluetoothDevice) {
      */
     fun connect(context: Context, callback: ConnectCallback) {
         this.context = context
-        BleGlobal.putConnectCallback(device.address,callback)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            device.connectGatt(context, false, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE)
-        } else {
-            device.connectGatt(context, false, bluetoothGattCallback)
-        }
-        sendConnectTimeoutMsg()
+        BleGlobal.bleCommThreadPoll.execute(ConnectRunnable(context,device,bluetoothGattCallback,callback))
     }
 
     /**
@@ -186,11 +170,15 @@ class BleDevice(val device: BluetoothDevice) {
      */
     private fun reconnection(){
         Logger.d("连接失败，正在重连:${device.name}")
+        BleGlobal.lock.lock()
+        val connectCallback = BleGlobal.getConnectCallback(device.address)
+        BleGlobal.condition.signal()
+        BleGlobal.lock.unlock()
         if (context == null) {
             sendConnectFailMsg(BleException(BleException.CONNECT_FAIL_CODE, "context == null !!"))
             return
         }
-        BleGlobal.getConnectCallback(device.address)?.let {
+        connectCallback?.let {
             connect(context!!,it)
         }
     }
@@ -266,14 +254,14 @@ class BleDevice(val device: BluetoothDevice) {
      * 添加通知回调
      */
     fun addNotifyCallBack(callback: CommCallback){
-        notifyCallBackList.add(callback)
+        BleGlobal.putNotifyCallback(device.address,callback)
     }
 
     /**
      * 删除通知回调
      */
     fun removeNotifyCallBack(callback: CommCallback){
-        notifyCallBackList.remove(callback)
+        BleGlobal.removeNotifyCallback(device.address,callback)
     }
 
     private fun commit(type:Int, serviceUUID: String, characteristicUUID: String, descriptorUUID: String?, data: ByteArray?, callback: CommCallback){
@@ -365,21 +353,33 @@ class BleDevice(val device: BluetoothDevice) {
 
 
     private fun sendConnectFailMsg(bleException: BleException){
+        BleGlobal.lock.lock()
         currentRetryCount = 0
+        BleGlobal.condition.signal()
         removeConnectTimeoutMsg()
-        CallBackHandler.sendConnectFailMsg(device.address,bleException)
+        BleGlobal.removeBleDevice(device.address)
+        BleCallBackHandler.sendConnectFailMsg(device.address,bleException)
+        BleGlobal.lock.unlock()
     }
 
     private fun sendConnectSuccessMsg(){
+        BleGlobal.lock.lock()
         currentRetryCount = 0
+        BleGlobal.condition.signal()
         removeConnectTimeoutMsg()
-        CallBackHandler.sendConnectSuccessMsg(device.address,this)
+        BleGlobal.putBleDevice(device.address,this)
+        BleCallBackHandler.sendConnectSuccessMsg(device.address,this)
+        BleGlobal.lock.unlock()
     }
 
     private fun sendDisconnectMsg(){
+        BleGlobal.lock.lock()
         currentRetryCount = 0
+        BleGlobal.condition.signal()
         removeConnectTimeoutMsg()
-        CallBackHandler.sendDisconnectMsg(device.address)
+        BleGlobal.removeBleDevice(device.address)
+        BleCallBackHandler.sendDisconnectMsg(device.address)
+        BleGlobal.lock.unlock()
     }
 
     private fun sendConnectTimeoutMsg(){
@@ -394,10 +394,14 @@ class BleDevice(val device: BluetoothDevice) {
     }
 
     private fun sendCommSuccessMsg(uuid: String?, data: ByteArray?){
-        CallBackHandler.sendCommSuccessMsg(uuid,data)
+        BleCallBackHandler.sendCommSuccessMsg(uuid,data)
     }
 
     private fun sendCommFailMsg(uuid: String?, bleException: BleException){
-        CallBackHandler.sendCommFailMsg(uuid,bleException)
+        BleCallBackHandler.sendCommFailMsg(uuid,bleException)
+    }
+
+    private fun sendNotifyMsg(data: ByteArray) {
+        BleCallBackHandler.sendNotifyMsg(device.address,data)
     }
 }

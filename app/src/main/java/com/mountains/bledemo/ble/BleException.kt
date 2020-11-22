@@ -29,6 +29,7 @@ class BleException(val code:Int,val message:String):Parcelable {
          */
         const val CONNECT_FAIL_CODE = 1
         const val CONNECT_TIMEOUT_CODE = 2
+        const val CONNECT_ALREADY_CONNECTED_CODE = 3
 
         /**
          * 通信错误

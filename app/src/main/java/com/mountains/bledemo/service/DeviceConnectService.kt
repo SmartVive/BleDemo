@@ -3,10 +3,7 @@ package com.mountains.bledemo.service
 import android.app.Service
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
-import android.os.Handler
-import android.os.IBinder
-import android.os.Looper
-import android.os.Message
+import android.os.*
 import com.mountains.bledemo.ble.BleDevice
 import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.BleManager
@@ -43,8 +40,15 @@ class DeviceConnectService : Service() {
         }
     }
 
+    inner class MyBinder : Binder() {
+        fun getService():DeviceConnectService{
+            return this@DeviceConnectService
+        }
+
+    }
+
     override fun onBind(p0: Intent?): IBinder? {
-        return null
+        return MyBinder()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -65,19 +69,23 @@ class DeviceConnectService : Service() {
     /**
      * 连接设备
      */
-    fun connectDevice(device: BluetoothDevice){
+    fun connectDevice(device: BluetoothDevice,connectCallback: ConnectCallback? = null){
+        Logger.d("正在连接设备${device.name}")
         BleManager.getInstance().connectDevice(device, object : ConnectCallback {
             override fun connectSuccess(bleDevice: BleDevice) {
+                connectCallback?.connectSuccess(bleDevice)
                 ToastUtil.show("连接成功:${bleDevice.device.name}")
                 connectedDevice = bleDevice
                 enableNotify()
             }
 
             override fun connectFail(exception: BleException) {
+                connectCallback?.connectFail(exception)
                 ToastUtil.show("连接失败：${exception.message}")
             }
 
             override fun disconnect() {
+                connectCallback?.disconnect()
                 ToastUtil.show("断开连接")
             }
 

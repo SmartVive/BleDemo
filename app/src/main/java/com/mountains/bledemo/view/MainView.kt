@@ -1,4 +1,4 @@
-package com.mountains.bledemo
+package com.mountains.bledemo.view
 
 import com.mountains.bledemo.base.BaseView
 

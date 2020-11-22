@@ -14,16 +14,23 @@ import com.mountains.bledemo.base.BaseActivity
 import com.mountains.bledemo.ble.*
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.bean.CardItemData
+import com.mountains.bledemo.bean.SportBean
 import com.mountains.bledemo.event.SportEvent
 import com.mountains.bledemo.helper.BaseUUID
 import com.mountains.bledemo.helper.CommHelper
+import com.mountains.bledemo.presenter.MainPresenter
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.ui.activity.BindDeviceActivity
+import com.mountains.bledemo.ui.activity.StepDetailsActivity
 import com.mountains.bledemo.util.DisplayUtil
+import com.mountains.bledemo.view.MainView
+import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_main.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import org.litepal.LitePal
+import org.litepal.extension.find
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -51,6 +58,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
         initView()
         initItemData()
+
     }
 
     override fun onDestroy() {
@@ -105,6 +113,11 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
                     swipeRefreshLayout.isRefreshing = false
                 }
             })
+        }
+
+        layoutStep.setOnClickListener {
+            val intent = Intent(this, StepDetailsActivity::class.java)
+            startActivity(intent)
         }
     }
 

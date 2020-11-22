@@ -26,13 +26,13 @@ class HistogramView : View {
     //y轴边距
     var yAxisMargin = 80f
 
-    var xAxisLength = 120
+    var xAxisLength = 48
 
     //单位秒
     var xAxisStartTime:Float = 0f
     var xAxisEndTime:Float = 86400f
 
-    var datas: MutableList<HistogramEntity> = mutableListOf()
+    var datas: MutableList<IHistogramData> = mutableListOf()
 
     var textOffset = 0f
 
@@ -65,7 +65,7 @@ class HistogramView : View {
         for (i in 0 .. 60){
             val random = Random()
             val value = (random.nextDouble() * 100 + 30).toInt()
-            val histogramEntity = HistogramEntity(value, i * 1440)
+            val histogramEntity = HistogramEntity(value, i * 1440L)
             datas.add(histogramEntity)
         }
 
@@ -114,8 +114,6 @@ class HistogramView : View {
 
         //x轴两个变量距离
         xValueDistance = xAxisWidth/(xAxisEndTime-xAxisStartTime)
-
-        Logger.e("$xDivideDistance")
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -160,8 +158,8 @@ class HistogramView : View {
         var max = Float.MIN_VALUE
         var min = Float.MAX_VALUE
         for (data in datas) {
-            max = Math.max(max, data.value.toFloat())
-            min = Math.min(min, data.value.toFloat())
+            max = Math.max(max, data.getHistogramValue().toFloat())
+            min = Math.min(min, data.getHistogramValue().toFloat())
         }
         max *= 1.1f
         min *= 0.9f
@@ -188,8 +186,8 @@ class HistogramView : View {
             var sumValue = 0f
             var count = 0
             for(data in datas){
-                if (startTime<=data.time && endTime>data.time){
-                    sumValue+=data.value
+                if (startTime<=data.getHistogramTime() && endTime>data.getHistogramTime()){
+                    sumValue+=data.getHistogramValue()
                     count++
                 }
             }
@@ -234,5 +232,11 @@ class HistogramView : View {
      */
     private fun getXAxisDivideX(num:Int):Float{
         return num * xDivideDistance  + xAxisLeft
+    }
+
+    fun loadData(data : List<IHistogramData>){
+        datas.clear()
+        datas.addAll(data)
+        postInvalidate()
     }
 }

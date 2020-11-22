@@ -24,6 +24,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.activity.BindDeviceActivity" />
+        <activity android:name=".ui.activity.StepDetailsActivity" />
 
         <service android:name=".service.DeviceConnectService" />
     </application>

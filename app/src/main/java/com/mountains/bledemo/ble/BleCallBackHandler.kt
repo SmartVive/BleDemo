@@ -5,7 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 
-object CallBackHandler {
+object BleCallBackHandler {
     //连接成功
     const val CONNECT_SUCCESS_MSG = 100
 
@@ -21,6 +21,9 @@ object CallBackHandler {
     //通信失败
     const val COMM_FAIL_MSG = 600
 
+    //notify
+    const val COMM_NOTIFY_MSG = 700
+
     const val MAC_KEY = "address"
     const val BLE_EXCEPTION_KEY = "bleException"
     const val UUID_KEY = "address"
@@ -29,104 +32,117 @@ object CallBackHandler {
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
             val data = msg.data
-            when(msg.what){
+            val mac = data.getString(MAC_KEY)
+            val uuid = data.getString(UUID_KEY)
+            val obj = msg.obj
+            when (msg.what) {
                 CONNECT_SUCCESS_MSG -> {
-                    val mac = data.getString(MAC_KEY)
-                    val bleDevice = msg.obj as BleDevice
                     mac?.let {
                         val connectCallback = BleGlobal.getConnectCallback(mac)
-                        connectCallback?.connectSuccess(bleDevice)
+                        if (obj is BleDevice) {
+                            connectCallback?.connectSuccess(obj)
+                        }
                     }
-
                 }
                 CONNECT_FAIL_MSG -> {
-                    val mac = data.getString(MAC_KEY)
                     val exception = data.getParcelable<BleException>(BLE_EXCEPTION_KEY)
-                    if (mac != null && exception != null){
+                    if (mac != null && exception != null) {
                         val connectCallback = BleGlobal.getConnectCallback(mac)
+                        BleGlobal.removeConnectCallback(mac)
                         connectCallback?.connectFail(exception)
                     }
                 }
                 DISCONNECT_MSG -> {
-                    val mac = data.getString(MAC_KEY)
                     mac?.let {
                         val connectCallback = BleGlobal.getConnectCallback(mac)
+                        BleGlobal.removeConnectCallback(mac)
                         connectCallback?.disconnect()
                     }
                 }
-                COMM_SUCCESS_MSG->{
-                    val uuid = data.getString(UUID_KEY)
-                    val obj = msg.obj
+                COMM_SUCCESS_MSG -> {
                     uuid?.let {
-                        val callback = BleGlobal.commCallbackMap.get(uuid)
-                        if (obj is ByteArray){
+                        val callback = BleGlobal.getCommCallBack(uuid)
+                        BleGlobal.removeCommCallback(uuid)
+                        if (obj is ByteArray) {
                             callback?.onSuccess(obj)
-                        }else{
-                            callback?.onSuccess(null)
                         }
-                        BleGlobal.commCallbackMap.remove(uuid)
                     }
                 }
-                COMM_FAIL_MSG->{
-                    val uuid = data.getString(UUID_KEY)
+                COMM_FAIL_MSG -> {
                     val exception = data.getParcelable<BleException>(BLE_EXCEPTION_KEY)
-                    if (uuid != null && exception != null){
-                        val callback = BleGlobal.commCallbackMap.get(uuid)
+                    if (uuid != null && exception != null) {
+                        val callback = BleGlobal.getCommCallBack(uuid)
+                        BleGlobal.removeCommCallback(uuid)
                         callback?.onFail(exception)
-                        BleGlobal.commCallbackMap.remove(uuid)
                     }
 
                 }
+                COMM_NOTIFY_MSG -> {
+                    mac?.let {
+                        val notifyCallbackList = BleGlobal.getNotifyCallback(mac) ?: return
+                        if (obj is ByteArray) {
+                            for (callBack in notifyCallbackList) {
+                                callBack.onSuccess(obj)
+                            }
+                        }
+                    }
+                }
+
             }
 
         }
     }
 
-    fun sendConnectFailMsg(mac:String,bleException: BleException){
+    fun sendConnectFailMsg(mac: String, bleException: BleException) {
         val message = getConnectMsg(mac)
         message.what = CONNECT_FAIL_MSG
-        message.data.putParcelable(BLE_EXCEPTION_KEY,bleException)
+        message.data.putParcelable(BLE_EXCEPTION_KEY, bleException)
         handler.sendMessage(message)
     }
 
-    fun sendConnectSuccessMsg(mac:String,bleDevice: BleDevice){
+    fun sendConnectSuccessMsg(mac: String, bleDevice: BleDevice) {
         val message = getConnectMsg(mac)
         message.what = CONNECT_SUCCESS_MSG
         message.obj = bleDevice
         handler.sendMessage(message)
     }
 
-    fun sendDisconnectMsg(mac:String){
+    fun sendDisconnectMsg(mac: String) {
         val message = getConnectMsg(mac)
         message.what = DISCONNECT_MSG
         handler.sendMessage(message)
     }
 
 
-    fun getConnectMsg(mac:String):Message{
-        val message = Message.obtain()
+    fun getConnectMsg(mac: String): Message {
+        val message = handler.obtainMessage()
         val bundle = Bundle()
-        bundle.putString(MAC_KEY,mac)
+        bundle.putString(MAC_KEY, mac)
         message.data = bundle
         return message
     }
 
-    fun sendCommSuccessMsg(uuid: String?, data: ByteArray?){
-        val message = Message.obtain()
+    fun sendCommSuccessMsg(uuid: String?, data: ByteArray?) {
+        val message = handler.obtainMessage(COMM_SUCCESS_MSG, data)
         val bundle = Bundle()
-        bundle.putString(UUID_KEY,uuid)
-        message.what = COMM_SUCCESS_MSG
-        message.obj = data
+        bundle.putString(UUID_KEY, uuid)
         message.data = bundle
         handler.sendMessage(message)
     }
 
-    fun sendCommFailMsg(uuid: String?, bleException: BleException){
-        val message = Message.obtain()
+    fun sendCommFailMsg(uuid: String?, bleException: BleException) {
+        val message = handler.obtainMessage(COMM_FAIL_MSG)
         val bundle = Bundle()
-        bundle.putString(UUID_KEY,uuid)
-        bundle.putParcelable(BLE_EXCEPTION_KEY,bleException)
-        message.what = COMM_FAIL_MSG
+        bundle.putString(UUID_KEY, uuid)
+        bundle.putParcelable(BLE_EXCEPTION_KEY, bleException)
+        message.data = bundle
+        handler.sendMessage(message)
+    }
+
+    fun sendNotifyMsg(mac: String, data: ByteArray?) {
+        val message = handler.obtainMessage(COMM_NOTIFY_MSG, data)
+        val bundle = Bundle()
+        bundle.putString(MAC_KEY, mac)
         message.data = bundle
         handler.sendMessage(message)
     }

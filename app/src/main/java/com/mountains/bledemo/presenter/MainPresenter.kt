@@ -1,6 +1,6 @@
-package com.mountains.bledemo
+package com.mountains.bledemo.presenter
 
-import android.view.View
+import com.mountains.bledemo.view.MainView
 import com.mountains.bledemo.base.BasePresenter
 
 class MainPresenter : BasePresenter<MainView>() {

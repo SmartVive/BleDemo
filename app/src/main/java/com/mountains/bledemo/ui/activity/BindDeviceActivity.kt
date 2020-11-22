@@ -2,26 +2,50 @@ package com.mountains.bledemo.ui.activity
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanResult
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.hjq.bar.OnTitleBarListener
 import com.mountains.bledemo.R
 import com.mountains.bledemo.adapter.BindDeviceAdapter
 import com.mountains.bledemo.base.BaseActivity
+import com.mountains.bledemo.ble.BleDevice
+import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.BleManager
+import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.presenter.BindDevicePresenter
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.view.BindDeviceView
 import kotlinx.android.synthetic.main.activity_bind_device.*
-
+import java.lang.Exception
 
 
 class BindDeviceActivity : BaseActivity<BindDevicePresenter>(),BindDeviceView{
     val scanDeviceList = mutableListOf<BluetoothDevice>()
     val scanDeviceAdapter by lazy { BindDeviceAdapter(R.layout.item_bind_device,scanDeviceList) }
+    var deviceConnectService : DeviceConnectService? = null
+    var connectingDialog:AlertDialog? = null
+
+
+    private val serviceConnection = object : ServiceConnection{
+
+        override fun onServiceConnected(name: ComponentName?, service: IBinder) {
+            deviceConnectService = (service as DeviceConnectService.MyBinder).getService()
+
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            deviceConnectService = null
+        }
+
+    }
 
     override fun createPresenter(): BindDevicePresenter {
         return BindDevicePresenter()
@@ -37,9 +61,18 @@ class BindDeviceActivity : BaseActivity<BindDevicePresenter>(),BindDeviceView{
     override fun onDestroy() {
         super.onDestroy()
         presenter.stopScan()
+        try {
+            unbindService(serviceConnection)
+        }catch (e:Exception){}
+
     }
 
     private fun initView(){
+        val intent = Intent(getContext(), DeviceConnectService::class.java)
+        //intent.putExtra(DeviceConnectService.DEVICE,scanDeviceList[position])
+        startService(intent)
+        bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE)
+
         titleBar.setOnTitleBarListener(object :OnTitleBarListener{
             override fun onLeftClick(v: View?) {
                 finish()
@@ -63,9 +96,10 @@ class BindDeviceActivity : BaseActivity<BindDevicePresenter>(),BindDeviceView{
         }
 
         scanDeviceAdapter.setOnItemClickListener { adapter, view, position ->
-            val intent = Intent(getContext(), DeviceConnectService::class.java)
-            intent.putExtra(DeviceConnectService.DEVICE,scanDeviceList[position])
-            startService(intent)
+            deviceConnectService?.let {
+               connectDevice(scanDeviceList[position])
+            }
+
         }
 
         btnScan.setOnClickListener {
@@ -74,6 +108,37 @@ class BindDeviceActivity : BaseActivity<BindDevicePresenter>(),BindDeviceView{
             startScan()
         }
 
+    }
+
+    private fun connectDevice(device: BluetoothDevice){
+        deviceConnectService?.connectDevice(device,object : ConnectCallback{
+            override fun connectSuccess(bleDevice: BleDevice) {
+                hideConnectingDialog()
+                finish()
+            }
+
+            override fun connectFail(exception: BleException) {
+                hideConnectingDialog()
+            }
+
+            override fun disconnect() {
+                hideConnectingDialog()
+            }
+
+        })
+        showConnectingDialog()
+    }
+
+    private fun showConnectingDialog(){
+        connectingDialog = AlertDialog.Builder(this)
+            .setTitle("连接设备")
+            .setMessage("正在连接设备...")
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun hideConnectingDialog(){
+        connectingDialog?.dismiss()
     }
 
     /**

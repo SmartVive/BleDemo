@@ -1,27 +1,25 @@
 package com.mountains.bledemo.ble
 
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattDescriptor
-import android.os.Bundle
-import android.os.Message
+import android.bluetooth.*
+import android.content.Context
+import android.os.Build
 import com.mountains.bledemo.ble.callback.CommCallback
+import com.mountains.bledemo.ble.callback.ConnectCallback
+import com.orhanobut.logger.Logger
 import java.util.concurrent.TimeUnit
 
-abstract class BaseControlRunnable : Runnable{
+abstract class BaseDataControlRunnable : Runnable{
     override fun run() {
         val uuid = getKey()
         val commCallback = getCallBack()
         try {
             BleGlobal.lock.lock()
-            BleGlobal.commCallbackMap.put(uuid,commCallback)
+            BleGlobal.putCommCallback(uuid,commCallback)
 
             val isSuccess = bleHandle()
 
             if (!isSuccess) {
-                //val bleException = BleException(BleException.COMM_UNKNOWN_ERROR_CODE, "unKnown error !!")
-                //commCallback.onFail(bleException)
-                CallBackHandler.sendCommFailMsg(uuid,BleException(BleException.COMM_UNKNOWN_ERROR_CODE, "unKnown error !!"))
+                BleCallBackHandler.sendCommFailMsg(uuid,BleException(BleException.COMM_UNKNOWN_ERROR_CODE, "unKnown error !!"))
                 return
             }
 
@@ -30,12 +28,11 @@ abstract class BaseControlRunnable : Runnable{
 
             if(isTimeout){
                 //超时
-                //val bleException = BleException(BleException.COMM_TIMEOUT_CODE, "comm timeout !!")
-                //commCallback.onFail(bleException)
-                CallBackHandler.sendCommFailMsg(uuid,BleException(BleException.COMM_TIMEOUT_CODE, "comm timeout !!"))
+                BleCallBackHandler.sendCommFailMsg(uuid,BleException(BleException.COMM_TIMEOUT_CODE, "comm timeout !!"))
             }
         }catch (e:Exception){
             e.printStackTrace()
+            BleCallBackHandler.sendCommFailMsg(uuid,BleException(BleException.COMM_UNKNOWN_ERROR_CODE, "${e.message}"))
         }finally {
             //BleGlobal.commCallbackMap.remove(uuid)
             BleGlobal.lock.unlock()
@@ -53,7 +50,7 @@ class ReadCharacteristicRunnable(
     val bluetoothGatt: BluetoothGatt,
     val characteristic: BluetoothGattCharacteristic,
     val commCallback: CommCallback
-) : BaseControlRunnable() {
+) : BaseDataControlRunnable() {
 
     override fun getKey(): String {
         return characteristic.uuid.toString()
@@ -73,7 +70,7 @@ class WriteCharacteristicRunnable(
     val characteristic: BluetoothGattCharacteristic,
     val data: ByteArray,
     val commCallback: CommCallback
-) : BaseControlRunnable() {
+) : BaseDataControlRunnable() {
 
     override fun getKey(): String {
         return characteristic.uuid.toString()
@@ -94,7 +91,7 @@ class WriteDescriptorRunnable(
     val descriptor: BluetoothGattDescriptor,
     val data: ByteArray,
     val commCallback: CommCallback
-): BaseControlRunnable(){
+): BaseDataControlRunnable(){
     override fun getKey(): String {
         return descriptor.uuid.toString()
     }
@@ -114,7 +111,7 @@ class ReadDescriptorRunnable(
     val bluetoothGatt: BluetoothGatt,
     val descriptor: BluetoothGattDescriptor,
     val commCallback: CommCallback
-): BaseControlRunnable(){
+): BaseDataControlRunnable(){
     override fun getKey(): String {
         return descriptor.uuid.toString()
     }
@@ -134,7 +131,7 @@ class EnableNotifyRunnable(
     val descriptor: BluetoothGattDescriptor,
     val data: ByteArray,
     val commCallback: CommCallback
-): BaseControlRunnable(){
+): BaseDataControlRunnable(){
     override fun getKey(): String {
         return descriptor.uuid.toString()
     }
@@ -147,5 +144,39 @@ class EnableNotifyRunnable(
         descriptor.setValue(data)
         return bluetoothGatt.writeDescriptor(descriptor) && bluetoothGatt.setCharacteristicNotification(characteristic,true)
     }
+}
+
+
+class ConnectRunnable(val context: Context,val device: BluetoothDevice, val bluetoothGattCallback: BluetoothGattCallback,val connectCallback: ConnectCallback):Runnable{
+    override fun run() {
+        try {
+            BleGlobal.lock.lock()
+            val bleDevice = BleGlobal.getBleDevice(device.address)
+            if(bleDevice != null){
+                //此设备已连接
+                Logger.e("此设备已连接，请勿重复连接")
+                BleCallBackHandler.sendConnectSuccessMsg(device.address,bleDevice)
+                return
+            }
+            BleGlobal.putConnectCallback(device.address,connectCallback)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                device.connectGatt(context, false, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE)
+            } else {
+                device.connectGatt(context, false, bluetoothGattCallback)
+            }
+            val isTimeout = !BleGlobal.condition.await(BleConfiguration.connectTimeout, TimeUnit.MILLISECONDS)
+
+            if (isTimeout){
+                BleCallBackHandler.sendConnectFailMsg(device.address,BleException(BleException.CONNECT_TIMEOUT_CODE, "连接超时"))
+            }
+        }catch (e:Exception){
+            e.printStackTrace()
+            BleCallBackHandler.sendConnectFailMsg(device.address,BleException(BleException.CONNECT_FAIL_CODE, "${e.message}"))
+        }finally {
+            BleGlobal.lock.unlock()
+        }
+
+    }
+
 }
 

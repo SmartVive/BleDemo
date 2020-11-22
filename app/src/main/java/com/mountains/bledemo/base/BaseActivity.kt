@@ -2,6 +2,7 @@ package com.mountains.bledemo.base
 
 import android.content.Context
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.mountains.bledemo.util.ToastUtil
@@ -16,6 +17,7 @@ abstract class BaseActivity<P : BasePresenter<*>> : AppCompatActivity(),BaseView
         presenter = createPresenter()
         presenter.attachView(this)
     }
+
 
     fun getContext(): Context = this
 
