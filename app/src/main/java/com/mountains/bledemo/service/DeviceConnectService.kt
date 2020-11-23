@@ -26,6 +26,9 @@ class DeviceConnectService : Service() {
     }
     val sportDataDecodeHelper = SportDataDecodeHelper()
     val deviceInfoDataDecodeHelper = DeviceInfoDataDecodeHelper()
+    //开启通知重试次数
+    var enableNotifyRetryCount:Int = 5
+    var currentEnableNotifyRetryCount:Int = 0
 
 
 
@@ -34,7 +37,9 @@ class DeviceConnectService : Service() {
             super.handleMessage(msg)
             when(msg.what){
                 ENABLE_NOTIFY_MSG->{
-                    enableNotify()
+                    if (currentEnableNotifyRetryCount++ < enableNotifyRetryCount){
+                        enableNotify()
+                    }
                 }
             }
         }

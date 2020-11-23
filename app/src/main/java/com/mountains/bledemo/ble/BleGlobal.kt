@@ -69,20 +69,26 @@ object BleGlobal {
         commCallbackMap.remove(uuid)
     }
 
+/*
 
-    /**
+    */
+/**
      * 根据设备mac获取连接回调接口
-     */
+     *//*
+
     fun getConnectCallback(mac: String): ConnectCallback? {
         return connectCallbackMap[mac]
     }
 
-    /**
+    */
+/**
      * 添加连接回调接口
-     */
+     *//*
+
     fun putConnectCallback(mac: String, callback: ConnectCallback) {
         connectCallbackMap.put(mac, callback)
     }
+
 
     /**
      * 删除连接回调接口
@@ -90,7 +96,7 @@ object BleGlobal {
     fun removeConnectCallback(mac: String) {
         connectCallbackMap.remove(mac)
     }
-
+*/
     /**
      * 根据设备mac获取通知回调
      */

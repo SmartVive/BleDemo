@@ -51,7 +51,7 @@ class BindDevicePresenter : BasePresenter<BindDeviceView>() {
 
 
     fun filterDevice(result: ScanResult) {
-        if (result.device.name != "X10pro"){
+        if (result.device.name != "B57"){
             return
         }
         view?.onScanDeviceResult(result)

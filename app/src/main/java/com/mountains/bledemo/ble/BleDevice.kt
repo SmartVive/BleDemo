@@ -2,7 +2,6 @@ package com.mountains.bledemo.ble
 
 import android.bluetooth.*
 import android.content.Context
-import android.os.*
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.orhanobut.logger.Logger
@@ -24,36 +23,16 @@ class BleDevice(val device: BluetoothDevice) {
     //设备gatt
     var bluetoothGatt:BluetoothGatt? = null
 
+    //连接状态回调
+    var connectCallback:ConnectCallback? = null
 
 
     companion object {
-        //连接超时
-        const val CONNECT_TIMEOUT_MSG = 300
-
-
         val READ_CHARACTERISTIC_TYPE = 0
         val WRITE_CHARACTERISTIC_TYPE = 1
         val READ_DESCRIPTOR_TYPE = 2
         val WRITE_DESCRIPTOR_TYPE = 3
         val ENABLE_NOTIFY_TYPE = 4
-
-    }
-
-
-    val handler = object : Handler(Looper.getMainLooper()) {
-        override fun handleMessage(msg: Message) {
-            super.handleMessage(msg)
-            when(msg.what){
-                CONNECT_TIMEOUT_MSG -> {
-                    if(canReconnect()){
-                        reconnection()
-                    }else{
-                        sendConnectFailMsg(BleException(BleException.CONNECT_TIMEOUT_CODE, "连接超时"))
-                    }
-                }
-
-            }
-        }
     }
 
 
@@ -109,32 +88,32 @@ class BleDevice(val device: BluetoothDevice) {
         }
 
 
-        override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+        override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic, status: Int) {
             super.onCharacteristicRead(gatt, characteristic, status)
             Logger.i("onCharacteristicRead,status:$status")
-            commResult(status,characteristic?.uuid.toString(),characteristic?.value)
+            commResult(status,characteristic.uuid.toString(),characteristic.value)
         }
 
-        override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+        override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic, status: Int) {
             super.onCharacteristicWrite(gatt, characteristic, status)
             Logger.i("onCharacteristicWrite,status:$status")
 
-            commResult(status,characteristic?.uuid.toString(),characteristic?.value)
+            commResult(status,characteristic.uuid.toString(),characteristic.value)
         }
 
-        override fun onDescriptorRead(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
+        override fun onDescriptorRead(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor, status: Int) {
             super.onDescriptorRead(gatt, descriptor, status)
             Logger.i("onDescriptorRead,status:$status")
 
-            commResult(status,descriptor?.uuid.toString(),descriptor?.value)
+            commResult(status,descriptor.uuid.toString(),descriptor.value)
 
         }
 
-        override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
+        override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor, status: Int) {
             super.onDescriptorWrite(gatt, descriptor, status)
             Logger.i("onDescriptorWrite,status:$status")
 
-            commResult(status,descriptor?.uuid.toString(),descriptor?.value)
+            commResult(status,descriptor.uuid.toString(),descriptor.value)
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic) {
@@ -146,14 +125,17 @@ class BleDevice(val device: BluetoothDevice) {
     }
 
 
-
+    fun getMac():String{
+        return device.address
+    }
 
     /**
      * 连接设备
      */
     fun connect(context: Context, callback: ConnectCallback) {
         this.context = context
-        BleGlobal.bleCommThreadPoll.execute(ConnectRunnable(context,device,bluetoothGattCallback,callback))
+        this.connectCallback = callback
+        BleGlobal.bleCommThreadPoll.execute(ConnectRunnable(context,this))
     }
 
     /**
@@ -162,7 +144,7 @@ class BleDevice(val device: BluetoothDevice) {
      * false : 超过最大重连次数不能重连
      */
     private fun canReconnect():Boolean{
-        return currentRetryCount++ < BleConfiguration.maxRetryCount
+        return currentRetryCount++ < BleConfiguration.connectRetryCount
     }
 
     /**
@@ -171,7 +153,7 @@ class BleDevice(val device: BluetoothDevice) {
     private fun reconnection(){
         Logger.d("连接失败，正在重连:${device.name}")
         BleGlobal.lock.lock()
-        val connectCallback = BleGlobal.getConnectCallback(device.address)
+        BleGlobal.removeBleDevice(getMac())
         BleGlobal.condition.signal()
         BleGlobal.lock.unlock()
         if (context == null) {
@@ -194,6 +176,7 @@ class BleDevice(val device: BluetoothDevice) {
      * 关闭gatt
      */
     fun close(){
+        Logger.i("BluetoothGatt.close()")
         bluetoothGatt?.close()
         bluetoothGatt = null
     }
@@ -288,17 +271,17 @@ class BleDevice(val device: BluetoothDevice) {
             return
         }else if(service == null){
             //未找到服务
-            val bleException = BleException(BleException.NOT_FOUND_SERVICE_CODE, "not found BluetoothGattService !!")
+            val bleException = BleException(BleException.NOT_FOUND_SERVICE_CODE, "not found service !!")
             callback.onFail(bleException)
             return
         }else if (characteristic == null){
             //未找到特征
-            val bleException = BleException(BleException.NOT_FOUND_CHARACTERISTIC_CODE,"not found BluetoothGattCharacteristic !!")
+            val bleException = BleException(BleException.NOT_FOUND_CHARACTERISTIC_CODE,"not found characteristic !!")
             callback.onFail(bleException)
             return
         }else if ((type == READ_DESCRIPTOR_TYPE || type == WRITE_DESCRIPTOR_TYPE || type == ENABLE_NOTIFY_TYPE) && descriptor == null){
             //未找到属性
-            val bleException = BleException(BleException.NOT_FOUND_DESCRIPTOR_CODE,"not found BluetoothGattDescriptor !!")
+            val bleException = BleException(BleException.NOT_FOUND_DESCRIPTOR_CODE,"not found descriptor !!")
             callback.onFail(bleException)
             return
         }else if ((type == WRITE_CHARACTERISTIC_TYPE || type == WRITE_DESCRIPTOR_TYPE || type == ENABLE_NOTIFY_TYPE) && data == null){
@@ -312,19 +295,19 @@ class BleDevice(val device: BluetoothDevice) {
         //提交给线程池处理，串行执行
         when(type){
             READ_CHARACTERISTIC_TYPE->{
-                BleGlobal.bleCommThreadPoll.execute(ReadCharacteristicRunnable(bluetoothGatt!!, characteristic,callback))
+                BleGlobal.bleCommThreadPoll.execute(ReadCharacteristicRunnable(this,bluetoothGatt!!, characteristic,callback))
             }
             WRITE_CHARACTERISTIC_TYPE->{
-                BleGlobal.bleCommThreadPoll.execute(WriteCharacteristicRunnable(bluetoothGatt!!, characteristic, data!!,callback))
+                BleGlobal.bleCommThreadPoll.execute(WriteCharacteristicRunnable(this,bluetoothGatt!!, characteristic, data!!,callback))
             }
             READ_DESCRIPTOR_TYPE->{
-                BleGlobal.bleCommThreadPoll.execute(ReadDescriptorRunnable(bluetoothGatt!!, descriptor!!,callback))
+                BleGlobal.bleCommThreadPoll.execute(ReadDescriptorRunnable(this,bluetoothGatt!!, descriptor!!,callback))
             }
             WRITE_DESCRIPTOR_TYPE->{
-                BleGlobal.bleCommThreadPoll.execute(WriteDescriptorRunnable(bluetoothGatt!!, descriptor!!,data!!,callback))
+                BleGlobal.bleCommThreadPoll.execute(WriteDescriptorRunnable(this,bluetoothGatt!!, descriptor!!,data!!,callback))
             }
             ENABLE_NOTIFY_TYPE->{
-                BleGlobal.bleCommThreadPoll.execute(EnableNotifyRunnable(bluetoothGatt!!, characteristic,descriptor!!,data!!,callback))
+                BleGlobal.bleCommThreadPoll.execute(EnableNotifyRunnable(this,bluetoothGatt!!, characteristic,descriptor!!,data!!,callback))
             }
         }
     }
@@ -333,7 +316,7 @@ class BleDevice(val device: BluetoothDevice) {
     /**
      * 通信结果，回调数据到接口
      */
-    private fun commResult(status:Int,uuid:String?,data: ByteArray?){
+    private fun commResult(status:Int,uuid:String,data: ByteArray?){
         try {
             BleGlobal.lock.lock()
             BleGlobal.condition.signal()
@@ -352,56 +335,47 @@ class BleDevice(val device: BluetoothDevice) {
     }
 
 
-    private fun sendConnectFailMsg(bleException: BleException){
+    fun sendConnectFailMsg(bleException: BleException){
         BleGlobal.lock.lock()
-        currentRetryCount = 0
+        BleGlobal.removeBleDevice(getMac())
         BleGlobal.condition.signal()
-        removeConnectTimeoutMsg()
-        BleGlobal.removeBleDevice(device.address)
-        BleCallBackHandler.sendConnectFailMsg(device.address,bleException)
+        BleCallBackHandler.sendConnectFailMsg(this,bleException)
         BleGlobal.lock.unlock()
     }
 
-    private fun sendConnectSuccessMsg(){
+    fun sendConnectSuccessMsg(){
+        sendConnectSuccessMsg(this)
+    }
+
+    fun sendConnectSuccessMsg(bleDevice: BleDevice){
         BleGlobal.lock.lock()
         currentRetryCount = 0
         BleGlobal.condition.signal()
-        removeConnectTimeoutMsg()
-        BleGlobal.putBleDevice(device.address,this)
-        BleCallBackHandler.sendConnectSuccessMsg(device.address,this)
+        BleCallBackHandler.sendConnectSuccessMsg(bleDevice)
         BleGlobal.lock.unlock()
     }
 
-    private fun sendDisconnectMsg(){
+    fun sendDisconnectMsg(){
         BleGlobal.lock.lock()
-        currentRetryCount = 0
+        BleGlobal.removeBleDevice(getMac())
         BleGlobal.condition.signal()
-        removeConnectTimeoutMsg()
-        BleGlobal.removeBleDevice(device.address)
-        BleCallBackHandler.sendDisconnectMsg(device.address)
+        BleCallBackHandler.sendDisconnectMsg(this)
         BleGlobal.lock.unlock()
     }
 
-    private fun sendConnectTimeoutMsg(){
-        val message = Message.obtain()
-        message.what = CONNECT_TIMEOUT_MSG
-        handler.removeMessages(CONNECT_TIMEOUT_MSG)
-        handler.sendMessageDelayed(message,BleConfiguration.connectTimeout)
+    fun sendCommSuccessMsg(uuid: String, data: ByteArray?){
+        val callback = BleGlobal.getCommCallBack(uuid)
+        BleGlobal.removeCommCallback(uuid)
+        BleCallBackHandler.sendCommSuccessMsg(callback,data)
     }
 
-    private fun removeConnectTimeoutMsg(){
-        handler.removeMessages(CONNECT_TIMEOUT_MSG)
-    }
-
-    private fun sendCommSuccessMsg(uuid: String?, data: ByteArray?){
-        BleCallBackHandler.sendCommSuccessMsg(uuid,data)
-    }
-
-    private fun sendCommFailMsg(uuid: String?, bleException: BleException){
-        BleCallBackHandler.sendCommFailMsg(uuid,bleException)
+    fun sendCommFailMsg(uuid: String, bleException: BleException){
+        val callback = BleGlobal.getCommCallBack(uuid)
+        BleGlobal.removeCommCallback(uuid)
+        BleCallBackHandler.sendCommFailMsg(callback,bleException)
     }
 
     private fun sendNotifyMsg(data: ByteArray) {
-        BleCallBackHandler.sendNotifyMsg(device.address,data)
+        BleCallBackHandler.sendNotifyMsg(getMac(),data)
     }
 }

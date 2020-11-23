@@ -104,13 +104,15 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
                 }
             })*/
 
-            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getHistorySportData(),object : CommCallback{
+            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getDeviceInfo(),object : CommCallback{
                 override fun onSuccess(byteArray: ByteArray?) {
                     swipeRefreshLayout.isRefreshing = false
+                    Logger.d("commOnSuccess")
                 }
 
                 override fun onFail(exception: BleException) {
                     swipeRefreshLayout.isRefreshing = false
+                    Logger.e("commOnFail:${exception.message}")
                 }
             })
         }
