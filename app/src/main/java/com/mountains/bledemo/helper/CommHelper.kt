@@ -29,6 +29,25 @@ object CommHelper {
     }
 
 
+    /**
+     * 设置手环信息
+     * @param isLiftWristBrightScreen 抬腕亮屏
+     * @param isSedentaryReminder 久坐提醒
+     * @param isHeartRateAutoCheck 自动检测心率
+     */
+    fun setDeviceOtherInfo(isLiftWristBrightScreen: Int, isSedentaryReminder: Int, isHeartRateAutoCheck: Int): ByteArray? {
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 2
+        bArr[2] = 10
+        bArr[3] = 0
+        bArr[4] = isLiftWristBrightScreen.toByte()
+        bArr[5] = isSedentaryReminder.toByte()
+        bArr[6] = isHeartRateAutoCheck.toByte()
+        return bArr
+    }
+
+
     //查找手机，（震动）
     fun findDevice(flag: Boolean): ByteArray {
         val bArr = ByteArray(20)

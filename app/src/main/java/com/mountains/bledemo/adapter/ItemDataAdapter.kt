@@ -4,7 +4,7 @@ import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.viewholder.BaseViewHolder
 import com.mountains.bledemo.R
 import com.mountains.bledemo.bean.CardItemData
-import kotlinx.android.synthetic.main.item_data.view.*
+import kotlinx.android.synthetic.main.item_card.view.*
 
 class ItemDataAdapter(layoutResId:Int,data:MutableList<CardItemData>) : BaseQuickAdapter<CardItemData,BaseViewHolder>(layoutResId, data) {
 

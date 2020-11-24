@@ -20,6 +20,7 @@ abstract class BaseDataControlRunnable : Runnable{
             val isSuccess = bleHandle()
 
             if (!isSuccess) {
+                Logger.e("commFail !!")
                 getBleDevice().sendCommFailMsg(uuid,BleException(BleException.COMM_UNKNOWN_ERROR_CODE, "unKnown error !!"))
                 return
             }

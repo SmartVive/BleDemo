@@ -11,9 +11,36 @@
         android:layout_height="wrap_content"
         app:title="步数详情"/>
 
-    <com.mountains.bledemo.weiget.HistogramView
-        android:id="@+id/histogramView"
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="280dp"/>
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:background="@android:color/transparent"
+            app:elevation="0dp"
+            android:layout_height="wrap_content">
+
+
+            <com.mountains.bledemo.weiget.HistogramView
+                android:id="@+id/histogramView"
+                android:layout_width="match_parent"
+                app:layout_scrollFlags="scroll"
+                android:layout_height="280dp"/>
+
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
+            android:layout_height="match_parent"/>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+
+
 
 </LinearLayout>

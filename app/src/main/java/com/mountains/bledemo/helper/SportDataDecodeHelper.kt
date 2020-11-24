@@ -163,10 +163,11 @@ class SportDataDecodeHelper : IDataDecodeHelper {
 
 
     private inline fun<reified T : SportBean.BaseSportBean> saveOrUpdate(list:MutableList<T>){
-        if (list.isEmpty()){
+        if (!checkData(list)){
+            Logger.w("运动大数据异常，不保存")
             return
         }
-        list.sort()
+
         val startTime = list.last().dateTime
         val endTime = list.first().dateTime
         val existsData = LitePal.where("datetime between ? and  ?", "$startTime","$endTime").order("datetime desc").find<T>()
@@ -189,5 +190,23 @@ class SportDataDecodeHelper : IDataDecodeHelper {
         list.saveAll()
     }
 
+    /**
+     * 检测数据是否正确
+     */
+    private fun<T : SportBean.BaseSportBean> checkData(list:MutableList<T>):Boolean{
+        if(list.isEmpty()){
+            return false
+        }
+        list.sort()
+        val tomorrowCalendar = CalendarUtil.getTomorrowCalendar()
+        val yesterdayCalendar = CalendarUtil.getYesterdayCalendar()
+        //数据只能为昨天00：00点到今天23：59分,超过说明数据异常
+        if (list.first().dateTime >= tomorrowCalendar.timeInMillis){
+            return false
+        }else if (list.last().dateTime < yesterdayCalendar.timeInMillis){
+            return false
+        }
+        return true
+    }
 
 }

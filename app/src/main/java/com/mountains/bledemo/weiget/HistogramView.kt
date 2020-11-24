@@ -28,6 +28,10 @@ class HistogramView : View {
 
     var xAxisLength = 48
 
+    //y轴默认最大最小值
+    var yMaxValue = 100f
+    var yMinValue = 0f
+
     //单位秒
     var xAxisStartTime:Float = 0f
     var xAxisEndTime:Float = 86400f
@@ -62,12 +66,12 @@ class HistogramView : View {
 
 
 
-        for (i in 0 .. 60){
+        /*for (i in 0 .. 60){
             val random = Random()
             val value = (random.nextDouble() * 100 + 30).toInt()
             val histogramEntity = HistogramEntity(value, i * 1440L)
             datas.add(histogramEntity)
-        }
+        }*/
 
     }
 
@@ -161,10 +165,13 @@ class HistogramView : View {
             max = Math.max(max, data.getHistogramValue().toFloat())
             min = Math.min(min, data.getHistogramValue().toFloat())
         }
-        max *= 1.1f
-        min *= 0.9f
-        //max = 110f
-        //min = 90f
+        if(max == Float.MIN_VALUE && min == Float.MAX_VALUE){
+            max = yMaxValue
+            min = yMinValue
+        }else{
+            max *= 1.1f
+            min *= 0.9f
+        }
 
 
          //y值数据间隔

@@ -14,7 +14,6 @@ import com.mountains.bledemo.base.BaseActivity
 import com.mountains.bledemo.ble.*
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.bean.CardItemData
-import com.mountains.bledemo.bean.SportBean
 import com.mountains.bledemo.event.SportEvent
 import com.mountains.bledemo.helper.BaseUUID
 import com.mountains.bledemo.helper.CommHelper
@@ -29,8 +28,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import org.litepal.LitePal
-import org.litepal.extension.find
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -38,7 +35,7 @@ import java.math.RoundingMode
 class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
     val itemDataList = mutableListOf<CardItemData>()
-    val itemDataAdapter by lazy { ItemDataAdapter(R.layout.item_data,itemDataList) }
+    val itemDataAdapter by lazy { ItemDataAdapter(R.layout.item_card,itemDataList) }
 
 
     override fun createPresenter(): MainPresenter {
@@ -94,17 +91,8 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         }
 
         swipeRefreshLayout.setOnRefreshListener {
-            /*DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getDeviceInfo(),object : CommCallback{
-                override fun onSuccess(byteArray: ByteArray?) {
-                    swipeRefreshLayout.isRefreshing = false
-                }
 
-                override fun onFail(exception: BleException) {
-                    swipeRefreshLayout.isRefreshing = false
-                }
-            })*/
-
-            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getHistoryHeartRateData(),object : CommCallback{
+            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getHistorySportData(),object : CommCallback{
                 override fun onSuccess(byteArray: ByteArray?) {
                     swipeRefreshLayout.isRefreshing = false
                     Logger.d("commOnSuccess")
