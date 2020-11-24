@@ -14,8 +14,8 @@ object CalendarUtil {
         return calendar
     }
 
-    fun format(format: String,calendar: Calendar){
-        SimpleDateFormat(format, Locale.ENGLISH).format(calendar.timeInMillis)
+    fun format(format: String,calendar: Calendar):String{
+        return SimpleDateFormat(format, Locale.ENGLISH).format(calendar.timeInMillis)
     }
 
     fun convertTimeToIndex(calendar: Calendar, mEveryMinutes: Int): Int {

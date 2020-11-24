@@ -104,7 +104,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
                 }
             })*/
 
-            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getDeviceInfo(),object : CommCallback{
+            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getHistoryHeartRateData(),object : CommCallback{
                 override fun onSuccess(byteArray: ByteArray?) {
                     swipeRefreshLayout.isRefreshing = false
                     Logger.d("commOnSuccess")

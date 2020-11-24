@@ -199,7 +199,7 @@ class BleDevice(val device: BluetoothDevice) {
     /**
      * 写入特征
      */
-    fun writeCharacteristic(serviceUUID: String, characteristicUUID:String, data:ByteArray, callback: CommCallback){
+    fun writeCharacteristic(serviceUUID: String, characteristicUUID:String, data:ByteArray, callback: CommCallback?){
         commit(WRITE_CHARACTERISTIC_TYPE,serviceUUID,characteristicUUID,null,data,callback)
     }
 
@@ -247,12 +247,12 @@ class BleDevice(val device: BluetoothDevice) {
         BleGlobal.removeNotifyCallback(device.address,callback)
     }
 
-    private fun commit(type:Int, serviceUUID: String, characteristicUUID: String, descriptorUUID: String?, data: ByteArray?, callback: CommCallback){
+    private fun commit(type:Int, serviceUUID: String, characteristicUUID: String, descriptorUUID: String?, data: ByteArray?, callback: CommCallback?){
 
         if (!isConnected()){
             //设备未连接
             val bleException = BleException(BleException.DEVICE_NOT_CONNECTED, "device not connected !!")
-            callback.onFail(bleException)
+            callback?.onFail(bleException)
             return
         }
 
@@ -267,27 +267,27 @@ class BleDevice(val device: BluetoothDevice) {
         if (bluetoothGatt == null){
             //gatt为空
             val bleException = BleException(BleException.GATT_SERVICE_IS_NULL_CODE, "BluetoothGattService is null !!")
-            callback.onFail(bleException)
+            callback?.onFail(bleException)
             return
         }else if(service == null){
             //未找到服务
             val bleException = BleException(BleException.NOT_FOUND_SERVICE_CODE, "not found service !!")
-            callback.onFail(bleException)
+            callback?.onFail(bleException)
             return
         }else if (characteristic == null){
             //未找到特征
             val bleException = BleException(BleException.NOT_FOUND_CHARACTERISTIC_CODE,"not found characteristic !!")
-            callback.onFail(bleException)
+            callback?.onFail(bleException)
             return
         }else if ((type == READ_DESCRIPTOR_TYPE || type == WRITE_DESCRIPTOR_TYPE || type == ENABLE_NOTIFY_TYPE) && descriptor == null){
             //未找到属性
             val bleException = BleException(BleException.NOT_FOUND_DESCRIPTOR_CODE,"not found descriptor !!")
-            callback.onFail(bleException)
+            callback?.onFail(bleException)
             return
         }else if ((type == WRITE_CHARACTERISTIC_TYPE || type == WRITE_DESCRIPTOR_TYPE || type == ENABLE_NOTIFY_TYPE) && data == null){
             //写入数据为null
             val bleException = BleException(BleException.DATA_IS_NULL_CODE,"data is null !!")
-            callback.onFail(bleException)
+            callback?.onFail(bleException)
             return
         }
 

@@ -13,7 +13,9 @@ abstract class BaseDataControlRunnable : Runnable{
         val commCallback = getCallBack()
         try {
             BleGlobal.lock.lock()
-            BleGlobal.putCommCallback(uuid,commCallback)
+            commCallback?.let {
+                BleGlobal.putCommCallback(uuid,commCallback)
+            }
 
             val isSuccess = bleHandle()
 
@@ -42,7 +44,7 @@ abstract class BaseDataControlRunnable : Runnable{
 
     abstract fun getKey():String
 
-    abstract fun getCallBack(): CommCallback
+    abstract fun getCallBack(): CommCallback?
 
     abstract fun getBleDevice():BleDevice
 }
@@ -51,7 +53,7 @@ class ReadCharacteristicRunnable(
     private val bleDevice: BleDevice,
     private val bluetoothGatt: BluetoothGatt,
     private val characteristic: BluetoothGattCharacteristic,
-    private val commCallback: CommCallback
+    private val commCallback: CommCallback?
 ) : BaseDataControlRunnable() {
 
     override fun getBleDevice(): BleDevice {
@@ -62,7 +64,7 @@ class ReadCharacteristicRunnable(
         return characteristic.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallback {
+    override fun getCallBack(): CommCallback? {
         return commCallback
     }
 
@@ -76,7 +78,7 @@ class WriteCharacteristicRunnable(
     private val bluetoothGatt: BluetoothGatt,
     private val characteristic: BluetoothGattCharacteristic,
     private val data: ByteArray,
-    private val commCallback: CommCallback
+    private val commCallback: CommCallback?
 ) : BaseDataControlRunnable() {
 
     override fun getBleDevice(): BleDevice {
@@ -87,7 +89,7 @@ class WriteCharacteristicRunnable(
         return characteristic.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallback {
+    override fun getCallBack(): CommCallback? {
         return commCallback
     }
 
@@ -102,7 +104,7 @@ class WriteDescriptorRunnable(
     private val bluetoothGatt: BluetoothGatt,
     private val descriptor: BluetoothGattDescriptor,
     private val data: ByteArray,
-    private val commCallback: CommCallback
+    private val commCallback: CommCallback?
 ): BaseDataControlRunnable(){
 
     override fun getBleDevice(): BleDevice {
@@ -113,7 +115,7 @@ class WriteDescriptorRunnable(
         return descriptor.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallback {
+    override fun getCallBack(): CommCallback? {
         return commCallback
     }
 
@@ -128,7 +130,7 @@ class ReadDescriptorRunnable(
     private val bleDevice: BleDevice,
     private val bluetoothGatt: BluetoothGatt,
     private val descriptor: BluetoothGattDescriptor,
-    private val commCallback: CommCallback
+    private val commCallback: CommCallback?
 ): BaseDataControlRunnable(){
 
     override fun getBleDevice(): BleDevice {
@@ -139,7 +141,7 @@ class ReadDescriptorRunnable(
         return descriptor.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallback {
+    override fun getCallBack(): CommCallback? {
         return commCallback
     }
 
@@ -154,7 +156,7 @@ class EnableNotifyRunnable(
     private val characteristic: BluetoothGattCharacteristic,
     private val descriptor: BluetoothGattDescriptor,
     private val data: ByteArray,
-    private val commCallback: CommCallback
+    private val commCallback: CommCallback?
 ): BaseDataControlRunnable(){
 
     override fun getBleDevice(): BleDevice {
@@ -165,7 +167,7 @@ class EnableNotifyRunnable(
         return descriptor.uuid.toString()
     }
 
-    override fun getCallBack(): CommCallback {
+    override fun getCallBack(): CommCallback? {
         return commCallback
     }
 

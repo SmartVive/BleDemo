@@ -9,9 +9,7 @@ import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.BleManager
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.ble.callback.ConnectCallback
-import com.mountains.bledemo.helper.BaseUUID
-import com.mountains.bledemo.helper.DeviceInfoDataDecodeHelper
-import com.mountains.bledemo.helper.SportDataDecodeHelper
+import com.mountains.bledemo.helper.*
 import com.mountains.bledemo.util.HexUtil
 import com.mountains.bledemo.util.ToastUtil
 import com.orhanobut.logger.Logger
@@ -26,6 +24,9 @@ class DeviceConnectService : Service() {
     }
     val sportDataDecodeHelper = SportDataDecodeHelper()
     val deviceInfoDataDecodeHelper = DeviceInfoDataDecodeHelper()
+    val healthDataDecodeHelper = HealthDataDecodeHelper()
+    val sleepDataDecodeHelper = SleepDataDecodeHelper()
+    val syncDataHelper = SyncDataHelper()
     //开启通知重试次数
     var enableNotifyRetryCount:Int = 5
     var currentEnableNotifyRetryCount:Int = 0
@@ -105,6 +106,7 @@ class DeviceConnectService : Service() {
             override fun onSuccess(byteArray: ByteArray?) {
                 Logger.d("开启通知成功")
                 initNotifyCallBack()
+                syncTime()
             }
 
             override fun onFail(exception: BleException) {
@@ -127,16 +129,34 @@ class DeviceConnectService : Service() {
                 //解析数据
                 Logger.d(byteArray)
                 Logger.d(HexUtil.bytes2HexString(byteArray))
-
-                synchronized(this){
-                    sportDataDecodeHelper.decode(byteArray)
-                    deviceInfoDataDecodeHelper.decode(byteArray)
+                if(byteArray == null){
+                    return
                 }
+                syncDataHelper.decode(byteArray)
+                sportDataDecodeHelper.decode(byteArray)
+                deviceInfoDataDecodeHelper.decode(byteArray)
+                healthDataDecodeHelper.decode(byteArray)
+                sleepDataDecodeHelper.decode(byteArray)
 
             }
 
             override fun onFail(exception: BleException) {
 
+            }
+
+        })
+    }
+
+
+    //同步设备时间
+    private fun syncTime(){
+        connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.setDeviceTime(),object :CommCallback{
+            override fun onSuccess(byteArray: ByteArray?) {
+                Logger.i("同步时间成功")
+            }
+
+            override fun onFail(exception: BleException) {
+                Logger.i("同步时间失败：${exception.message}")
             }
 
         })

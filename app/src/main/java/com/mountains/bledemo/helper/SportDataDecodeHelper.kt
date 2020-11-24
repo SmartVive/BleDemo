@@ -25,10 +25,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
     val calories = mutableListOf<SportBean.CalorieBean>()
 
 
-    override fun decode(bArr: ByteArray?) {
-        if (bArr == null) {
-            return
-        }
+    override fun decode(bArr: ByteArray) {
         if (HexUtil.bytes2HexString(bArr).startsWith("050701",true)) {
             Logger.d(bArr)
             Logger.i("实时运动数据:解析开始")
@@ -47,7 +44,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
                 )
                 return
             }
-            Logger.d(
+            Logger.i(
                 "实时运动数据:步数:%d,距离:%d,卡路里:%d",
                 Integer.valueOf(steps),
                 Integer.valueOf(mileage),
@@ -63,7 +60,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
             val index = bArr[3].toInt()
             if (index <= 11) {
                 if (index == 0) {
-                    Logger.d("运动大数据:解析开始")
+                    Logger.i("运动大数据:解析开始")
                     mStepDataCalendar = CalendarUtil.getTodayCalendar()
                     steps.clear()
                 }
@@ -75,7 +72,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
                         var value = HexUtil.subBytesToInt(bArr, 2, i, i + 1)
                         val timeIndex = CalendarUtil.convertTimeToIndex(mStepDataCalendar!!, 30)
                         val date = CalendarUtil.format("yyyy-MM-dd HH:mm:ss", mStepDataCalendar!!)
-                        Logger.d("计步大数据:%d,index:%d,时间:%s", value, timeIndex, date)
+                        Logger.i("计步大数据:%d,index:%d,时间:%s", value, timeIndex, date)
                         if (value > 10000) {
                             value = 0
                         }
@@ -106,7 +103,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
                         val value = HexUtil.subBytesToInt(bArr, 2, i, i + 1)
                         val timeIndex = CalendarUtil.convertTimeToIndex(mDistanceDataCalendar!!, 30)
                         val date = CalendarUtil.format("yyyy-MM-dd HH:mm:ss", mStepDataCalendar!!)
-                        Logger.d("距离大数据:%d,index:%d,时间:%s", Integer.valueOf(value), Integer.valueOf(timeIndex), date)
+                        Logger.i("距离大数据:%d,index:%d,时间:%s", Integer.valueOf(value), Integer.valueOf(timeIndex), date)
                         this.distances.add(SportBean.DistanceBean(mDistanceDataCalendar!!.timeInMillis, timeIndex, value))
                         mDistanceDataCalendar!!.add(Calendar.MINUTE, 30)
                     }
@@ -135,7 +132,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
                         val value = HexUtil.subBytesToInt(bArr, 2, i, i + 1)
                         val timeIndex = CalendarUtil.convertTimeToIndex(mCaloriesDataCalendar!!, 30)
                         val date = CalendarUtil.format("yyyy-MM-dd HH:mm:ss", mStepDataCalendar!!)
-                        Logger.d("卡路里大数据:%d,index:%d,时间:%s", value, timeIndex, date)
+                        Logger.i("卡路里大数据:%d,index:%d,时间:%s", value, timeIndex, date)
                         calories.add(SportBean.CalorieBean(mCaloriesDataCalendar!!.timeInMillis, timeIndex, value))
                         mCaloriesDataCalendar!!.add(Calendar.MINUTE, 30)
                     }
@@ -150,7 +147,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
 
 
         if (HexUtil.bytes2HexString(bArr).startsWith("0507ff",true)) {
-            Logger.d("运动大数据:解析完成")
+            Logger.i("运动大数据:解析完成")
             saveData()
 
         }

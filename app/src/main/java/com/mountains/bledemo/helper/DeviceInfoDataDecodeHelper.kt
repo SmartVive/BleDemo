@@ -10,10 +10,10 @@ import kotlin.experimental.and
 
 class DeviceInfoDataDecodeHelper : IDataDecodeHelper {
 
-    override fun decode(bArr: ByteArray?) {
+    override fun decode(bArr: ByteArray) {
 
         if (HexUtil.bytes2HexString(bArr).startsWith("050102")) {
-            if (bArr == null || bArr.size < 10) {
+            if (bArr.size < 10) {
                 Logger.e("获取设备信息失败，数据异常")
                 return
             }
