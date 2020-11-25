@@ -20,6 +20,9 @@ class HistogramView : View {
     //x、y轴颜色
     var axisColor = Color.DKGRAY
 
+    //分割线的长度
+    var dividerLength = 10
+
     //xy轴边
     var axisMarginLeft = 60f
     var axisMarginRight = 60f
@@ -30,17 +33,17 @@ class HistogramView : View {
     private var barCount = 48
 
     //y轴默认最大最小值
-    private var yAxisMaxValue = 100f
-    private var yAxisMinValue = 0f
-    private var isYAxisAutoValue = true
+    private var yAxisMaximum = 100f
+    private var yAxisMinimum = 0f
+    private var isYAxisAutoLabel = true
     //最大值与轴上最大值的顶部间距（以最大值的百分比为单位）
     private var yAxisSpaceTop = 0.1f
     //最小值与轴上最小值的底部间距（以最小值的百分比为单位）
     private var yAxisSpaceBottom = 0.1f
 
     //单位秒
-    var xAxisStartTime: Float = 0f
-    var xAxisEndTime: Float = 86400f
+    var xAxisStartTime: Int = 0
+    var xAxisEndTime: Int = 86400
 
     var datas: MutableList<IHistogramData> = mutableListOf()
 
@@ -141,60 +144,41 @@ class HistogramView : View {
 
         //画x轴分割线
         for (i in 0 until xAxisLabelCount) {
-            val startX = getXAxisDivideX(i)
-            val startY = xAxisTop - 10
-            val endX = startX
-            val endY = xAxisTop
+            val startX = getXAxisDividerStartX(i)
+            val startY = getXAxisDividerStartY()
+            val endX = getXAxisDividerEndX(i)
+            val endY = getXAxisDividerEndY()
             canvas.drawLine(startX, startY, endX, endY, axisPaint)
         }
 
         //画x轴标签
         for (i in 0 until xAxisLabelCount) {
             val x = getXAxisLabelX(i)
-            val y = xAxisTop + axisMarginBottom/2 - textOffset
-            val second = (xAxisEndTime - xAxisStartTime) / (xAxisLabelCount - 1) * i
-            canvas.drawText(second2Hour(second.toInt()), x, y, axisPaint)
+            val y = getXAxisLabelY()
+            canvas.drawText(getXAxisLabelText(i), x, y, axisPaint)
         }
 
 
         //画y轴分割线
         for (i in 0 until yAxisLabelCount) {
-            val startX = yAxisLeft
-            val startY = yAxisBottom - i * yDivideDistance
-            val endX = startX + 10
-            val endY = startY
+            val startX = getYAxisDividerStartX()
+            val startY = getYAxisDividerStartY(i)
+            val endX = getYAxisDividerEndX()
+            val endY = getYAxisDividerEndY(i)
             canvas.drawLine(startX, startY, endX, endY, axisPaint)
         }
 
 
-        //遍历y轴数据，计算y轴最大值最小值
-        var max: Float
-        var min: Float
-        if (isYAxisAutoValue && datas.isNotEmpty()) {
-            //自动测量y轴最大最小值
-            max = Float.MIN_VALUE
-            min = Float.MAX_VALUE
+        val labelMax = getRealAxisLabelMax()
+        val labelMin = getRealAxisLabelMin()
 
-            for (data in datas) {
-                max = Math.max(max, data.getHistogramValue().toFloat())
-                min = Math.min(min, data.getHistogramValue().toFloat())
-            }
-        } else {
-            max = yAxisMaxValue
-            min = yAxisMinValue
-        }
-
-        max += max * yAxisSpaceTop
-        min -= min * yAxisSpaceBottom
-
-
-        //y值数据间隔
-        val yLabelDistance = (max - min) / (yAxisLabelCount - 1)
+        //y值标签间隔
+        val yLabelDistance = (labelMax - labelMin) / (yAxisLabelCount - 1)
         //画y轴标签
         for (i in 0 until yAxisLabelCount) {
-            val x = axisMarginLeft/2f
-            val y = yAxisBottom - i * yDivideDistance - textOffset
-            val value = (yLabelDistance * i + min).toInt().toString()
+            val x = getYAxisLabelX()
+            val y = getYAxisLabelY(i)
+            val value = (yLabelDistance * i + labelMin).toString()
             canvas.drawText(value, x, y, axisPaint)
         }
 
@@ -207,15 +191,15 @@ class HistogramView : View {
             var sumValue = 0f
             var count = 0
             for (data in datas) {
-                if (startTime <= data.getHistogramTime() && endTime > data.getHistogramTime()) {
+                if (data.getHistogramTime() in startTime until endTime) {
                     sumValue += data.getHistogramValue()
                     count++
                 }
             }
 
             //多个数值用一条线显示时，显示平均值
-            val value = sumValue / count
-            val y = yAxisBottom - yDivideDistance * ((value - min) / yLabelDistance)
+            val avg = sumValue / count
+            val y = yAxisBottom - yDivideDistance * ((avg - labelMin) / yLabelDistance)
             var left = xAxisLeft + startTime * xValueDistance
             var right = xAxisLeft + endTime * xValueDistance
 
@@ -245,21 +229,21 @@ class HistogramView : View {
      * y值是否自动计算
      */
     fun setAutoYAxisValue(isAuto: Boolean) {
-        isYAxisAutoValue = isAuto
+        isYAxisAutoLabel = isAuto
     }
 
     /**
      * 设置y轴最小值
      */
     fun setYAxisMinValue(minValue: Float) {
-        yAxisMinValue = minValue
+        yAxisMinimum = minValue
     }
 
     /**
      * 设置y轴最大值
      */
     fun setYAxisMaxValue(maxValue: Float) {
-        yAxisMaxValue = maxValue
+        yAxisMaximum = maxValue
     }
 
     /**
@@ -283,7 +267,7 @@ class HistogramView : View {
         barCount = count
     }
 
-    private fun second2Hour(second: Int): String {
+    private fun secondFormatHour(second: Int): String {
         var hourStr = (second / 60 / 60).toString()
         var minStr = (second / 60 % 60).toString()
         if (hourStr.length == 1) {
@@ -295,25 +279,145 @@ class HistogramView : View {
         return "$hourStr:$minStr"
     }
 
-    /**获取x轴第num个变量横坐标
+    /**获取x轴第index个标签横坐标
      * 取两个分割线中间横坐标
      */
-    private fun getXAxisLabelX(num: Int): Float {
-        return xAxisLeft + num * xDivideDistance + 0.5f * xValueDistance
+    private fun getXAxisLabelX(index: Int): Float {
+        return xAxisLeft + index * xDivideDistance + 0.5f * xValueDistance
+    }
+
+    /**
+     * 获取x轴标签纵坐标
+     */
+    private fun getXAxisLabelY(): Float {
+        return xAxisTop + axisMarginBottom/2 - textOffset
+    }
+
+    /**
+     * 获取x轴第index个标签文字
+     */
+    private fun getXAxisLabelText(index: Int):String{
+        return secondFormatHour(getXAxisLabelTime(index))
+    }
+
+    /**
+     * 获取x轴第index个标签时间
+     */
+    private fun getXAxisLabelTime(index:Int):Int{
+        return (xAxisEndTime - xAxisStartTime) / (xAxisLabelCount - 1) *index
     }
 
 
     /**
-     * 获取第num个分割线横坐标
+     * 获取y轴标签横坐标
      */
-    private fun getXAxisDivideX(num: Int): Float {
-        return num * xDivideDistance + xAxisLeft
+    private fun getYAxisLabelX():Float{
+        return axisMarginLeft/2f
+    }
+
+    /**
+     * 获取y轴第index个标签纵坐标
+     */
+    private fun getYAxisLabelY(index: Int):Float{
+        return  yAxisBottom - index * yDivideDistance - textOffset
+    }
+
+    /**
+     * 获取x轴第index个分割线startX
+     */
+    private fun getXAxisDividerStartX(index: Int): Float {
+        return index * xDivideDistance + xAxisLeft
+    }
+
+    /**
+     * 获取x轴分割线startY
+     */
+    private fun getXAxisDividerStartY(): Float {
+        return xAxisTop
+    }
+
+
+    /**
+     * 获取x轴第index个分割线endX
+     * 和XAxisDividerStartX一致
+     */
+    private fun getXAxisDividerEndX(index: Int): Float {
+        return getXAxisDividerStartX(index)
+    }
+
+    /**
+     * 获取x轴分割线endY
+     */
+    private fun getXAxisDividerEndY(): Float {
+        return getXAxisDividerStartY() + dividerLength
+    }
+
+    /**
+     * 获取y轴第index个分割线startY
+     */
+    private fun getYAxisDividerStartY(index: Int): Float {
+        return yAxisBottom - index * yDivideDistance
+    }
+
+    /**
+     * 获取y轴分割线startX
+     */
+    private fun getYAxisDividerStartX(): Float {
+        return yAxisLeft
+    }
+
+
+    /**
+     * 获取y轴第index个分割线endX
+     * 和yAxisDividerEndX一致
+     */
+    private fun getYAxisDividerEndY(index: Int): Float {
+        return getYAxisDividerStartY(index)
+    }
+
+    /**
+     * 获取y轴分割线endY
+     */
+    private fun getYAxisDividerEndX(): Float {
+        return getYAxisDividerStartX() + dividerLength
+    }
+
+
+    /**
+     * 初始化y轴标签值
+     */
+    private fun initYAxisLabel(){
+        var max = Float.MIN_VALUE
+        var min = Float.MAX_VALUE
+        if (isYAxisAutoLabel && datas.isNotEmpty()){
+            //遍历y轴数据，计算y轴最大值最小值
+            for (data in datas) {
+                max = Math.max(max, data.getHistogramValue().toFloat())
+                min = Math.min(min, data.getHistogramValue().toFloat())
+            }
+            yAxisMaximum = max
+            yAxisMinimum = min
+        }
+    }
+
+    fun getRealAxisLabelMax():Int{
+        return (yAxisMaximum + yAxisMaximum*yAxisSpaceTop).toInt()
+    }
+
+    fun getRealAxisLabelMin():Int{
+        return (yAxisMinimum + yAxisMinimum*yAxisSpaceBottom).toInt()
+    }
+
+    fun getYLabelDistance(){
+
     }
 
     fun loadData(data: List<IHistogramData>) {
         datas.clear()
         datas.addAll(data)
         postInvalidate()
+
+        initYAxisLabel()
     }
 
 
