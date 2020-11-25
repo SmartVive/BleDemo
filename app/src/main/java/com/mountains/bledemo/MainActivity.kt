@@ -20,6 +20,7 @@ import com.mountains.bledemo.helper.CommHelper
 import com.mountains.bledemo.presenter.MainPresenter
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.ui.activity.BindDeviceActivity
+import com.mountains.bledemo.ui.activity.HeartRateDetailsActivity
 import com.mountains.bledemo.ui.activity.StepDetailsActivity
 import com.mountains.bledemo.util.DisplayUtil
 import com.mountains.bledemo.view.MainView
@@ -83,7 +84,11 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         itemDataAdapter.setOnItemClickListener { adapter, view, position ->
             when(itemDataList[position].itemType){
                 CardItemData.DEVICE_TYPE->{
-                    val intent = Intent(this@MainActivity, BindDeviceActivity::class.java)
+                    val intent = Intent(getContext(), BindDeviceActivity::class.java)
+                    startActivity(intent)
+                }
+                CardItemData.HEART_RATE_TYPE->{
+                    val intent = Intent(getContext(), HeartRateDetailsActivity::class.java)
                     startActivity(intent)
                 }
             }
@@ -109,12 +114,14 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
             val intent = Intent(this, StepDetailsActivity::class.java)
             startActivity(intent)
         }
+
+
     }
 
 
     private fun initItemData(){
         val deviceCard = CardItemData(CardItemData.DEVICE_TYPE, R.drawable.ic_card_device, null, null, "设备")
-        val heartCard = CardItemData(CardItemData.HEART_TYPE, R.drawable.ic_card_heart, "0 - 0bpm", "暂无数据", "心率记录")
+        val heartCard = CardItemData(CardItemData.HEART_RATE_TYPE, R.drawable.ic_card_heart, "0 - 0bpm", "暂无数据", "心率记录")
         val bloodPressureCard = CardItemData(CardItemData.BLOOD_PRESSURE_TYPE, R.drawable.ic_card_blood_pressure, "0 / 0mmHg", "暂无数据", "血压记录")
         val bloodOxygenCard = CardItemData(CardItemData.BLOOD_OXYGEN_TYPE, R.drawable.ic_card_blood_oxygen, "0 - 0%", "暂无数据", "血氧记录")
         val sleepCard = CardItemData(CardItemData.SLEEP_TYPE, R.drawable.ic_card_sleep, "0h 0min", "暂无数据", "睡眠记录")

@@ -25,6 +25,7 @@
         </activity>
         <activity android:name=".ui.activity.BindDeviceActivity" />
         <activity android:name=".ui.activity.StepDetailsActivity" />
+        <activity android:name=".ui.activity.HeartRateDetailsActivity" />
 
         <service android:name=".service.DeviceConnectService" />
     </application>

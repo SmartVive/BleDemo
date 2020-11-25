@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tool="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.hjq.bar.TitleBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:title="心率详情" />
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:elevation="0dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="@color/white"
+                app:layout_scrollFlags="scroll">
+
+                <com.mountains.bledemo.weiget.HistogramView
+                    android:id="@+id/histogramView"
+                    android:layout_width="match_parent"
+                    android:layout_height="280dp"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvAvgHeartRate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvAvgHeartRateTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvAvgHeartRateTitle"
+                    app:layout_constraintTop_toBottomOf="@id/histogramView"
+                    tool:text="80bpm" />
+
+                <TextView
+                    android:id="@+id/tvMaxHeartRate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvMaxHeartRateTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvMaxHeartRateTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgHeartRate"
+                    tool:text="100bpm" />
+
+                <TextView
+                    android:id="@+id/tvMinHeartRate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvMinHeartRateTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvMinHeartRateTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgHeartRate"
+                    tool:text="60bpm" />
+
+                <TextView
+                    android:id="@+id/tvAvgHeartRateTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="平均心率"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tvMaxHeartRateTitle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvAvgHeartRate" />
+
+                <TextView
+                    android:id="@+id/tvMaxHeartRateTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="最高心率"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="@id/tvAvgHeartRateTitle"
+                    app:layout_constraintEnd_toStartOf="@id/tvMinHeartRateTitle"
+                    app:layout_constraintStart_toEndOf="@id/tvAvgHeartRateTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgHeartRateTitle" />
+
+                <TextView
+                    android:id="@+id/tvMinHeartRateTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="最低心率"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="@id/tvAvgHeartRateTitle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvMaxHeartRateTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgHeartRateTitle" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+</LinearLayout>

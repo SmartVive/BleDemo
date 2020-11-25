@@ -5,6 +5,9 @@ import com.mountains.bledemo.bean.TemperatureBean
 import com.mountains.bledemo.util.CalendarUtil
 import com.mountains.bledemo.util.HexUtil
 import com.orhanobut.logger.Logger
+import org.litepal.LitePal
+import org.litepal.extension.find
+import org.litepal.extension.saveAll
 import java.util.*
 
 class HealthDataDecodeHelper  : IDataDecodeHelper {
@@ -83,7 +86,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
 
         if(HexUtil.bytes2HexString(bArr).startsWith("0507FD",true)){
             Logger.i("心率大数据:解析完成")
-            //HeartRateStorageHelper.asyncSaveData(SNBLEHelper.getDeviceMacAddress(), this.heartRates)
+            saveHeartRateData()
         }
 
         if(HexUtil.bytes2HexString(bArr).startsWith("05070C",true)){
@@ -118,5 +121,65 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
             //TemperatureStorageHelper.asyncSaveData(SNBLEHelper.getDeviceMacAddress(), this.temperatures)
         }
 
+    }
+
+    /**
+     * 保存心率大数据
+     */
+    private fun saveHeartRateData(){
+        if(!checkHeartData(heartRates)){
+            Logger.w("心率大数据异常，不保存")
+            return
+        }
+        val startTime = heartRates.last().dateTime
+        val endTime = heartRates.first().dateTime
+        val existsData = LitePal.where("datetime between ? and ?", "$startTime", "$endTime").order("datetime desc")
+            .find<HeartRateBean>()
+
+
+
+        var existsIndex = existsData.size-1
+        var heartRatesIndex = heartRates.size-1
+        var updateCount = 0
+        while(heartRatesIndex >= 0 && existsIndex >= 0){
+            while(existsData[existsIndex].dateTime != heartRates[heartRatesIndex].dateTime){
+                existsIndex--;
+            }
+            //相同的时间，当前数值大于已存在数值时更新
+            if(existsIndex >= 0){
+                if (heartRates[heartRatesIndex].value > existsData[existsIndex].value){
+                    heartRates[heartRatesIndex].update(existsData[existsIndex].id)
+                    updateCount++
+                }
+                heartRates.removeAt(heartRatesIndex)
+            }
+            existsIndex--
+            heartRatesIndex--
+        }
+
+
+        Logger.d("更新心率大数据条目数量：$updateCount")
+        Logger.d("新增心率大数据条目数量：${heartRates.size}")
+        heartRates.saveAll()
+    }
+
+
+    /**
+     * 检查心率数据是否异常
+     */
+    private fun checkHeartData(list:MutableList<HeartRateBean>):Boolean{
+        if(list.isEmpty()){
+            return false
+        }
+        list.sort()
+        val tomorrowCalendar = CalendarUtil.getTomorrowCalendar()
+        val yesterdayCalendar = CalendarUtil.getYesterdayCalendar()
+        //数据只能为昨天00：00点到今天23：59分,超过说明数据异常
+        if(list.first().dateTime >= tomorrowCalendar.timeInMillis){
+            return false
+        }else if (list.last().dateTime < yesterdayCalendar.timeInMillis){
+            return false
+        }
+        return true
     }
 }

@@ -18,6 +18,7 @@ class SportBean(
         var dateTime: Long = 0L
         var index: Int = 0
         var value: Int = 0
+        val calendar by lazy { Calendar.getInstance() }
 
         constructor()
 
@@ -37,7 +38,6 @@ class SportBean(
 
         override fun getHistogramTime(): Long {
             val histogramTime:Long
-            val calendar = Calendar.getInstance()
             calendar.timeInMillis = dateTime
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
             val minute = calendar.get(Calendar.MINUTE)

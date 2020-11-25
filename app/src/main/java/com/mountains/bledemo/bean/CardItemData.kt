@@ -12,7 +12,7 @@ class CardItemData(
 ){
     companion object{
         //心率
-        const val HEART_TYPE = 1
+        const val HEART_RATE_TYPE = 1
         //血压
         const val BLOOD_PRESSURE_TYPE = 2
         //血氧
