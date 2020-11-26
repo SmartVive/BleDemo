@@ -64,12 +64,12 @@ object CommHelper {
 
 
     //检查心率
-    fun checkHeartRate(i: Int): ByteArray {
+    fun checkHeartRate(on: Int): ByteArray {
         val bArr = ByteArray(20)
         bArr[0] = 5
         bArr[1] = 5
         bArr[2] = 1
-        bArr[3] = i.toByte()
+        bArr[3] = on.toByte()
         return bArr
     }
 

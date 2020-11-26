@@ -41,13 +41,10 @@ class HeartRateDetailsActivity : BaseActivity<HeartRateDetailsPresenter>(),Heart
     }
 
     private fun initData(){
-        val todayCalendar = CalendarUtil.getTodayCalendar()
-        val startTime = todayCalendar.timeInMillis
-        todayCalendar.set(Calendar.HOUR,23)
-        todayCalendar.set(Calendar.MINUTE,59)
-        todayCalendar.set(Calendar.SECOND,59)
-        todayCalendar.set(Calendar.MILLISECOND,59)
-        val endTime = todayCalendar.timeInMillis
+        val todayBeginCalendar = CalendarUtil.getTodayBeginCalendar()
+        val todayEndCalendar = CalendarUtil.getTodayEndCalendar()
+        val startTime = todayBeginCalendar.timeInMillis
+        val endTime = todayEndCalendar.timeInMillis
         presenter.getHeartRate(startTime,endTime)
     }
 

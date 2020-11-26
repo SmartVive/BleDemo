@@ -32,7 +32,6 @@ class StepDetailsActivity : BaseActivity<StepDetailsPresenter>(),StepDetailsView
     private fun initView(){
         recyclerView.apply {
             layoutManager = LinearLayoutManager(context)
-            addItemDecoration(DividerItemDecoration(context,DividerItemDecoration.VERTICAL))
             adapter = stepAdapter
         }
         stepAdapter.apply {

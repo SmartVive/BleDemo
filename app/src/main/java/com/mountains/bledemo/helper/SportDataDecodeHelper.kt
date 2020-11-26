@@ -12,8 +12,6 @@ import org.litepal.extension.saveAll
 
 
 import java.util.*
-import java.text.ParseException
-import java.text.SimpleDateFormat
 
 
 class SportDataDecodeHelper : IDataDecodeHelper {
@@ -61,7 +59,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
             if (index <= 11) {
                 if (index == 0) {
                     Logger.i("运动大数据:解析开始")
-                    mStepDataCalendar = CalendarUtil.getTodayCalendar()
+                    mStepDataCalendar = CalendarUtil.getTodayBeginCalendar()
                     steps.clear()
                 }
                 if (mStepDataCalendar != null) {
@@ -92,7 +90,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
             val index2 = bArr[3].toInt()
             if (index2 <= 11) {
                 if (index2 == 0) {
-                    mDistanceDataCalendar = CalendarUtil.getTodayCalendar()
+                    mDistanceDataCalendar = CalendarUtil.getTodayBeginCalendar()
                     distances.clear()
                 }
                 if (this.mDistanceDataCalendar != null) {
@@ -121,7 +119,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
             val index3 = bArr[3].toInt()
             if (index3 <= 11) {
                 if (index3 == 0) {
-                    this.mCaloriesDataCalendar = CalendarUtil.getTodayCalendar()
+                    this.mCaloriesDataCalendar = CalendarUtil.getTodayBeginCalendar()
                     calories.clear()
                 }
                 if (this.mCaloriesDataCalendar != null) {

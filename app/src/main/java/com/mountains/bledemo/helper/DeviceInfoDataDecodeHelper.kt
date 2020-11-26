@@ -2,6 +2,7 @@ package com.mountains.bledemo.helper
 
 import android.util.Log
 import com.mountains.bledemo.bean.DeviceInfoBean
+import com.mountains.bledemo.event.DeviceInfoEvent
 import com.mountains.bledemo.util.HexUtil
 import com.orhanobut.logger.Logger
 import org.greenrobot.eventbus.EventBus
@@ -49,7 +50,7 @@ class DeviceInfoDataDecodeHelper : IDataDecodeHelper {
                 isSupportBloodPressureHistory,
                 isSupportSportModeHistory
             )
-            EventBus.getDefault().post(deviceInfoBean)
+            EventBus.getDefault().post(DeviceInfoEvent(deviceInfoBean))
         }
 
 

@@ -9,11 +9,13 @@ import android.view.Window
 import android.view.WindowManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.mountains.bledemo.adapter.ItemDataAdapter
+import com.mountains.bledemo.adapter.CardAdapter
 import com.mountains.bledemo.base.BaseActivity
 import com.mountains.bledemo.ble.*
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.bean.CardItemData
+import com.mountains.bledemo.event.DataUpdateEvent
+import com.mountains.bledemo.event.HeartRateEvent
 import com.mountains.bledemo.event.SportEvent
 import com.mountains.bledemo.helper.BaseUUID
 import com.mountains.bledemo.helper.CommHelper
@@ -36,7 +38,7 @@ import java.math.RoundingMode
 class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
     val itemDataList = mutableListOf<CardItemData>()
-    val itemDataAdapter by lazy { ItemDataAdapter(R.layout.item_card,itemDataList) }
+    val itemDataAdapter by lazy { CardAdapter(R.layout.item_card,itemDataList) }
 
 
     override fun createPresenter(): MainPresenter {
@@ -55,7 +57,8 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         window.setStatusBarColor(Color.TRANSPARENT)
 
         initView()
-        initItemData()
+        initCard()
+        initData()
 
     }
 
@@ -73,6 +76,14 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         tvCalorie.text = "${sportBean.calorie}"
         tvMileage.text = mileage
         stepsView.setCurrentSteps(sportBean.steps)
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onDataUpdateEvent(dataUpdateEvent: DataUpdateEvent){
+        if(dataUpdateEvent.type == DataUpdateEvent.HEART_RATE_UPDATE_TYPE){
+            presenter.getHeartRateData()
+        }
+
     }
 
     private  fun initView(){
@@ -97,7 +108,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
         swipeRefreshLayout.setOnRefreshListener {
 
-            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.getHistorySportData(),object : CommCallback{
+            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.checkHeartRate(1),object : CommCallback{
                 override fun onSuccess(byteArray: ByteArray?) {
                     swipeRefreshLayout.isRefreshing = false
                     Logger.d("commOnSuccess")
@@ -119,12 +130,12 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
     }
 
 
-    private fun initItemData(){
-        val deviceCard = CardItemData(CardItemData.DEVICE_TYPE, R.drawable.ic_card_device, null, null, "设备")
-        val heartCard = CardItemData(CardItemData.HEART_RATE_TYPE, R.drawable.ic_card_heart, "0 - 0bpm", "暂无数据", "心率记录")
-        val bloodPressureCard = CardItemData(CardItemData.BLOOD_PRESSURE_TYPE, R.drawable.ic_card_blood_pressure, "0 / 0mmHg", "暂无数据", "血压记录")
-        val bloodOxygenCard = CardItemData(CardItemData.BLOOD_OXYGEN_TYPE, R.drawable.ic_card_blood_oxygen, "0 - 0%", "暂无数据", "血氧记录")
-        val sleepCard = CardItemData(CardItemData.SLEEP_TYPE, R.drawable.ic_card_sleep, "0h 0min", "暂无数据", "睡眠记录")
+    private fun initCard(){
+        val deviceCard = CardItemData(CardItemData.DEVICE_TYPE, R.drawable.ic_card_device, "", "", "设备")
+        val heartCard = CardItemData(CardItemData.HEART_RATE_TYPE, R.drawable.ic_card_heart, "0 - 0bpm", "最后一次:暂无数据", "心率记录")
+        val bloodPressureCard = CardItemData(CardItemData.BLOOD_PRESSURE_TYPE, R.drawable.ic_card_blood_pressure, "0 / 0mmHg", "最后一次:暂无数据", "血压记录")
+        val bloodOxygenCard = CardItemData(CardItemData.BLOOD_OXYGEN_TYPE, R.drawable.ic_card_blood_oxygen, "0 - 0%", "最后一次:暂无数据", "血氧记录")
+        val sleepCard = CardItemData(CardItemData.SLEEP_TYPE, R.drawable.ic_card_sleep, "0h 0min", "最后一次:暂无数据", "睡眠记录")
         itemDataList.add(deviceCard)
         itemDataList.add(heartCard)
         itemDataList.add(bloodPressureCard)
@@ -133,6 +144,17 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         itemDataAdapter.notifyDataSetChanged()
     }
 
+    private fun initData(){
+        presenter.getHeartRateData()
+    }
+
+    override fun onHeartRateData(valueContent: String, timeContent: String) {
+        itemDataList.filter { it.itemType == CardItemData.HEART_RATE_TYPE }.forEach {
+            it.value = valueContent
+            it.time = timeContent
+        }
+        itemDataAdapter.notifyDataSetChanged()
+    }
 
 
     //边距

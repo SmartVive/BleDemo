@@ -41,11 +41,18 @@ class HistogramView : View {
     //最小值与轴上最小值的底部间距（以最小值的百分比为单位）
     private var yAxisSpaceBottom = 0.1f
 
+    //条形左边间距（以条形宽度的百分比为单位）
+    private var barSpaceLeft = 0.2f
+    //条形右边间距（以条形宽度的百分比为单位）
+    private var barSpaceRight = 0.2f
+
     //单位秒
     var xAxisStartTime: Int = 0
     var xAxisEndTime: Int = 86400
 
     var datas: MutableList<IHistogramData> = mutableListOf()
+    
+    private var barData:FloatArray? = null
 
     var textOffset = 0f
 
@@ -168,45 +175,30 @@ class HistogramView : View {
             canvas.drawLine(startX, startY, endX, endY, axisPaint)
         }
 
-
-        val labelMax = getRealAxisLabelMax()
-        val labelMin = getRealAxisLabelMin()
-
-        //y值标签间隔
-        val yLabelDistance = (labelMax - labelMin) / (yAxisLabelCount - 1)
         //画y轴标签
         for (i in 0 until yAxisLabelCount) {
             val x = getYAxisLabelX()
             val y = getYAxisLabelY(i)
-            val value = (yLabelDistance * i + labelMin).toString()
+            val value = getYAxisLabelText(i)
             canvas.drawText(value, x, y, axisPaint)
         }
 
 
         //画条形数据
         for (i in 0 until barCount) {
-            val startTime = i * ((xAxisEndTime - xAxisStartTime) / barCount)
-            val endTime = (i + 1) * ((xAxisEndTime - xAxisStartTime) / barCount)
+            barData?.let {
+                val avg = it[i]
+                //val y = yAxisBottom - yDivideDistance * ((avg - labelMin) / yLabelDistance)
+                val top = getBarTop(avg)
+                var left = getBarLeft(i)
+                var right = getBarRight(i)
+                var bottom = xAxisTop
 
-            var sumValue = 0f
-            var count = 0
-            for (data in datas) {
-                if (data.getHistogramTime() in startTime until endTime) {
-                    sumValue += data.getHistogramValue()
-                    count++
-                }
+                left += (right - left) * barSpaceLeft
+                right -= (right - left) * barSpaceRight
+                //Logger.e("$left,$right")
+                canvas.drawRect(left, top, right, bottom, valuePaint)
             }
-
-            //多个数值用一条线显示时，显示平均值
-            val avg = sumValue / count
-            val y = yAxisBottom - yDivideDistance * ((avg - labelMin) / yLabelDistance)
-            var left = xAxisLeft + startTime * xValueDistance
-            var right = xAxisLeft + endTime * xValueDistance
-
-            left += (right - left) * 0.3f
-            right -= (right - left) * 0.3f
-            //Logger.e("$left,$right")
-            canvas.drawRect(left, y, right, xAxisTop, valuePaint)
         }
 
     }
@@ -323,6 +315,15 @@ class HistogramView : View {
     }
 
     /**
+     * 获取y轴第index个标签文字
+     */
+    private fun getYAxisLabelText(index: Int):String{
+        //两个label相差的值
+        val yLabelDiffer = (getYAxisRealLabelMax() - getYAxisRealLabelMin()) / (yAxisLabelCount - 1)
+        return (getYAxisRealLabelMin() + yLabelDiffer * index).toString()
+    }
+
+    /**
      * 获取x轴第index个分割线startX
      */
     private fun getXAxisDividerStartX(index: Int): Float {
@@ -349,7 +350,7 @@ class HistogramView : View {
      * 获取x轴分割线endY
      */
     private fun getXAxisDividerEndY(): Float {
-        return getXAxisDividerStartY() + dividerLength
+        return getXAxisDividerStartY() - dividerLength
     }
 
     /**
@@ -400,16 +401,77 @@ class HistogramView : View {
         }
     }
 
-    fun getRealAxisLabelMax():Int{
+    fun getYAxisRealLabelMax():Int{
         return (yAxisMaximum + yAxisMaximum*yAxisSpaceTop).toInt()
     }
 
-    fun getRealAxisLabelMin():Int{
-        return (yAxisMinimum + yAxisMinimum*yAxisSpaceBottom).toInt()
+    fun getYAxisRealLabelMin():Int{
+        return (yAxisMinimum - yAxisMinimum*yAxisSpaceBottom).toInt()
     }
 
-    fun getYLabelDistance(){
 
+    /**
+     * 获取第index个条形的开始时间
+     */
+    fun getBarStartTime(index: Int):Int{
+        return index * ((xAxisEndTime - xAxisStartTime) / barCount)
+    }
+
+    /**
+     * 获取第index个条形的结束时间
+     */
+    fun getBarEndTime(index: Int):Int{
+        return (index+1) * ((xAxisEndTime - xAxisStartTime) / barCount)
+    }
+
+    /**
+     * 获取值为value的条形top
+     */
+    private fun getBarTop(value:Float):Float{
+        val yAxisRealLabelMax = getYAxisRealLabelMax()
+        val yAxisRealLabelMin = getYAxisRealLabelMin()
+        val differ =  yAxisRealLabelMax - yAxisRealLabelMin
+        return yAxisBottom - ((value-yAxisRealLabelMin)/differ)*yAxisHeight
+    }
+
+    /**
+     * 获取值为value的条形left
+     */
+    private fun getBarLeft(index:Int):Float{
+        val startTime = getBarStartTime(index)
+        return xAxisLeft + startTime * xValueDistance
+    }
+
+    /**
+     * 获取值为value的条形left
+     */
+    private fun getBarRight(index:Int):Float{
+        val endTime = getBarEndTime(index)
+        return xAxisLeft + endTime * xValueDistance
+    }
+
+    /**
+     * 初始化条形数据
+     */
+    private fun initBarData(){
+        barData = FloatArray(barCount)
+        barData?.let {
+            for (i in it.indices) {
+                val startTime = getBarStartTime(i)
+                val endTime = getBarEndTime(i)
+
+                //多个数值用一个条形显示时，显示平均值
+                var sumValue = 0f
+                var count = 0
+                for (data in datas) {
+                    if (data.getHistogramTime() in startTime until endTime) {
+                        sumValue += data.getHistogramValue()
+                        count++
+                    }
+                }
+                it[i] = (sumValue/count)
+            }
+        }
     }
 
     fun loadData(data: List<IHistogramData>) {
@@ -418,6 +480,7 @@ class HistogramView : View {
         postInvalidate()
 
         initYAxisLabel()
+        initBarData()
     }
 
 

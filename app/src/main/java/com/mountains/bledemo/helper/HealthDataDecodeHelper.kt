@@ -2,9 +2,11 @@ package com.mountains.bledemo.helper
 
 import com.mountains.bledemo.bean.HeartRateBean
 import com.mountains.bledemo.bean.TemperatureBean
+import com.mountains.bledemo.event.DataUpdateEvent
 import com.mountains.bledemo.util.CalendarUtil
 import com.mountains.bledemo.util.HexUtil
 import com.orhanobut.logger.Logger
+import org.greenrobot.eventbus.EventBus
 import org.litepal.LitePal
 import org.litepal.extension.find
 import org.litepal.extension.saveAll
@@ -44,7 +46,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
                     Logger.w("实时体检数据:心率数据异常,心率:%d", mHeartRate)
                     mHeartRate = 0
                 }
-                //HeartRateStorageHelper.asyncSaveRealTimeData(SNBLEHelper.getDeviceMacAddress(), mHeartRate)
+                //saveHeartRateData(mHeartRate)
             }
             if (mBloodOxygen != 0) {
                 //BloodOxygenStorageHelper.asyncSaveRealTimeData(SNBLEHelper.getDeviceMacAddress(), mBloodOxygen)
@@ -59,7 +61,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
             if (index <= 11) {
                 if (index == 0) {
                     Logger.i("心率大数据:解析开始")
-                    mHeartRateDataCalendar = CalendarUtil.getTodayCalendar()
+                    mHeartRateDataCalendar = CalendarUtil.getTodayBeginCalendar()
                     heartRates.clear()
                 }
                 mHeartRateDataCalendar?.let {mHeartRateDataCalendar->
@@ -86,7 +88,10 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
 
         if(HexUtil.bytes2HexString(bArr).startsWith("0507FD",true)){
             Logger.i("心率大数据:解析完成")
-            saveHeartRateData()
+            if(heartRates.isNotEmpty()){
+                saveHeartRatesData(heartRates)
+                EventBus.getDefault().post(DataUpdateEvent(DataUpdateEvent.HEART_RATE_UPDATE_TYPE))
+            }
         }
 
         if(HexUtil.bytes2HexString(bArr).startsWith("05070C",true)){
@@ -94,7 +99,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
             if (index2 <= 11) {
                 if (index2 == 0) {
                     Logger.i("体温大数据:解析开始")
-                    mTemperatureDataCalendar = CalendarUtil.getTodayCalendar()
+                    mTemperatureDataCalendar = CalendarUtil.getTodayBeginCalendar()
                     temperatures.clear()
                 }
                 mTemperatureDataCalendar?.let {mTemperatureDataCalendar->
@@ -124,9 +129,20 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
     }
 
     /**
+     * 保存实时心率数据
+     */
+    private fun saveHeartRateData(heartRate: Int){
+        val currentCalendar = CalendarUtil.getCurrentCalendar()
+        val index = CalendarUtil.convertTimeToIndex(currentCalendar, 1)
+        val currentTimeMillis = System.currentTimeMillis()
+        val heartRateBean = HeartRateBean(currentTimeMillis, index, heartRate)
+        saveHeartRatesData2(mutableListOf(heartRateBean))
+    }
+
+    /**
      * 保存心率大数据
      */
-    private fun saveHeartRateData(){
+    private fun saveHeartRatesData(heartRates:MutableList<HeartRateBean>){
         if(!checkHeartData(heartRates)){
             Logger.w("心率大数据异常，不保存")
             return
@@ -135,8 +151,6 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
         val endTime = heartRates.first().dateTime
         val existsData = LitePal.where("datetime between ? and ?", "$startTime", "$endTime").order("datetime desc")
             .find<HeartRateBean>()
-
-
 
         var existsIndex = existsData.size-1
         var heartRatesIndex = heartRates.size-1
@@ -161,6 +175,43 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
         Logger.d("更新心率大数据条目数量：$updateCount")
         Logger.d("新增心率大数据条目数量：${heartRates.size}")
         heartRates.saveAll()
+    }
+
+    private fun saveHeartRatesData2(newDataList:MutableList<HeartRateBean>){
+        if(!checkHeartData(newDataList)){
+            Logger.w("心率大数据异常，不保存")
+            return
+        }
+        //根据时间戳获取当天00:00:00点日历
+        val startCalendar = CalendarUtil.getBeginCalendar(newDataList.last().dateTime)
+        //根据时间戳获取当天23:59:59点日历
+        val endCalendar = CalendarUtil.getEndCalendar(newDataList.first().dateTime)
+        val startTime = startCalendar.timeInMillis
+        val endTime = endCalendar.timeInMillis
+
+        val oldDataList = LitePal.where("datetime between ? and ?", "$startTime", "$endTime").order("datetime desc")
+            .find<HeartRateBean>()
+
+        var updateCount = 0
+        for (i in newDataList.size - 1 downTo 0) {
+            for (j in oldDataList.size - 1 downTo 0) {
+                val newData = newDataList[i]
+                val oldData = oldDataList[j]
+                //当index相同，日期也为同一天时，合并数据，取平均值
+                if (newData.index == oldData.index && CalendarUtil.isSameDay(newData.dateTime, oldData.dateTime)) {
+                    updateCount++
+                    newData.value = (newData.value + oldData.value)/2
+                    newData.update(oldData.id)
+                    newDataList.removeAt(i)
+                    break
+                }
+            }
+        }
+
+
+        Logger.d("更新心率大数据条目数量：$updateCount")
+        Logger.d("新增心率大数据条目数量：${newDataList.size}")
+        newDataList.saveAll()
     }
 
 
