@@ -5,9 +5,8 @@ import com.orhanobut.logger.Logger
 import java.util.*
 import com.mountains.bledemo.bean.SleepBean
 import com.mountains.bledemo.util.CalendarUtil
-
-
-
+import org.litepal.LitePal
+import org.litepal.extension.saveAll
 
 
 class SleepDataDecodeHelper : IDataDecodeHelper {
@@ -43,23 +42,17 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
                 sleepDataCalendar.time = startCalendar!!.time
             } else if (startCalendar != null) {
                 for (i in 4 until 20 step 2) {
-                    val sleepData = SleepBean.SleepData()
                     //先转成16bit数据，前2位为睡眠状态，后14位位睡眠时间
                     val src16Bit = convertTo16Bit(bArr[i], bArr[i + 1])
-                    val sleepStatus = getSleepStatus(src16Bit);
-                    val sleepMinutes = getSleepMinutes(src16Bit);
+                    val sleepStatus = getSleepStatus(src16Bit)
+                    val sleepMinutes = getSleepMinutes(src16Bit)
                     when (sleepStatus) {
                         SleepBean.STATUS_LIGHT -> mLightSleepMinutes += sleepMinutes;
                         SleepBean.STATUS_DEEP -> mDeepSleepMinutes += sleepMinutes;
                         SleepBean.STATUS_SOBER -> mSoberSleepMinutes += sleepMinutes;
                     }
-                    sleepData.minutes = sleepMinutes
-                    sleepData.statuss = sleepStatus
-                    sleepData.values = src16Bit
-                    sleepDataList.add(sleepData)
-                    if (sleepMinutes != 0) {
-                        sleepDataCalendar.add(Calendar.MINUTE, sleepMinutes);
 
+                    if (sleepMinutes != 0) {
                         Logger.i(
                             "睡眠大数据:时间:%s,状态:%s,时长:%d",
                             CalendarUtil.format("yyyy-MM-dd HH:mm", sleepDataCalendar),
@@ -67,6 +60,15 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
                             sleepMinutes
                         );
                     }
+
+                    val sleepData = SleepBean.SleepData()
+                    sleepData.minutes = sleepMinutes
+                    sleepData.statuss = sleepStatus
+                    sleepData.values = src16Bit
+                    sleepData.beginTime = sleepDataCalendar.timeInMillis
+                    sleepDataCalendar.add(Calendar.MINUTE, sleepMinutes);
+                    sleepData.endTime = sleepDataCalendar.timeInMillis
+                    sleepDataList.add(sleepData)
                 }
             }
         }
@@ -74,7 +76,7 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
         if (HexUtil.bytes2HexString(bArr).startsWith("0507FE", true)) {
             addData();
             Logger.i("睡眠大数据:解析完成");
-            //asyncSaveData();
+            saveSleepData()
         }
     }
 
@@ -90,7 +92,6 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
     }
 
     private fun addData() {
-        Logger.e("addData")
         if(sleepDataList.isNotEmpty() && startCalendar!=null && endCalendar != null){
             val sleepBean = SleepBean()
             sleepBean.beginDateTime = startCalendar!!.timeInMillis
@@ -101,7 +102,30 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
             sleepBean.sober = mSoberSleepMinutes
             sleepBeanList.add(sleepBean)
         }
+
     }
+
+    /**
+     * 保存睡眠数据
+     */
+    private fun saveSleepData(){
+        if(sleepBeanList.isEmpty()){
+            Logger.e("睡眠数据异常，不保存")
+            return
+        }
+
+        for (sleepBean in sleepBeanList){
+            if (sleepBean.sleepData.isEmpty()){
+                Logger.e("睡眠详情数据异常，不保存")
+                continue
+            }
+            val beginDateTime = sleepBean.beginDateTime
+            val endDateTime = sleepBean.endDateTime
+            sleepBean.sleepData.saveAll()
+            sleepBean.save()
+        }
+    }
+
 
     private fun convertTo16Bit(num1: Byte, num2: Byte): Int {
         return ((num1.toInt() * 256) + num2.toInt()) and 65535

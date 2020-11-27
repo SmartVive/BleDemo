@@ -1,9 +1,11 @@
 package com.mountains.bledemo.bean
 
 import com.mountains.bledemo.bean.SleepBean.SleepData
+import com.mountains.bledemo.weiget.ISleepHistogramData
+import org.litepal.crud.LitePalSupport
 
 
-class SleepBean {
+class SleepBean : LitePalSupport() {
     var beginDateTime: Long = 0
     var endDateTime: Long = 0
     var deep: Int = 0
@@ -21,9 +23,23 @@ class SleepBean {
     }
 
 
-    class SleepData {
+    class SleepData : LitePalSupport(),ISleepHistogramData {
+        var beginTime : Long = 0
+        var endTime : Long = 0
         var minutes: Int = 0
         var statuss: Int = 0
         var values: Int = 0
+
+        override fun getSleepType(): Int {
+            return statuss
+        }
+
+        override fun getSleepBeginTime(): Long {
+            return beginTime
+        }
+
+        override fun getSleepEndTime(): Long {
+            return endTime
+        }
     }
 }

@@ -8,9 +8,9 @@ import android.util.AttributeSet
 import android.view.View
 import com.mountains.bledemo.util.DisplayUtil
 
-class HistogramView : View {
+open class HistogramView : View {
     //y轴标签个数
-    private var yAxisLabelCount = 7
+    private var yAxisLabelCount = 5
     //x轴标签个数
     private var xAxisLabelCount = 7
     //x、y轴画笔
@@ -56,43 +56,11 @@ class HistogramView : View {
 
     var textOffset = 0f
 
-    lateinit var valuePaint: Paint
+    /**
+     * 条形画笔
+     */
+    lateinit var barPaint: Paint
 
-    constructor(context: Context?) : this(context, null)
-    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-        init()
-    }
-
-    private fun init() {
-        axisPaint = Paint()
-        axisPaint.isAntiAlias = true
-        axisPaint.setColor(axisColor)
-        axisPaint.strokeWidth = axisWidth
-        axisPaint.textSize = DisplayUtil.dp2px(context, 12f).toFloat()
-        axisPaint.textAlign = Paint.Align.CENTER
-        val fontMetrics = Paint.FontMetrics()
-        axisPaint.getFontMetrics(fontMetrics)
-        textOffset = (fontMetrics.descent + fontMetrics.ascent) / 2
-
-        valuePaint = Paint()
-        valuePaint.isAntiAlias = true
-        valuePaint.setColor(Color.RED)
-        valuePaint.strokeWidth = 1f
-
-
-        /*for (i in 0 .. 60){
-            val random = Random()
-            val value = (random.nextDouble() * 100 + 30).toInt()
-            val histogramEntity = HistogramEntity(value, i * 1440L)
-            datas.add(histogramEntity)
-        }*/
-
-        axisMarginLeft = axisPaint.measureText("9999")
-        axisMarginBottom = (fontMetrics.descent - fontMetrics.ascent) * 2
-        axisMarginTop = axisMarginBottom
-        axisMarginRight = axisMarginLeft
-    }
 
 
     var xAxisLeft: Float = 0f
@@ -115,6 +83,44 @@ class HistogramView : View {
 
     //x轴两个变量距离
     var xValueDistance = 0f
+
+    constructor(context: Context?) : this(context, null)
+    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
+    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+        init()
+    }
+
+
+    private fun init() {
+        axisPaint = Paint()
+        axisPaint.isAntiAlias = true
+        axisPaint.setColor(axisColor)
+        axisPaint.strokeWidth = axisWidth
+        axisPaint.textSize = DisplayUtil.dp2px(context, 12f).toFloat()
+        axisPaint.textAlign = Paint.Align.CENTER
+        val fontMetrics = Paint.FontMetrics()
+        axisPaint.getFontMetrics(fontMetrics)
+        textOffset = (fontMetrics.descent + fontMetrics.ascent) / 2
+
+        barPaint = Paint()
+        barPaint.isAntiAlias = true
+        barPaint.setColor(Color.RED)
+        barPaint.strokeWidth = 1f
+
+
+        /*for (i in 0 .. 60){
+            val random = Random()
+            val value = (random.nextDouble() * 100 + 30).toInt()
+            val histogramEntity = HistogramEntity(value, i * 1440L)
+            datas.add(histogramEntity)
+        }*/
+
+        axisMarginLeft = axisPaint.measureText("9999")
+        axisMarginBottom = (fontMetrics.descent - fontMetrics.ascent) * 2
+        axisMarginTop = axisMarginBottom
+        axisMarginRight = axisMarginLeft
+    }
+
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -142,14 +148,40 @@ class HistogramView : View {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-
         //画x轴
-        canvas.drawLine(xAxisLeft, xAxisTop, xAxisRight, xAxisTop, axisPaint)
-
+        drawXAxis(canvas)
         //画y轴
-        canvas.drawLine(yAxisLeft, yAxisTop, yAxisLeft, yAxisBottom, axisPaint)
-
+        drawYAxis(canvas)
         //画x轴分割线
+        drawXAxisDivider(canvas)
+        //画x轴标签
+        drawXAxisLabel(canvas)
+        //画y轴分割线
+        drawYAxisDivider(canvas)
+        //画y轴标签
+        drawYAxisLabel(canvas)
+        //画条形数据
+        drawBar(canvas)
+    }
+
+    /**
+     * 画x轴
+     */
+    open fun drawXAxis(canvas: Canvas) {
+        canvas.drawLine(xAxisLeft, xAxisTop, xAxisRight, xAxisTop, axisPaint)
+    }
+
+    /**
+     * 画y轴
+     */
+    open fun drawYAxis(canvas: Canvas) {
+        canvas.drawLine(yAxisLeft, yAxisTop, yAxisLeft, yAxisBottom, axisPaint)
+    }
+
+    /**
+     * 画x轴分割线
+     */
+    open fun drawXAxisDivider(canvas: Canvas){
         for (i in 0 until xAxisLabelCount) {
             val startX = getXAxisDividerStartX(i)
             val startY = getXAxisDividerStartY()
@@ -157,16 +189,23 @@ class HistogramView : View {
             val endY = getXAxisDividerEndY()
             canvas.drawLine(startX, startY, endX, endY, axisPaint)
         }
+    }
 
-        //画x轴标签
+    /**
+     * 画x轴标签
+     */
+    open fun drawXAxisLabel(canvas: Canvas){
         for (i in 0 until xAxisLabelCount) {
             val x = getXAxisLabelX(i)
             val y = getXAxisLabelY()
             canvas.drawText(getXAxisLabelText(i), x, y, axisPaint)
         }
+    }
 
-
-        //画y轴分割线
+    /**
+     * 画y轴分割线
+     */
+    open fun drawYAxisDivider(canvas: Canvas){
         for (i in 0 until yAxisLabelCount) {
             val startX = getYAxisDividerStartX()
             val startY = getYAxisDividerStartY(i)
@@ -174,17 +213,24 @@ class HistogramView : View {
             val endY = getYAxisDividerEndY(i)
             canvas.drawLine(startX, startY, endX, endY, axisPaint)
         }
+    }
 
-        //画y轴标签
+    /**
+     * 画y轴标签
+     */
+    open fun drawYAxisLabel(canvas: Canvas){
         for (i in 0 until yAxisLabelCount) {
             val x = getYAxisLabelX()
             val y = getYAxisLabelY(i)
             val value = getYAxisLabelText(i)
             canvas.drawText(value, x, y, axisPaint)
         }
+    }
 
-
-        //画条形数据
+    /**
+     * 画条形数据
+     */
+    open fun drawBar(canvas: Canvas){
         for (i in 0 until barCount) {
             barData?.let {
                 val avg = it[i]
@@ -197,10 +243,9 @@ class HistogramView : View {
                 left += (right - left) * barSpaceLeft
                 right -= (right - left) * barSpaceRight
                 //Logger.e("$left,$right")
-                canvas.drawRect(left, top, right, bottom, valuePaint)
+                canvas.drawRect(left, top, right, bottom, barPaint)
             }
         }
-
     }
 
     /**
@@ -259,6 +304,8 @@ class HistogramView : View {
         barCount = count
     }
 
+
+
     private fun secondFormatHour(second: Int): String {
         var hourStr = (second / 60 / 60).toString()
         var minStr = (second / 60 % 60).toString()
@@ -271,7 +318,8 @@ class HistogramView : View {
         return "$hourStr:$minStr"
     }
 
-    /**获取x轴第index个标签横坐标
+    /**
+     * 获取x轴第index个标签横坐标
      * 取两个分割线中间横坐标
      */
     private fun getXAxisLabelX(index: Int): Float {
@@ -427,7 +475,7 @@ class HistogramView : View {
     /**
      * 获取值为value的条形top
      */
-    private fun getBarTop(value:Float):Float{
+    fun getBarTop(value:Float):Float{
         val yAxisRealLabelMax = getYAxisRealLabelMax()
         val yAxisRealLabelMin = getYAxisRealLabelMin()
         val differ =  yAxisRealLabelMax - yAxisRealLabelMin
@@ -437,7 +485,7 @@ class HistogramView : View {
     /**
      * 获取值为value的条形left
      */
-    private fun getBarLeft(index:Int):Float{
+    fun getBarLeft(index:Int):Float{
         val startTime = getBarStartTime(index)
         return xAxisLeft + startTime * xValueDistance
     }
@@ -445,7 +493,7 @@ class HistogramView : View {
     /**
      * 获取值为value的条形left
      */
-    private fun getBarRight(index:Int):Float{
+    fun getBarRight(index:Int):Float{
         val endTime = getBarEndTime(index)
         return xAxisLeft + endTime * xValueDistance
     }

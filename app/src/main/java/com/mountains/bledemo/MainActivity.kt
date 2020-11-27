@@ -11,11 +11,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mountains.bledemo.adapter.CardAdapter
 import com.mountains.bledemo.base.BaseActivity
-import com.mountains.bledemo.ble.*
-import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.bean.CardItemData
+import com.mountains.bledemo.ble.BleException
+import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.event.DataUpdateEvent
-import com.mountains.bledemo.event.HeartRateEvent
 import com.mountains.bledemo.event.SportEvent
 import com.mountains.bledemo.helper.BaseUUID
 import com.mountains.bledemo.helper.CommHelper
@@ -23,6 +22,7 @@ import com.mountains.bledemo.presenter.MainPresenter
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.ui.activity.BindDeviceActivity
 import com.mountains.bledemo.ui.activity.HeartRateDetailsActivity
+import com.mountains.bledemo.ui.activity.SleepDetailsActivity
 import com.mountains.bledemo.ui.activity.StepDetailsActivity
 import com.mountains.bledemo.util.DisplayUtil
 import com.mountains.bledemo.view.MainView
@@ -50,11 +50,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         setContentView(R.layout.activity_main)
         EventBus.getDefault().register(this)
 
-        val window: Window = window
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE)
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        window.setStatusBarColor(Color.TRANSPARENT)
+
 
         initView()
         initCard()
@@ -100,6 +96,10 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
                 }
                 CardItemData.HEART_RATE_TYPE->{
                     val intent = Intent(getContext(), HeartRateDetailsActivity::class.java)
+                    startActivity(intent)
+                }
+                CardItemData.SLEEP_TYPE->{
+                    val intent = Intent(getContext(), SleepDetailsActivity::class.java)
                     startActivity(intent)
                 }
             }

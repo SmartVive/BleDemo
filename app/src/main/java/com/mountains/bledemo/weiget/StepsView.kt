@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import androidx.core.content.ContextCompat
 import com.mountains.bledemo.R
 import com.mountains.bledemo.util.DisplayUtil
 import com.orhanobut.logger.Logger
@@ -62,7 +63,7 @@ class StepsView : View {
 
         numberPaint = Paint()
         numberPaint.isAntiAlias = true
-        numberPaint.setColor(Color.WHITE)
+        numberPaint.setColor(ContextCompat.getColor(context,R.color.mainTextColor))
         numberPaint.textSize = numberTextSize
         numberPaint.setTextAlign(Paint.Align.CENTER)
         val numberFontMetrics = Paint.FontMetrics()
@@ -71,7 +72,7 @@ class StepsView : View {
 
         textPaint = Paint()
         textPaint.isAntiAlias = true
-        textPaint.setColor(Color.WHITE)
+        textPaint.setColor(ContextCompat.getColor(context,R.color.mainTextColor))
         textPaint.textSize = textSize
         textPaint.setTextAlign(Paint.Align.CENTER)
         val textFontMetrics = Paint.FontMetrics()
@@ -108,12 +109,12 @@ class StepsView : View {
 
 
         //画圆环背景
-        ringPaint.color = Color.WHITE
+        ringPaint.color = Color.parseColor("#EFEFEF")
         canvas.drawArc(left, top, right, bottom, -90f, 360f, false, ringPaint)
 
 
         //画圆环
-        ringPaint.color = Color.parseColor("#69F0AE")
+        ringPaint.color = ContextCompat.getColor(context,R.color.colorPrimary)
         var progress = ((currentSteps.toDouble() / maxSteps.toDouble()) * 360).toFloat()
         if (progress > 360) {
             progress = 360f

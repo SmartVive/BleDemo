@@ -82,6 +82,7 @@ class DeviceConnectService : Service() {
                 connectCallback?.connectSuccess(bleDevice)
                 ToastUtil.show("连接成功:${bleDevice.device.name}")
                 connectedDevice = bleDevice
+                DeviceManager.setDevice(bleDevice)
                 enableNotify()
             }
 
