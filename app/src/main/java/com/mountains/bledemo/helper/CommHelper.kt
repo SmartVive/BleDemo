@@ -63,12 +63,36 @@ object CommHelper {
     }
 
 
-    //检查心率
-    fun checkHeartRate(on: Int): ByteArray {
+    //心率检测
+    fun heartRateDetection(on: Int): ByteArray {
         val bArr = ByteArray(20)
         bArr[0] = 5
         bArr[1] = 5
         bArr[2] = 1
+        bArr[3] = on.toByte()
+        return bArr
+    }
+
+    /**
+     * 血压检测
+     */
+    fun bloodPressureDetection(on:Int):ByteArray{
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 5
+        bArr[2] = 5
+        bArr[3] = on.toByte()
+        return bArr
+    }
+
+    /**
+     * 血氧检测
+     */
+    fun bloodOxygenDetection(on:Int):ByteArray{
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 5
+        bArr[2] = 4
         bArr[3] = on.toByte()
         return bArr
     }

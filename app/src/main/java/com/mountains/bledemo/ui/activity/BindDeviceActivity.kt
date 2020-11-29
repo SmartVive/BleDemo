@@ -130,15 +130,23 @@ class BindDeviceActivity : BaseActivity<BindDevicePresenter>(),BindDeviceView{
     }
 
     private fun showConnectingDialog(){
-        connectingDialog = AlertDialog.Builder(this)
-            .setTitle("连接设备")
-            .setMessage("正在连接设备...")
-            .setCancelable(false)
-            .show()
+        try {
+            connectingDialog = AlertDialog.Builder(this)
+                .setTitle("连接设备")
+                .setMessage("正在连接设备...")
+                .setCancelable(false)
+                .show()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
     }
 
     private fun hideConnectingDialog(){
-        connectingDialog?.dismiss()
+        try {
+            connectingDialog?.dismiss()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
     }
 
     /**

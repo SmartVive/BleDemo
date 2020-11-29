@@ -21,5 +21,7 @@ class CardItemData(
         const val SLEEP_TYPE = 4
         //设备
         const val DEVICE_TYPE = 5
+        //健康检测
+        const val DETECTION_TYPE = 6
     }
 }

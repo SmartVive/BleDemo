@@ -10,6 +10,7 @@ import com.mountains.bledemo.adapter.StepAdapter
 import com.mountains.bledemo.base.BaseActivity
 import com.mountains.bledemo.bean.SportBean
 import com.mountains.bledemo.presenter.StepDetailsPresenter
+import com.mountains.bledemo.util.CalendarUtil
 import com.mountains.bledemo.view.StepDetailsView
 import kotlinx.android.synthetic.main.activity_step_details.*
 import java.util.*
@@ -30,6 +31,9 @@ class StepDetailsActivity : BaseActivity<StepDetailsPresenter>(),StepDetailsView
     }
 
     private fun initView(){
+        titleBar.leftView.setOnClickListener {
+            finish()
+        }
         recyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = stepAdapter
@@ -41,16 +45,8 @@ class StepDetailsActivity : BaseActivity<StepDetailsPresenter>(),StepDetailsView
     }
 
     private fun initData(){
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-
-        val startTime:Long = calendar.timeInMillis
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 30)
-        val endTime:Long = calendar.timeInMillis
+        val startTime = CalendarUtil.getTodayBeginCalendar().timeInMillis
+        val endTime = CalendarUtil.getTodayEndCalendar().timeInMillis
         presenter.getStepsData(startTime,endTime)
     }
 

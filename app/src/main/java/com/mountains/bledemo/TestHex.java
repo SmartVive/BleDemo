@@ -1,5 +1,7 @@
 package com.mountains.bledemo;
 
+import java.util.Arrays;
+
 public class TestHex {
 
     public static void main(String[] value)  {
@@ -9,7 +11,26 @@ public class TestHex {
         bytes[2] = 10;
         bytes[3] = 53;
         int i = bytesToInt(subBytes(bytes,3,3));
-        System.out.println(i);
+        //System.out.println(i);
+
+
+        int i1 = -59 & 65535;
+        byte num = -59 ;
+        int i3 = num & 255;
+        int i2 = ((64 & 255) *256 + (-59 & 255))& 65535;
+        byte[] bytes1 = byteToBitOfArray(num);
+        System.out.println(i2 >> 14);
+        System.out.println(i2 & 16383);
+
+    }
+
+    public static byte[] byteToBitOfArray(byte b) {
+        byte[] array = new byte[16];
+        for (int i = 15; i >= 0; i--) {
+            array[i] = (byte)(b & 1);
+            b = (byte) (b >> 1);
+        }
+        return array;
     }
 
     /**

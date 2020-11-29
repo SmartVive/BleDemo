@@ -2,7 +2,10 @@ package com.mountains.bledemo.helper
 
 import com.mountains.bledemo.bean.HeartRateBean
 import com.mountains.bledemo.bean.TemperatureBean
+import com.mountains.bledemo.event.BloodOxygenDetectionEvent
+import com.mountains.bledemo.event.BloodPressureDetectionEvent
 import com.mountains.bledemo.event.DataUpdateEvent
+import com.mountains.bledemo.event.HeartRateDetectionEvent
 import com.mountains.bledemo.util.CalendarUtil
 import com.mountains.bledemo.util.HexUtil
 import com.orhanobut.logger.Logger
@@ -23,10 +26,10 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
 
         if (HexUtil.bytes2HexString(bArr).startsWith("050702")) {
             Logger.i("实时体检数据:解析开始")
-            var mHeartRate = bArr[3].toInt()
-            val mBloodOxygen = bArr[4].toInt()
-            val mBloodDiastolic = bArr[5].toInt()
-            val mBloodSystolic = bArr[6].toInt()
+            var mHeartRate = bArr[3].toInt() and 255
+            val mBloodOxygen = bArr[4].toInt() and 255
+            val mBloodDiastolic = bArr[5].toInt() and 255
+            val mBloodSystolic = bArr[6].toInt() and 255
 
             if (mHeartRate == 0 && mBloodOxygen == 0 && mBloodDiastolic == 0 && mBloodSystolic == 0) {
                 Logger.w(
@@ -45,19 +48,24 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
                 if (mHeartRate < 55 || mHeartRate > 200) {
                     Logger.w("实时体检数据:心率数据异常,心率:%d", mHeartRate)
                     mHeartRate = 0
+                }else{
+                    //saveHeartRateData(mHeartRate)
+                    EventBus.getDefault().post(HeartRateDetectionEvent(mHeartRate))
                 }
-                //saveHeartRateData(mHeartRate)
+
             }
             if (mBloodOxygen != 0) {
                 //BloodOxygenStorageHelper.asyncSaveRealTimeData(SNBLEHelper.getDeviceMacAddress(), mBloodOxygen)
+                EventBus.getDefault().post(BloodOxygenDetectionEvent(mBloodOxygen))
             }
             if (!(mBloodDiastolic == 0 || mBloodSystolic == 0)) {
                 //BloodPressureStorageHelper.asyncSaveRealTimeData(SNBLEHelper.getDeviceMacAddress(), mBloodDiastolic, mBloodSystolic)
+                EventBus.getDefault().post(BloodPressureDetectionEvent(mBloodDiastolic,mBloodSystolic))
             }
         }
 
         if (HexUtil.bytes2HexString(bArr).startsWith("050707")) {
-            val index = bArr[3].toInt()
+            val index = bArr[3].toInt() and 255
             if (index <= 11) {
                 if (index == 0) {
                     Logger.i("心率大数据:解析开始")
@@ -69,7 +77,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
                         mHeartRateDataCalendar.add(Calendar.DAY_OF_MONTH, -2)
                     }
                     for (i in 4 until 20) {
-                        var heart = bArr[i].toInt()
+                        var heart = bArr[i].toInt() and 255
                         val timeIndex = CalendarUtil.convertTimeToIndex(mHeartRateDataCalendar, 1)
                         val date = CalendarUtil.format("yyyy-MM-dd HH:mm:ss", mHeartRateDataCalendar)
                         Logger.i("心率大数据:%d,index:%d,时间:%s", heart, timeIndex, date)
@@ -95,7 +103,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
         }
 
         if(HexUtil.bytes2HexString(bArr).startsWith("05070C",true)){
-            val index2 = bArr[3].toInt()
+            val index2 = bArr[3].toInt() and 255
             if (index2 <= 11) {
                 if (index2 == 0) {
                     Logger.i("体温大数据:解析开始")
@@ -107,7 +115,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
                         mTemperatureDataCalendar.add(Calendar.DAY_OF_MONTH, -2)
                     }
                     for (i in 4 until 20 step 2) {
-                        val temp = (((bArr[i]).toInt().shl(8)) or (bArr[i + 1].toInt())) and(65535)
+                        val temp = ((((bArr[i]).toInt() and 255).shl(8)) or (bArr[i + 1].toInt()and 255)) and 65535
                         val timeIndex = CalendarUtil.convertTimeToIndex(mTemperatureDataCalendar, 1)
                         val date = CalendarUtil.format("yyyy-MM-dd HH:mm:ss", mTemperatureDataCalendar)
                         Logger.i("体温大数据:%d,index:%d,时间:%s", temp, timeIndex, date);

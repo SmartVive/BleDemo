@@ -12,6 +12,8 @@ class SleepDetailsPresenter : BasePresenter<SleepDetailsView>() {
         val sleepData = LitePal.where("beginDateTime >= ? and endDateTime <= ?", "$beginTime", "$endTime").order("beginDateTime desc").find<SleepBean>(true)
         if (sleepData.isNotEmpty()){
             view?.onSleepData(sleepData.first())
+        }else{
+            view?.onSleepData(null)
         }
     }
 

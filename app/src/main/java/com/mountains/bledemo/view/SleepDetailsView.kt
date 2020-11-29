@@ -5,5 +5,5 @@ import com.mountains.bledemo.bean.SleepBean
 
 interface SleepDetailsView : BaseView {
 
-    fun onSleepData(sleepData:SleepBean)
+    fun onSleepData(sleepData:SleepBean?)
 }

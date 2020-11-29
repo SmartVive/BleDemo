@@ -31,6 +31,10 @@ class HeartRateDetailsActivity : BaseActivity<HeartRateDetailsPresenter>(),Heart
     }
 
     private fun initView(){
+        titleBar.leftView.setOnClickListener {
+            finish()
+        }
+
         recyclerView.apply{
             layoutManager = LinearLayoutManager(context)
             adapter = heartRateAdapter

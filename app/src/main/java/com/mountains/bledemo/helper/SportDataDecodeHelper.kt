@@ -55,7 +55,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
 
         if (HexUtil.bytes2HexString(bArr).startsWith("050703",true)) {
             Logger.d(bArr)
-            val index = bArr[3].toInt()
+            val index = bArr[3].toInt() and 255
             if (index <= 11) {
                 if (index == 0) {
                     Logger.i("运动大数据:解析开始")
@@ -87,7 +87,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
 
         if (HexUtil.bytes2HexString(bArr).startsWith("050705",true)) {
             Logger.d(bArr)
-            val index2 = bArr[3].toInt()
+            val index2 = bArr[3].toInt() and 255
             if (index2 <= 11) {
                 if (index2 == 0) {
                     mDistanceDataCalendar = CalendarUtil.getTodayBeginCalendar()
@@ -116,7 +116,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
 
         if (HexUtil.bytes2HexString(bArr).startsWith("050706",true)) {
             Logger.d(bArr)
-            val index3 = bArr[3].toInt()
+            val index3 = bArr[3].toInt() and 255
             if (index3 <= 11) {
                 if (index3 == 0) {
                     this.mCaloriesDataCalendar = CalendarUtil.getTodayBeginCalendar()

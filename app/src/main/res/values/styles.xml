@@ -9,4 +9,9 @@
         <item name="android:windowBackground">@color/windowBackground</item>
     </style>
 
+    <style name="CalendarAnim" >
+        <item name="android:windowEnterAnimation">@anim/anim_calendar_enter</item>
+        <item name="android:windowExitAnimation">@anim/anim_calendar_exit</item>
+    </style>
+
 </resources>

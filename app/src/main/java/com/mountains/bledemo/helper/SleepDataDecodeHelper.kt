@@ -1,12 +1,15 @@
 package com.mountains.bledemo.helper
 
-import com.mountains.bledemo.util.HexUtil
-import com.orhanobut.logger.Logger
-import java.util.*
 import com.mountains.bledemo.bean.SleepBean
 import com.mountains.bledemo.util.CalendarUtil
+import com.mountains.bledemo.util.HexUtil
+import com.orhanobut.logger.Logger
 import org.litepal.LitePal
+import org.litepal.extension.count
+import org.litepal.extension.find
 import org.litepal.extension.saveAll
+import java.util.*
+import kotlin.experimental.and
 
 
 class SleepDataDecodeHelper : IDataDecodeHelper {
@@ -24,7 +27,7 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
     override fun decode(bArr: ByteArray) {
         if (HexUtil.bytes2HexString(bArr).startsWith("050704")) {
             Logger.d(bArr)
-            val index = bArr[3].toInt()
+            val index = bArr[3].toInt() and 255
             if (index == 0) {
                 Logger.i("睡眠大数据:解析开始")
             }
@@ -121,14 +124,20 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
             }
             val beginDateTime = sleepBean.beginDateTime
             val endDateTime = sleepBean.endDateTime
-            sleepBean.sleepData.saveAll()
-            sleepBean.save()
+            val oldData = LitePal.where("begindatetime = ?", "$beginDateTime").find<SleepBean>()
+            if (oldData.isEmpty()){
+                sleepBean.sleepData.saveAll()
+                sleepBean.save()
+            }else{
+                Logger.d("睡眠数据已存在，不保存")
+            }
+
         }
     }
 
 
     private fun convertTo16Bit(num1: Byte, num2: Byte): Int {
-        return ((num1.toInt() * 256) + num2.toInt()) and 65535
+        return (((num1.toInt() and 255) * 256) + (num2.toInt() and 255)) and 65535
     }
 
     private fun getSleepStatus(src16Bit: Int): Int {

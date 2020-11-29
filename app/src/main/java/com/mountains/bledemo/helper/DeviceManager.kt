@@ -1,6 +1,7 @@
 package com.mountains.bledemo.helper
 
 import com.mountains.bledemo.ble.BleDevice
+import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.service.DeviceConnectService
 
@@ -12,6 +13,11 @@ object DeviceManager {
     }
 
     fun writeCharacteristic(data: ByteArray,callback: CommCallback? = null){
-        bleDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,data,callback)
+        if (bleDevice != null){
+            bleDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,data,callback)
+        }else{
+            callback?.onFail(BleException(BleException.DEVICE_NOT_CONNECTED,"设备未连接！"))
+        }
+
     }
 }

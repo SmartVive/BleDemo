@@ -141,7 +141,7 @@ class SleepHistogramView : View {
             }else if (type == TYPE_LIGHT){
                 barPaint.color = Color.parseColor("#4f55e1")
             }else{
-                barPaint.color = Color.parseColor("e8b339")
+                barPaint.color = Color.parseColor("#e8b339")
             }
             canvas.drawRect(left,top,right,xAxisTop,barPaint)
         }
@@ -199,8 +199,14 @@ class SleepHistogramView : View {
     }
 
     private fun initDataTime(){
-        sleepBeginTime = sleepData.first().getSleepBeginTime()
-        sleepEndTime = sleepData.last().getSleepEndTime()
+        if (!sleepData.isEmpty()){
+            sleepBeginTime = sleepData.first().getSleepBeginTime()
+            sleepEndTime = sleepData.last().getSleepEndTime()
+        }else{
+            sleepBeginTime = 57600000
+            sleepEndTime = 144000000-1
+        }
+
     }
 
     fun loadData(data:List<ISleepHistogramData>){

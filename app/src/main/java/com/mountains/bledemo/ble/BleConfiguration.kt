@@ -13,5 +13,5 @@ object BleConfiguration {
 
 
     //通信超时时间
-    var commTimeout:Long = 5*1000
+    var commTimeout:Long = 10*1000
 }

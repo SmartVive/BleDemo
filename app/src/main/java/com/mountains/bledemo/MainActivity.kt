@@ -1,12 +1,9 @@
 package com.mountains.bledemo
 
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
-import android.view.Window
-import android.view.WindowManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mountains.bledemo.adapter.CardAdapter
@@ -21,9 +18,11 @@ import com.mountains.bledemo.helper.CommHelper
 import com.mountains.bledemo.presenter.MainPresenter
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.ui.activity.BindDeviceActivity
+import com.mountains.bledemo.ui.activity.HealthDetectionActivity
 import com.mountains.bledemo.ui.activity.HeartRateDetailsActivity
 import com.mountains.bledemo.ui.activity.SleepDetailsActivity
 import com.mountains.bledemo.ui.activity.StepDetailsActivity
+import com.mountains.bledemo.ui.fragment.CalendarDialogFragment
 import com.mountains.bledemo.util.DisplayUtil
 import com.mountains.bledemo.view.MainView
 import com.orhanobut.logger.Logger
@@ -37,8 +36,8 @@ import java.math.RoundingMode
 
 class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
-    val itemDataList = mutableListOf<CardItemData>()
-    val itemDataAdapter by lazy { CardAdapter(R.layout.item_card,itemDataList) }
+    val cardItemList = mutableListOf<CardItemData>()
+    val cardItemAdapter by lazy { CardAdapter(R.layout.item_card,cardItemList) }
 
 
     override fun createPresenter(): MainPresenter {
@@ -86,10 +85,10 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         recyclerView.apply {
             layoutManager = GridLayoutManager(context,2)
             addItemDecoration(ItemDataDecoration(DisplayUtil.dp2px(context,12f)))
-            adapter = itemDataAdapter
+            adapter = cardItemAdapter
         }
-        itemDataAdapter.setOnItemClickListener { adapter, view, position ->
-            when(itemDataList[position].itemType){
+        cardItemAdapter.setOnItemClickListener { adapter, view, position ->
+            when(cardItemList[position].itemType){
                 CardItemData.DEVICE_TYPE->{
                     val intent = Intent(getContext(), BindDeviceActivity::class.java)
                     startActivity(intent)
@@ -102,13 +101,17 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
                     val intent = Intent(getContext(), SleepDetailsActivity::class.java)
                     startActivity(intent)
                 }
+                CardItemData.DETECTION_TYPE->{
+                    val intent = Intent(getContext(), HealthDetectionActivity::class.java)
+                    startActivity(intent)
+                }
             }
 
         }
 
         swipeRefreshLayout.setOnRefreshListener {
 
-            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.checkHeartRate(1),object : CommCallback{
+            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.heartRateDetection(1),object : CommCallback {
                 override fun onSuccess(byteArray: ByteArray?) {
                     swipeRefreshLayout.isRefreshing = false
                     Logger.d("commOnSuccess")
@@ -132,16 +135,18 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
     private fun initCard(){
         val deviceCard = CardItemData(CardItemData.DEVICE_TYPE, R.drawable.ic_card_device, "", "", "设备")
+        val healthDetection = CardItemData(CardItemData.DETECTION_TYPE, R.drawable.ic_card_detection, "", "", "健康体检")
         val heartCard = CardItemData(CardItemData.HEART_RATE_TYPE, R.drawable.ic_card_heart, "0 - 0bpm", "最后一次:暂无数据", "心率记录")
         val bloodPressureCard = CardItemData(CardItemData.BLOOD_PRESSURE_TYPE, R.drawable.ic_card_blood_pressure, "0 / 0mmHg", "最后一次:暂无数据", "血压记录")
         val bloodOxygenCard = CardItemData(CardItemData.BLOOD_OXYGEN_TYPE, R.drawable.ic_card_blood_oxygen, "0 - 0%", "最后一次:暂无数据", "血氧记录")
         val sleepCard = CardItemData(CardItemData.SLEEP_TYPE, R.drawable.ic_card_sleep, "0h 0min", "最后一次:暂无数据", "睡眠记录")
-        itemDataList.add(deviceCard)
-        itemDataList.add(heartCard)
-        itemDataList.add(bloodPressureCard)
-        itemDataList.add(bloodOxygenCard)
-        itemDataList.add(sleepCard)
-        itemDataAdapter.notifyDataSetChanged()
+        cardItemList.add(deviceCard)
+        cardItemList.add(healthDetection)
+        cardItemList.add(heartCard)
+        cardItemList.add(bloodPressureCard)
+        cardItemList.add(bloodOxygenCard)
+        cardItemList.add(sleepCard)
+        cardItemAdapter.notifyDataSetChanged()
     }
 
     private fun initData(){
@@ -149,11 +154,11 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
     }
 
     override fun onHeartRateData(valueContent: String, timeContent: String) {
-        itemDataList.filter { it.itemType == CardItemData.HEART_RATE_TYPE }.forEach {
+        cardItemList.filter { it.itemType == CardItemData.HEART_RATE_TYPE }.forEach {
             it.value = valueContent
             it.time = timeContent
         }
-        itemDataAdapter.notifyDataSetChanged()
+        cardItemAdapter.notifyDataSetChanged()
     }
 
 
