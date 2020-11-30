@@ -13,6 +13,7 @@ import com.mountains.bledemo.presenter.StepDetailsPresenter
 import com.mountains.bledemo.util.CalendarUtil
 import com.mountains.bledemo.view.StepDetailsView
 import kotlinx.android.synthetic.main.activity_step_details.*
+import kotlinx.android.synthetic.main.include_date.*
 import java.util.*
 
 class StepDetailsActivity : BaseActivity<StepDetailsPresenter>(),StepDetailsView {
@@ -38,10 +39,8 @@ class StepDetailsActivity : BaseActivity<StepDetailsPresenter>(),StepDetailsView
             layoutManager = LinearLayoutManager(context)
             adapter = stepAdapter
         }
-        stepAdapter.apply {
-            val headView = LayoutInflater.from(getContext()).inflate(R.layout.item_step, recyclerView, false)
-            setHeaderView(headView)
-        }
+
+        tvDate.text = "今天"
     }
 
     private fun initData(){
@@ -51,11 +50,15 @@ class StepDetailsActivity : BaseActivity<StepDetailsPresenter>(),StepDetailsView
     }
 
 
-    override fun onStepsData(stepsData: List<SportBean.StepBean>) {
+    override fun onStepsData(stepsData: List<SportBean.StepBean>,totalSteps:String,totalDistance:String,totalCalorie:String) {
         histogramView.loadData(stepsData)
         stepList.clear()
         stepList.addAll(stepsData.reversed())
         stepAdapter.notifyDataSetChanged()
+
+        tvStep.text = totalSteps
+        tvDistance.text = totalDistance
+        tvCalorie.text = totalCalorie
     }
 
 }

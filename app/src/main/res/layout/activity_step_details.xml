@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/white"
+    xmlns:tool="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -10,6 +10,7 @@
         android:id="@+id/titleBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:rightIcon="@drawable/ic_calendar"
         android:elevation="2dp"
         app:title="步数详情"/>
 
@@ -23,12 +24,101 @@
             app:elevation="0dp"
             android:layout_height="wrap_content">
 
-
-            <com.mountains.bledemo.weiget.HistogramView
-                android:id="@+id/histogramView"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
+                android:paddingBottom="16dp"
+                android:background="@color/white"
                 app:layout_scrollFlags="scroll"
-                android:layout_height="280dp"/>
+                android:layout_height="wrap_content">
+
+                <include
+                    android:id="@+id/layoutDate"
+                    layout="@layout/include_date"/>
+
+                <com.mountains.bledemo.weiget.HistogramView
+                    android:id="@+id/histogramView"
+                    app:layout_constraintTop_toBottomOf="@id/layoutDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="280dp"/>
+
+                <TextView
+                    android:id="@+id/tvStep"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvStepTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvStepTitle"
+                    app:layout_constraintTop_toBottomOf="@id/histogramView"
+                    tool:text="3000" />
+
+                <TextView
+                    android:id="@+id/tvDistance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvDistanceTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvDistanceTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvStep"
+                    tool:text="2.98" />
+
+                <TextView
+                    android:id="@+id/tvCalorie"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvCalorieTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvCalorieTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvStep"
+                    tool:text="352" />
+
+                <TextView
+                    android:id="@+id/tvStepTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="总步数"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tvDistanceTitle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvStep" />
+
+                <TextView
+                    android:id="@+id/tvDistanceTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="总里程km"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="@id/tvStepTitle"
+                    app:layout_constraintEnd_toStartOf="@id/tvCalorieTitle"
+                    app:layout_constraintStart_toEndOf="@id/tvStepTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvStepTitle" />
+
+                <TextView
+                    android:id="@+id/tvCalorieTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="总大卡"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="@id/tvStepTitle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvDistanceTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvStepTitle" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 
         </com.google.android.material.appbar.AppBarLayout>

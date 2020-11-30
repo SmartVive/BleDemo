@@ -5,5 +5,5 @@ import com.mountains.bledemo.bean.SportBean
 
 interface StepDetailsView : BaseView {
 
-    fun onStepsData(stepsData:List<SportBean.StepBean>)
+    fun onStepsData(stepsData:List<SportBean.StepBean>,totalSteps:String,totalDistance:String,totalCalorie:String)
 }

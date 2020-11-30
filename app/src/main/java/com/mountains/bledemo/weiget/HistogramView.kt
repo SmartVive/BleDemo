@@ -115,12 +115,16 @@ open class HistogramView : View {
             datas.add(histogramEntity)
         }*/
 
-        axisMarginLeft = axisPaint.measureText("9999")
-        axisMarginBottom = (fontMetrics.descent - fontMetrics.ascent) * 2
+        initAxisMargin()
+    }
+
+    private fun initAxisMargin(){
+        val fontMetrics = axisPaint.fontMetrics
+        axisMarginLeft = axisPaint.measureText(getYAxisLabelText(yAxisLabelCount-1)) * 1.3f
+        axisMarginBottom = (fontMetrics.descent - fontMetrics.ascent) * 1.5f
         axisMarginTop = axisMarginBottom
         axisMarginRight = axisMarginLeft
     }
-
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -529,6 +533,7 @@ open class HistogramView : View {
 
         initYAxisLabel()
         initBarData()
+        initAxisMargin()
     }
 
 
