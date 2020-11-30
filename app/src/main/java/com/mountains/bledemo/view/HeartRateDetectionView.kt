@@ -8,4 +8,6 @@ interface HeartRateDetectionView : BaseView {
 
     fun onStopDetection()
 
+    fun onDetectionFinish(heartRate:Int)
+
 }

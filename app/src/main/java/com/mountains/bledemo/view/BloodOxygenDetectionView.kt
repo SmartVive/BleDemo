@@ -7,4 +7,6 @@ interface BloodOxygenDetectionView : BaseView {
     fun onStartDetection()
 
     fun onStopDetection()
+
+    fun onBloodOxygenDetectionFinish(bloodOxygen:Int)
 }

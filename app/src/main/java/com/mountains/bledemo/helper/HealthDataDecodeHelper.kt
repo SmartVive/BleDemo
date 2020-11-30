@@ -136,56 +136,11 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
 
     }
 
-    /**
-     * 保存实时心率数据
-     */
-    private fun saveHeartRateData(heartRate: Int){
-        val currentCalendar = CalendarUtil.getCurrentCalendar()
-        val index = CalendarUtil.convertTimeToIndex(currentCalendar, 1)
-        val currentTimeMillis = System.currentTimeMillis()
-        val heartRateBean = HeartRateBean(currentTimeMillis, index, heartRate)
-        saveHeartRatesData2(mutableListOf(heartRateBean))
-    }
 
     /**
      * 保存心率大数据
      */
-    private fun saveHeartRatesData(heartRates:MutableList<HeartRateBean>){
-        if(!checkHeartData(heartRates)){
-            Logger.w("心率大数据异常，不保存")
-            return
-        }
-        val startTime = heartRates.last().dateTime
-        val endTime = heartRates.first().dateTime
-        val existsData = LitePal.where("datetime between ? and ?", "$startTime", "$endTime").order("datetime desc")
-            .find<HeartRateBean>()
-
-        var existsIndex = existsData.size-1
-        var heartRatesIndex = heartRates.size-1
-        var updateCount = 0
-        while(heartRatesIndex >= 0 && existsIndex >= 0){
-            while(existsData[existsIndex].dateTime != heartRates[heartRatesIndex].dateTime){
-                existsIndex--;
-            }
-            //相同的时间，当前数值大于已存在数值时更新
-            if(existsIndex >= 0){
-                if (heartRates[heartRatesIndex].value > existsData[existsIndex].value){
-                    heartRates[heartRatesIndex].update(existsData[existsIndex].id)
-                    updateCount++
-                }
-                heartRates.removeAt(heartRatesIndex)
-            }
-            existsIndex--
-            heartRatesIndex--
-        }
-
-
-        Logger.d("更新心率大数据条目数量：$updateCount")
-        Logger.d("新增心率大数据条目数量：${heartRates.size}")
-        heartRates.saveAll()
-    }
-
-    private fun saveHeartRatesData2(newDataList:MutableList<HeartRateBean>){
+    private fun saveHeartRatesData(newDataList:MutableList<HeartRateBean>){
         if(!checkHeartData(newDataList)){
             Logger.w("心率大数据异常，不保存")
             return
@@ -205,10 +160,9 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
             for (j in oldDataList.size - 1 downTo 0) {
                 val newData = newDataList[i]
                 val oldData = oldDataList[j]
-                //当index相同，日期也为同一天时，合并数据，取平均值
-                if (newData.index == oldData.index && CalendarUtil.isSameDay(newData.dateTime, oldData.dateTime)) {
+                //当时间一致时更新
+                if(newData.dateTime == oldData.dateTime){
                     updateCount++
-                    newData.value = (newData.value + oldData.value)/2
                     newData.update(oldData.id)
                     newDataList.removeAt(i)
                     break

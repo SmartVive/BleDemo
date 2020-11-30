@@ -106,9 +106,10 @@ class BloodOxygenDetectionFragment : BaseFragment<BloodOxygenDetectionPresenter>
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onMessageEvent(event:BloodOxygenDetectionEvent){
         tvBloodOxygen.text = "${event.value}"
+        presenter?.addBloodOxygenDetectionResult(event.value)
         if (count >= 10){
             count = 0
-            presenter?.stopBloodOxygenDetection()
+            presenter?.bloodOxygenDetectionFinish()
         }else{
             count++
         }
@@ -150,5 +151,10 @@ class BloodOxygenDetectionFragment : BaseFragment<BloodOxygenDetectionPresenter>
         btnDetection.text = "开始检测血氧"
         stopGif()
         handler.removeMessages(DETECTION_TIME_OUT_MSG)
+    }
+
+    override fun onBloodOxygenDetectionFinish(bloodOxygen: Int) {
+        showToast("检测完成")
+        tvBloodOxygen.text = "${bloodOxygen}"
     }
 }

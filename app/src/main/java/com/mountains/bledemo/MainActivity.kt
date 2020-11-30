@@ -49,8 +49,6 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         setContentView(R.layout.activity_main)
         EventBus.getDefault().register(this)
 
-
-
         initView()
         initCard()
         initData()
@@ -75,8 +73,13 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onDataUpdateEvent(dataUpdateEvent: DataUpdateEvent){
-        if(dataUpdateEvent.type == DataUpdateEvent.HEART_RATE_UPDATE_TYPE){
-            presenter.getHeartRateData()
+        when(dataUpdateEvent.type){
+            DataUpdateEvent.HEART_RATE_UPDATE_TYPE->{
+                presenter.getHeartRateData()
+            }
+            DataUpdateEvent.BLOOD_OXYGEN_UPDATE_TYPE->{
+                presenter.getBloodOxygenData()
+            }
         }
 
     }
@@ -153,8 +156,22 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         presenter.getHeartRateData()
     }
 
+    /**
+     * 心率记录
+     */
     override fun onHeartRateData(valueContent: String, timeContent: String) {
         cardItemList.filter { it.itemType == CardItemData.HEART_RATE_TYPE }.forEach {
+            it.value = valueContent
+            it.time = timeContent
+        }
+        cardItemAdapter.notifyDataSetChanged()
+    }
+
+    /**
+     * 血氧记录
+     */
+    override fun onBloodOxygenData(valueContent: String, timeContent: String) {
+        cardItemList.filter { it.itemType == CardItemData.BLOOD_OXYGEN_TYPE }.forEach {
             it.value = valueContent
             it.time = timeContent
         }

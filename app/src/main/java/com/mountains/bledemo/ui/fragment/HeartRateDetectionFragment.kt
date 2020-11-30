@@ -53,9 +53,10 @@ class HeartRateDetectionFragment : BaseFragment<HeartRateDetectionPresenter>(),H
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onMessageEvent(event: HeartRateDetectionEvent){
         tvHeartRate.text = "${event.heartRate}"
+        presenter?.addHeartRateDetectionResult(event.heartRate)
         if (count >= 10){
             count = 0
-            presenter?.stopHeartRateDetection()
+            presenter?.heartRateDetectionFinish()
         }else{
             count++
         }
@@ -149,5 +150,10 @@ class HeartRateDetectionFragment : BaseFragment<HeartRateDetectionPresenter>(),H
         btnDetection.text = "开始检测心率"
         stopGif()
         handler.removeMessages(DETECTION_TIME_OUT_MSG)
+    }
+
+    override fun onDetectionFinish(heartRate: Int) {
+        showToast("检测完成")
+        tvHeartRate.text = "$heartRate"
     }
 }

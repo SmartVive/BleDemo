@@ -2,6 +2,7 @@ package com.mountains.bledemo.presenter
 
 import com.mountains.bledemo.view.MainView
 import com.mountains.bledemo.base.BasePresenter
+import com.mountains.bledemo.bean.BloodOxygenBean
 import com.mountains.bledemo.bean.HeartRateBean
 import com.mountains.bledemo.util.CalendarUtil
 import org.litepal.LitePal
@@ -20,12 +21,9 @@ class MainPresenter : BasePresenter<MainView>() {
         if(heartRateList.isEmpty()){
 
         }else{
-            var maxHeartRate = Integer.MIN_VALUE
-            var minHeartRate = Integer.MAX_VALUE
-            heartRateList.forEach {
-                maxHeartRate = Math.max(maxHeartRate,it.value)
-                minHeartRate = Math.min(minHeartRate,it.value)
-            }
+            val maxHeartRate = heartRateList.maxBy { it.value }?.value
+            val minHeartRate = heartRateList.minBy { it.value }?.value
+
             val time = CalendarUtil.format("HH:mm", heartRateList.first().dateTime)
 
             val valueContent = "$minHeartRate - $maxHeartRate bpm"
@@ -33,5 +31,23 @@ class MainPresenter : BasePresenter<MainView>() {
             view?.onHeartRateData(valueContent,timeContent)
         }
 
+    }
+
+    fun getBloodOxygenData(){
+        val todayBeginTime = CalendarUtil.getTodayBeginCalendar().timeInMillis
+        val todayEndTime = CalendarUtil.getTodayEndCalendar().timeInMillis
+        val bloodOxygenList = LitePal.where("datetime between ? and ? and value > ?", "$todayBeginTime", "$todayEndTime","0").order("datetime desc")
+            .find<BloodOxygenBean>()
+
+        if (bloodOxygenList.isEmpty()){
+
+        }else{
+            val maxBloodOxygen = bloodOxygenList.maxBy { it.value }?.value
+            val minBloodOxygen = bloodOxygenList.minBy { it.value }?.value
+            val time = CalendarUtil.format("HH:mm", bloodOxygenList.first().dateTime)
+            val valueContent = "$minBloodOxygen - $maxBloodOxygen %"
+            val timeContent = "最后一次:$time"
+            view?.onBloodOxygenData(valueContent,timeContent)
+        }
     }
 }

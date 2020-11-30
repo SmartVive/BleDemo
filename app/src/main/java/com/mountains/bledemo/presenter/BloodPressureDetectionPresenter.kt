@@ -9,9 +9,10 @@ import com.mountains.bledemo.view.BloodPressureDetectionView
 import com.orhanobut.logger.Logger
 
 class BloodPressureDetectionPresenter : BasePresenter<BloodPressureDetectionView>() {
-
+    private var bloodPressureList = mutableListOf<Int>()
 
     fun startBloodPressureDetection(){
+        bloodPressureList.clear()
         DeviceManager.writeCharacteristic(CommHelper.bloodPressureDetection(1),object : CommCallback {
             override fun onSuccess(byteArray: ByteArray?) {
                 view?.onStartDetection()
@@ -38,5 +39,16 @@ class BloodPressureDetectionPresenter : BasePresenter<BloodPressureDetectionView
             }
 
         })
+    }
+
+    fun addBloodPressureDetectionResult(bloodPressure:Int){
+        bloodPressureList.add(bloodPressure)
+    }
+
+    /**
+     * 检测完成,保存数据
+     */
+    fun detectionBloodPressureFinish(){
+        stopBloodPressureDetection()
     }
 }

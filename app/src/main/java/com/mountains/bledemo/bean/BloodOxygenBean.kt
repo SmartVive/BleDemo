@@ -5,13 +5,13 @@ import org.litepal.annotation.Column
 import org.litepal.crud.LitePalSupport
 import java.util.*
 
-class HeartRateBean : LitePalSupport,Comparable<HeartRateBean>,IHistogramData {
+class BloodOxygenBean : LitePalSupport,Comparable<BloodOxygenBean>, IHistogramData {
     val id:Long = 0
     @Column(unique = true)
     var dateTime: Long = 0L
     var index: Int = 0
     var value: Int = 0
-    val calendar by lazy { Calendar.getInstance() }
+    private val calendar by lazy { Calendar.getInstance() }
 
     constructor()
 
@@ -21,7 +21,7 @@ class HeartRateBean : LitePalSupport,Comparable<HeartRateBean>,IHistogramData {
         this.value = value
     }
 
-    override fun compareTo(other: HeartRateBean): Int {
+    override fun compareTo(other: BloodOxygenBean): Int {
         return (other.dateTime - dateTime).toInt()
     }
 
