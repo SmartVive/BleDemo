@@ -54,11 +54,10 @@ class HeartRateDetectionFragment : BaseFragment<HeartRateDetectionPresenter>(),H
     fun onMessageEvent(event: HeartRateDetectionEvent){
         tvHeartRate.text = "${event.heartRate}"
         presenter?.addHeartRateDetectionResult(event.heartRate)
+        count++
         if (count >= 10){
             count = 0
             presenter?.heartRateDetectionFinish()
-        }else{
-            count++
         }
     }
 

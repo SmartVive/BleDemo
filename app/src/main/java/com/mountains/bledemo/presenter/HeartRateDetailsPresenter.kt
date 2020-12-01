@@ -9,28 +9,25 @@ import org.litepal.extension.find
 class HeartRateDetailsPresenter : BasePresenter<HeartRateDetailsView>() {
 
     fun getHeartRate(startTime:Long,endTime:Long){
-        val heartRate = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime","0").order("datetime desc")
+        val heartRateData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime","0").order("datetime desc")
             .find<HeartRateBean>()
 
-        if (heartRate.isEmpty()){
-            view?.onHeartRateData(heartRate,0, 0, 0)
+        if (heartRateData.isEmpty()){
+            view?.onHeartRateData(heartRateData,"--", "--", "--")
             return
         }
 
-        var minHeartRate = Integer.MAX_VALUE
-        var maxHeartRate = Integer.MIN_VALUE
-        var avgHeartRate = 0
-        var sumHeartRate = 0
-        for (item in heartRate){
-            minHeartRate = Math.min(minHeartRate,item.value)
-            maxHeartRate = Math.max(maxHeartRate,item.value)
-            sumHeartRate+=item.value
-        }
-        avgHeartRate = sumHeartRate/heartRate.size
+
+        val minHeartRate = heartRateData.maxBy { it.value }?.value
+        val maxHeartRate = heartRateData.minBy { it.value }?.value
+        val avgHeartRate = heartRateData.sumBy { it.value }/heartRateData.size
+
+        val minHeartRateString = "$minHeartRate bpm"
+        val maxHeartRateString = "$maxHeartRate bpm"
+        val avgHeartRateString = "$avgHeartRate bpm"
 
 
-
-        view?.onHeartRateData(heartRate,avgHeartRate, maxHeartRate, minHeartRate)
+        view?.onHeartRateData(heartRateData,avgHeartRateString, maxHeartRateString, minHeartRateString)
     }
 
 

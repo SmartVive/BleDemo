@@ -5,5 +5,5 @@ import com.mountains.bledemo.bean.HeartRateBean
 
 interface HeartRateDetailsView : BaseView {
 
-    fun onHeartRateData(list: List<HeartRateBean>,avgHeartRate:Int,maxHeartRate:Int,minHeartRate:Int)
+    fun onHeartRateData(list: List<HeartRateBean>,avgHeartRate:String,maxHeartRate:String,minHeartRate:String)
 }

@@ -13,6 +13,15 @@ object CalendarUtil {
     }
 
     /**
+     * 根据时间戳获取日历
+     */
+    fun getCalendar(timeInMills: Long):Calendar{
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = timeInMills
+        return calendar
+    }
+
+    /**
      * 今天00:00:00日历
      */
     fun getTodayBeginCalendar() : Calendar{
@@ -110,6 +119,25 @@ object CalendarUtil {
 
     fun isSameDay(calendar1: Calendar,calendar2: Calendar):Boolean{
         return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR) && calendar1.get(Calendar.DAY_OF_YEAR) == calendar2.get(Calendar.DAY_OF_YEAR)
+    }
+
+    /**
+     * 是否是今天
+     */
+    fun isToday(calendar: Calendar):Boolean{
+        val currentCalendar = getCurrentCalendar()
+        if (currentCalendar.get(Calendar.YEAR) != calendar.get(Calendar.YEAR)){
+            return false
+        }else if (currentCalendar.get(Calendar.DAY_OF_YEAR) != calendar.get(Calendar.DAY_OF_YEAR)){
+            return false
+        }else{
+            return true
+        }
+    }
+
+    fun isToday(timeInMills: Long):Boolean{
+        val calendar = getCalendar(timeInMills)
+        return isToday(calendar)
     }
 
     fun format(format: String,calendar: Calendar):String{

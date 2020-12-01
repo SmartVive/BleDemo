@@ -52,26 +52,24 @@ class HeartRateDetailsActivity : BaseActivity<HeartRateDetailsPresenter>(),Heart
         presenter.getHeartRate(startTime,endTime)
     }
 
-    override fun onHeartRateData(list: List<HeartRateBean>, avgHeartRate: Int, maxHeartRate: Int, minHeartRate: Int) {
+    override fun onHeartRateData(
+        list: List<HeartRateBean>,
+        avgHeartRate: String,
+        maxHeartRate: String,
+        minHeartRate: String
+    ) {
         histogramView.loadData(list)
 
         heartRateList.clear()
         heartRateList.addAll(list)
         heartRateAdapter.notifyDataSetChanged()
 
-
-        setTextValue(tvAvgHeartRate,avgHeartRate)
-        setTextValue(tvMaxHeartRate,maxHeartRate)
-        setTextValue(tvMinHeartRate,minHeartRate)
+        tvAvgHeartRate.text = avgHeartRate
+        tvMaxHeartRate.text = maxHeartRate
+        tvMinHeartRate.text = minHeartRate
     }
 
-    private fun setTextValue(textView: TextView,value:Int){
-        textView.text =  if (value!=0){
-            "$value bpm"
-        }else{
-            "--"
-        }
-    }
+
 
 
 }

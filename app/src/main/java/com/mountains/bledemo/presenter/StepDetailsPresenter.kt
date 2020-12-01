@@ -11,39 +11,40 @@ import java.math.RoundingMode
 
 class StepDetailsPresenter : BasePresenter<StepDetailsView>() {
 
-    fun getStepsData(startTime:Long,endTime:Long){
-        val stepsData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime","0").order("datetime desc")
+    fun getStepsData(startTime: Long, endTime: Long) {
+        val stepsData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime", "0")
+            .order("datetime desc")
             .find<SportBean.StepBean>()
 
-        val distanceData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime","0").find<SportBean.DistanceBean>()
+        val distanceData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime", "0")
+            .find<SportBean.DistanceBean>()
 
-        val calorieData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime","0").find<SportBean.CalorieBean>()
+        val calorieData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime", "0")
+            .find<SportBean.CalorieBean>()
 
-        //val totalDistance = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime","0").sum<SportBean.DistanceBean,Int>("value")
 
         val totalStep = stepsData.sumBy { it.value }
         val totalDistance = distanceData.sumBy { it.value }
         val totalCalorie = calorieData.sumBy { it.value }
 
-        val totalStepString = if (totalStep == 0){
-            "--"
-        }else{
-            "$totalStep"
+        var totalStepString = "--"
+        var totalDistanceString = "--"
+        var totalCalorieString = "--"
+
+        if (totalStep != 0) {
+            totalStepString = "${totalStep}步"
         }
 
-        val totalDistanceString = if (totalDistance == 0){
-            "--"
-        }else{
-            val bigDecimal = BigDecimal(totalDistance.toDouble()/1000)
-            bigDecimal.setScale(2, RoundingMode.HALF_UP).toString()
+        if (totalDistance != 0) {
+            val bigDecimal = BigDecimal(totalDistance.toDouble() / 1000)
+            val distance = bigDecimal.setScale(2, RoundingMode.HALF_UP).toString()
+            totalDistanceString = "${distance}km"
         }
 
-        val totalCalorieString = if (totalCalorie == 0){
-            "--"
-        }else{
-           "$totalCalorie"
+        if (totalCalorie != 0) {
+            totalCalorieString = "${totalCalorie}大卡"
         }
 
-        view?.onStepsData(stepsData,totalStepString,totalDistanceString,totalCalorieString)
+        view?.onStepsData(stepsData, totalStepString, totalDistanceString, totalCalorieString)
     }
 }

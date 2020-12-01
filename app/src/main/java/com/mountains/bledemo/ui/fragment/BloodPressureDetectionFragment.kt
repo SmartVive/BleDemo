@@ -101,11 +101,11 @@ class BloodPressureDetectionFragment : BaseFragment<BloodPressureDetectionPresen
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onMessageEvent(event:BloodPressureDetectionEvent){
         tvBloodPressure.text = "${event.bloodDiastolic} / ${event.bloodSystolic}"
+        presenter?.addBloodPressureDetectionResult(event.bloodDiastolic,event.bloodSystolic)
+        count++
         if (count >= 1){
             count = 0
-            presenter?.stopBloodPressureDetection()
-        }else{
-            count++
+            presenter?.detectionBloodPressureFinish()
         }
     }
 
@@ -145,5 +145,10 @@ class BloodPressureDetectionFragment : BaseFragment<BloodPressureDetectionPresen
         btnDetection.text = "开始检测血压"
         stopGif()
         handler.removeMessages(DETECTION_TIME_OUT_MSG)
+    }
+
+    override fun onDetectionSuccess(bloodDiastolic: Int, bloodSystolic: Int) {
+        showToast("检测完成")
+        tvBloodPressure.text = "${bloodDiastolic} / ${bloodSystolic}"
     }
 }

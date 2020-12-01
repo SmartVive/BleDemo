@@ -17,14 +17,11 @@ import com.mountains.bledemo.helper.BaseUUID
 import com.mountains.bledemo.helper.CommHelper
 import com.mountains.bledemo.presenter.MainPresenter
 import com.mountains.bledemo.service.DeviceConnectService
-import com.mountains.bledemo.ui.activity.BindDeviceActivity
-import com.mountains.bledemo.ui.activity.HealthDetectionActivity
-import com.mountains.bledemo.ui.activity.HeartRateDetailsActivity
-import com.mountains.bledemo.ui.activity.SleepDetailsActivity
-import com.mountains.bledemo.ui.activity.StepDetailsActivity
+import com.mountains.bledemo.ui.activity.*
 import com.mountains.bledemo.ui.fragment.CalendarDialogFragment
 import com.mountains.bledemo.util.DisplayUtil
 import com.mountains.bledemo.view.MainView
+import com.mountains.bledemo.weiget.CardItemDataDecoration
 import com.orhanobut.logger.Logger
 import kotlinx.android.synthetic.main.activity_main.*
 import org.greenrobot.eventbus.EventBus
@@ -80,6 +77,9 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
             DataUpdateEvent.BLOOD_OXYGEN_UPDATE_TYPE->{
                 presenter.getBloodOxygenData()
             }
+            DataUpdateEvent.BLOOD_PRESSURE_UPDATE_TYPE->{
+                presenter.getBloodPressureData()
+            }
         }
 
     }
@@ -87,7 +87,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
     private  fun initView(){
         recyclerView.apply {
             layoutManager = GridLayoutManager(context,2)
-            addItemDecoration(ItemDataDecoration(DisplayUtil.dp2px(context,12f)))
+            addItemDecoration(CardItemDataDecoration(DisplayUtil.dp2px(context,12f)))
             adapter = cardItemAdapter
         }
         cardItemAdapter.setOnItemClickListener { adapter, view, position ->
@@ -106,6 +106,10 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
                 }
                 CardItemData.DETECTION_TYPE->{
                     val intent = Intent(getContext(), HealthDetectionActivity::class.java)
+                    startActivity(intent)
+                }
+                CardItemData.BLOOD_OXYGEN_TYPE->{
+                    val intent = Intent(getContext(), BloodOxygenDetailsActivity::class.java)
                     startActivity(intent)
                 }
             }
@@ -132,6 +136,8 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
             startActivity(intent)
         }
 
+        stepsView.setMaxSteps(8000)
+        tvGoal.text = "8000"
 
     }
 
@@ -154,6 +160,9 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
     private fun initData(){
         presenter.getHeartRateData()
+        presenter.getBloodOxygenData()
+        presenter.getSleepData()
+        presenter.getBloodPressureData()
     }
 
     /**
@@ -178,50 +187,22 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         cardItemAdapter.notifyDataSetChanged()
     }
 
-
-    //边距
-    class ItemDataDecoration(val margin:Int) : RecyclerView.ItemDecoration() {
-
-        override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
-            super.getItemOffsets(outRect, view, parent, state)
-            val layoutManager = parent.layoutManager
-            if (layoutManager is GridLayoutManager) {
-                val position = parent.getChildAdapterPosition(view)
-                val spanCount = layoutManager.spanCount
-                val childCount = parent.adapter?.itemCount ?: return
-                //当前item在多少行
-                val currentRow = Math.floor(position.toDouble() / spanCount).toInt()
-                //一共有多少行
-                val maxRow = Math.ceil(childCount.toDouble() / spanCount).toInt() - 1
-
-                if (position % spanCount == 0) {
-                    //第一列item
-                    outRect.left = margin
-                    outRect.right = margin/2
-                } else if (position % spanCount == spanCount - 1) {
-                    //最后一列item
-                    outRect.left = margin/2
-                    outRect.right = margin
-                } else {
-                    //中间列item
-                    outRect.left = margin / 2
-                    outRect.right = margin / 2
-                }
-
-
-                if (currentRow == 0) {
-                    //第一行item
-                    outRect.top = margin
-                } else if (currentRow == maxRow) {
-                    //最后一行item
-                    outRect.top = margin
-                    outRect.bottom = margin
-                } else {
-                    //中间行item
-                    outRect.top = margin
-                }
-            }
-
+    /**
+     * 睡眠记录
+     */
+    override fun onSleepData(valueContent: String, timeContent: String) {
+        cardItemList.filter { it.itemType == CardItemData.SLEEP_TYPE }.forEach {
+            it.value = valueContent
+            it.time = timeContent
         }
+        cardItemAdapter.notifyDataSetChanged()
+    }
+
+    override fun onBloodPressureData(valueContent: String, timeContent: String) {
+        cardItemList.filter { it.itemType == CardItemData.BLOOD_PRESSURE_TYPE }.forEach {
+            it.value = valueContent
+            it.time = timeContent
+        }
+        cardItemAdapter.notifyDataSetChanged()
     }
 }

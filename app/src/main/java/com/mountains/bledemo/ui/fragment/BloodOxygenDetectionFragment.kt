@@ -107,11 +107,10 @@ class BloodOxygenDetectionFragment : BaseFragment<BloodOxygenDetectionPresenter>
     fun onMessageEvent(event:BloodOxygenDetectionEvent){
         tvBloodOxygen.text = "${event.value}"
         presenter?.addBloodOxygenDetectionResult(event.value)
+        count++
         if (count >= 10){
             count = 0
             presenter?.bloodOxygenDetectionFinish()
-        }else{
-            count++
         }
     }
 

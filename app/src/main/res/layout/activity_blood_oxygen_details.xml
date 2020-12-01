@@ -2,17 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tool="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <com.hjq.bar.TitleBar
         android:id="@+id/titleBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:rightIcon="@drawable/ic_calendar"
         android:elevation="2dp"
-        app:title="步数详情"/>
+        app:title="血氧详情" />
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -20,119 +19,109 @@
 
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@android:color/transparent"
-            app:elevation="0dp"
-            android:layout_height="wrap_content">
+            app:elevation="0dp">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:paddingBottom="16dp"
+                android:layout_marginBottom="16dp"
                 android:background="@color/white"
-                app:layout_scrollFlags="scroll"
-                android:layout_height="wrap_content">
-
-                <include
-                    android:id="@+id/layoutDate"
-                    layout="@layout/include_date"/>
+                app:layout_scrollFlags="scroll">
 
                 <com.mountains.bledemo.weiget.HistogramView
                     android:id="@+id/histogramView"
-                    app:layout_constraintTop_toBottomOf="@id/layoutDate"
                     android:layout_width="match_parent"
-                    android:layout_height="280dp"/>
+                    android:layout_height="280dp"
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
-                    android:id="@+id/tvStep"
+                    android:id="@+id/tvAvgBloodOxygen"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:textColor="@color/mainTextColor"
                     android:textSize="16dp"
                     android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="@id/tvStepTitle"
-                    app:layout_constraintStart_toStartOf="@id/tvStepTitle"
+                    app:layout_constraintEnd_toEndOf="@id/tvAvgBloodOxygenTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvAvgBloodOxygenTitle"
                     app:layout_constraintTop_toBottomOf="@id/histogramView"
-                    tool:text="3000步" />
+                    tool:text="90%" />
 
                 <TextView
-                    android:id="@+id/tvDistance"
+                    android:id="@+id/tvMaxBloodOxygen"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/mainTextColor"
                     android:textSize="16dp"
                     android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="@id/tvDistanceTitle"
-                    app:layout_constraintStart_toStartOf="@id/tvDistanceTitle"
-                    app:layout_constraintTop_toTopOf="@id/tvStep"
-                    tool:text="2.98km" />
+                    app:layout_constraintEnd_toEndOf="@id/tvMaxBloodOxygenTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvMaxBloodOxygenTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodOxygen"
+                    tool:text="100%" />
 
                 <TextView
-                    android:id="@+id/tvCalorie"
+                    android:id="@+id/tvMinBloodOxygen"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/mainTextColor"
                     android:textSize="16dp"
                     android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="@id/tvCalorieTitle"
-                    app:layout_constraintStart_toStartOf="@id/tvCalorieTitle"
-                    app:layout_constraintTop_toTopOf="@id/tvStep"
-                    tool:text="352大卡" />
+                    app:layout_constraintEnd_toEndOf="@id/tvMinBloodOxygenTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvMinBloodOxygenTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodOxygen"
+                    tool:text="80%" />
 
                 <TextView
-                    android:id="@+id/tvStepTitle"
+                    android:id="@+id/tvAvgBloodOxygenTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="总步数"
+                    android:text="平均血氧"
                     android:textColor="@color/subTextColor"
                     android:textSize="14dp"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/tvDistanceTitle"
+                    app:layout_constraintEnd_toStartOf="@id/tvMaxBloodOxygenTitle"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/tvStep" />
+                    app:layout_constraintTop_toBottomOf="@id/tvAvgBloodOxygen" />
 
                 <TextView
-                    android:id="@+id/tvDistanceTitle"
+                    android:id="@+id/tvMaxBloodOxygenTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="总里程"
+                    android:text="最高血氧"
                     android:textColor="@color/subTextColor"
                     android:textSize="14dp"
-                    app:layout_constraintBottom_toBottomOf="@id/tvStepTitle"
-                    app:layout_constraintEnd_toStartOf="@id/tvCalorieTitle"
-                    app:layout_constraintStart_toEndOf="@id/tvStepTitle"
-                    app:layout_constraintTop_toTopOf="@id/tvStepTitle" />
+                    app:layout_constraintBottom_toBottomOf="@id/tvAvgBloodOxygenTitle"
+                    app:layout_constraintEnd_toStartOf="@id/tvMinBloodOxygenTitle"
+                    app:layout_constraintStart_toEndOf="@id/tvAvgBloodOxygenTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodOxygenTitle" />
 
                 <TextView
-                    android:id="@+id/tvCalorieTitle"
+                    android:id="@+id/tvMinBloodOxygenTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="总卡路里"
+                    android:text="最低血氧"
                     android:textColor="@color/subTextColor"
                     android:textSize="14dp"
-                    app:layout_constraintBottom_toBottomOf="@id/tvStepTitle"
+                    app:layout_constraintBottom_toBottomOf="@id/tvAvgBloodOxygenTitle"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/tvDistanceTitle"
-                    app:layout_constraintTop_toTopOf="@id/tvStepTitle" />
-
+                    app:layout_constraintStart_toEndOf="@id/tvMaxBloodOxygenTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodOxygenTitle" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
 
         </com.google.android.material.appbar.AppBarLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
-            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-
-
 
 
 </LinearLayout>

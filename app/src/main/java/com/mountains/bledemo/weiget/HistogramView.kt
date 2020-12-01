@@ -308,6 +308,12 @@ open class HistogramView : View {
         barCount = count
     }
 
+    /**
+     * 获取条形数量
+     */
+    fun getBarCount():Int{
+        return barCount
+    }
 
 
     private fun secondFormatHour(second: Int): String {
