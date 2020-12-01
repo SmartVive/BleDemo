@@ -495,7 +495,7 @@ open class HistogramView : View {
     }
 
     /**
-     * 获取值为value的条形left
+     * 获取值为value的条形Right
      */
     fun getBarRight(index:Int):Float{
         val endTime = getBarEndTime(index)
