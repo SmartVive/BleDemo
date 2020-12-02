@@ -40,7 +40,7 @@ class BleDevice(val device: BluetoothDevice) {
     val bluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
-            Logger.i("onConnectionStateChange,status:$status,newState:$newState")
+            Logger.i("${this@BleDevice},onConnectionStateChange,status:$status,newState:$newState")
 
             connectionState = newState
             if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -56,7 +56,7 @@ class BleDevice(val device: BluetoothDevice) {
                 } else {
                     //连接失败
                     if (canReconnect()){
-                        Logger.d("连接失败，正在重连:${gatt?.device?.name}")
+                        Logger.d("连接失败，重试次数：${currentRetryCount},正在重连:${gatt?.device?.name}")
                         reconnection()
                     }else{
                         Logger.d("超过重连次数，连接失败:${gatt?.device?.name}")
@@ -78,7 +78,7 @@ class BleDevice(val device: BluetoothDevice) {
             } else {
                 //发现服务失败,重试
                 if (canReconnect()){
-                    Logger.d("发现服务失败,正在重试:${gatt?.device?.name}")
+                    Logger.d("发现服务失败，重试次数：${currentRetryCount},正在重试:${gatt?.device?.name}")
                     reconnection()
                 }else{
                     Logger.d("超过重连次数，发现服务失败:${gatt?.device?.name}")
@@ -350,6 +350,7 @@ class BleDevice(val device: BluetoothDevice) {
     fun sendConnectSuccessMsg(bleDevice: BleDevice){
         BleGlobal.lock.lock()
         currentRetryCount = 0
+        BleGlobal.putBleDevice(getMac(), bleDevice)
         BleGlobal.condition.signal()
         BleCallBackHandler.sendConnectSuccessMsg(bleDevice)
         BleGlobal.lock.unlock()

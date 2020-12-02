@@ -46,7 +46,7 @@ class MainPresenter : BasePresenter<MainView>() {
                 .find<BloodOxygenBean>()
 
         if (bloodOxygenList.isEmpty()) {
-            view?.onHeartRateData("0 - 0 %", "最后一次:暂无数据")
+            view?.onBloodOxygenData("0 - 0 %", "最后一次:暂无数据")
         } else {
             val maxBloodOxygen = bloodOxygenList.maxBy { it.value }?.value
             val minBloodOxygen = bloodOxygenList.minBy { it.value }?.value

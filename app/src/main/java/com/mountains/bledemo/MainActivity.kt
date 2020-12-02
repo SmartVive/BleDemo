@@ -112,6 +112,10 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
                     val intent = Intent(getContext(), BloodOxygenDetailsActivity::class.java)
                     startActivity(intent)
                 }
+                CardItemData.BLOOD_PRESSURE_TYPE->{
+                    val intent = Intent(getContext(), BloodPressureDetailsActivity::class.java)
+                    startActivity(intent)
+                }
             }
 
         }
@@ -145,9 +149,9 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
     private fun initCard(){
         val deviceCard = CardItemData(CardItemData.DEVICE_TYPE, R.drawable.ic_card_device, "", "", "设备")
         val healthDetection = CardItemData(CardItemData.DETECTION_TYPE, R.drawable.ic_card_detection, "", "", "健康体检")
-        val heartCard = CardItemData(CardItemData.HEART_RATE_TYPE, R.drawable.ic_card_heart, "0 - 0bpm", "最后一次:暂无数据", "心率记录")
-        val bloodPressureCard = CardItemData(CardItemData.BLOOD_PRESSURE_TYPE, R.drawable.ic_card_blood_pressure, "0 / 0mmHg", "最后一次:暂无数据", "血压记录")
-        val bloodOxygenCard = CardItemData(CardItemData.BLOOD_OXYGEN_TYPE, R.drawable.ic_card_blood_oxygen, "0 - 0%", "最后一次:暂无数据", "血氧记录")
+        val heartCard = CardItemData(CardItemData.HEART_RATE_TYPE, R.drawable.ic_card_heart, "0 - 0 bpm", "最后一次:暂无数据", "心率记录")
+        val bloodPressureCard = CardItemData(CardItemData.BLOOD_PRESSURE_TYPE, R.drawable.ic_card_blood_pressure, "0 / 0 mmHg", "最后一次:暂无数据", "血压记录")
+        val bloodOxygenCard = CardItemData(CardItemData.BLOOD_OXYGEN_TYPE, R.drawable.ic_card_blood_oxygen, "0 - 0 %", "最后一次:暂无数据", "血氧记录")
         val sleepCard = CardItemData(CardItemData.SLEEP_TYPE, R.drawable.ic_card_sleep, "0h 0min", "最后一次:暂无数据", "睡眠记录")
         cardItemList.add(deviceCard)
         cardItemList.add(healthDetection)
@@ -198,6 +202,9 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         cardItemAdapter.notifyDataSetChanged()
     }
 
+    /**
+     * 血压记录
+     */
     override fun onBloodPressureData(valueContent: String, timeContent: String) {
         cardItemList.filter { it.itemType == CardItemData.BLOOD_PRESSURE_TYPE }.forEach {
             it.value = valueContent

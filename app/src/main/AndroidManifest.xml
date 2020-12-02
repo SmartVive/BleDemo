@@ -16,7 +16,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".LineChartActivity">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,6 +29,7 @@
         <activity android:name=".ui.activity.HealthDetectionActivity" />
         <activity android:name=".ui.activity.SleepDetailsActivity" />
         <activity android:name=".ui.activity.BloodOxygenDetailsActivity" />
+        <activity android:name=".ui.activity.BloodPressureDetailsActivity" />
 
         <service android:name=".service.DeviceConnectService" />
     </application>

@@ -4,7 +4,10 @@ import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
 
-class BloodPressureHistogramView : HistogramView {
+class BloodPressureHistogramView : HistogramView2 {
+    private var bloodPressureDatas : MutableList<IBloodPressureHistogramData> = mutableListOf()
+    private var bloodPressureBarData : Array<FloatArray>? = null
+
     constructor(context: Context?) : this(context,null)
     constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs,0)
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr){
@@ -12,19 +15,51 @@ class BloodPressureHistogramView : HistogramView {
     }
 
     override fun drawBar(canvas: Canvas) {
-        for (i in 0 until getBarCount()) {
-            barData?.let {
-                val avg = it[i]
-                //val y = yAxisBottom - yDivideDistance * ((avg - labelMin) / yLabelDistance)
-                val top = getBarTop(avg)
+        for (i in 0 until barCount) {
+            bloodPressureBarData?.let {
+                val avgBloodDiastolic = it[i][0]
+                val avgBloodSystolic = it[i][1]
+                val top = getBarTop(avgBloodSystolic)
                 var left = getBarLeft(i)
                 var right = getBarRight(i)
-                var bottom = xAxisTop
+                val bottom = getBarTop(avgBloodDiastolic)
 
                 left += (right - left) * barSpaceLeft
                 right -= (right - left) * barSpaceRight
-                //Logger.e("$left,$right")
                 canvas.drawRect(left, top, right, bottom, barPaint)
+            }
+        }
+    }
+
+    fun loadBloodPressureData(data:List<IBloodPressureHistogramData>){
+        bloodPressureDatas.clear()
+        bloodPressureDatas.addAll(data)
+
+        //initYAxisLabel()
+        initBloodPressureBarData()
+        //initAxisMargin()
+        postInvalidate()
+    }
+
+    fun initBloodPressureBarData(){
+        bloodPressureBarData = Array(barCount) {FloatArray(2)}
+        bloodPressureBarData?.let {
+            for (i in it.indices) {
+                val startTime = getBarStartTime(i)
+                val endTime = getBarEndTime(i)
+
+                //多个数值用一个条形显示时，显示平均值
+                var sumBloodDiastolic = 0f
+                var sumBloodSystolic = 0f
+                var count = 0
+                for (data in bloodPressureDatas) {
+                    if (data.getHistogramTime() in startTime until endTime) {
+                        sumBloodDiastolic += data.getHistogramBloodDiastolic()
+                        sumBloodSystolic += data.getHistogramBloodSystolic()
+                        count++
+                    }
+                }
+                it[i] = floatArrayOf(sumBloodDiastolic/count,sumBloodSystolic/count)
             }
         }
     }

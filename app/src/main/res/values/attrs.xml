@@ -14,4 +14,32 @@
         <attr name="dividerLength" format="dimension"/>
         
     </declare-styleable>
+
+    <declare-styleable name="HistogramView2">
+        <attr name="axisColor" format="color"/>
+        <attr name="axisWidth" format="dimension"/>
+        <attr name="guideColor" format="color"/>
+        <attr name="guideWidth" format="dimension"/>
+        <attr name="labelColor" format="color"/>
+        <attr name="labelSize" format="dimension"/>
+        <attr name="barColor" format="color"/>
+        <attr name="barSpace" format="float"/>
+        <attr name="guideLabelCount" format="integer"/>
+        <attr name="xLabelCount" format="integer"/>
+        <attr name="barCount" format="integer"/>
+        <attr name="dividerLength" format="dimension"/>
+        <attr name="guideLabelMaximum" format="integer"/>
+        <attr name="guideLabelMinimum" format="integer"/>
+        <attr name="isGuideAutoLabel" format="boolean"/>
+        <attr name="guideLabelSpaceTop" format="float"/>
+        <attr name="guideLabelSpaceBottom" format="float"/>
+
+        <attr name="axisMarginLeft" format="float"/>
+        <attr name="axisMarginRight" format="float"/>
+        <attr name="axisMarginTop" format="float"/>
+        <attr name="axisMarginBottom" format="float"/>
+
+        <attr name="xLabelStartTime" format="integer"/>
+        <attr name="xLabelEndTime" format="integer"/>
+    </declare-styleable>
 </resources>

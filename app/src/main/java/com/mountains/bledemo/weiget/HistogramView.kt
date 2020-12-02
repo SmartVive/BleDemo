@@ -535,11 +535,11 @@ open class HistogramView : View {
     fun loadData(data: List<IHistogramData>) {
         datas.clear()
         datas.addAll(data)
-        postInvalidate()
 
         initYAxisLabel()
         initBarData()
         initAxisMargin()
+        postInvalidate()
     }
 
 
