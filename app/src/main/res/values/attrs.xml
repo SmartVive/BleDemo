@@ -6,14 +6,14 @@
         <attr name="textSize" format="dimension"/>
     </declare-styleable>
     
-    <declare-styleable name="HistogramView">
+   <!-- <declare-styleable name="HistogramView">
         <attr name="axisColor" format="color"/>
         <attr name="axisWidth" format="dimension"/>
         <attr name="yAxisLabelCount" format="integer"/>
         <attr name="xAxisLabelCount" format="integer"/>
         <attr name="dividerLength" format="dimension"/>
         
-    </declare-styleable>
+    </declare-styleable>-->
 
     <declare-styleable name="HistogramView2">
         <attr name="axisColor" format="color"/>

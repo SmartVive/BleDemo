@@ -15,6 +15,7 @@ import com.mountains.bledemo.event.DataUpdateEvent
 import com.mountains.bledemo.event.SportEvent
 import com.mountains.bledemo.helper.BaseUUID
 import com.mountains.bledemo.helper.CommHelper
+import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.presenter.MainPresenter
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.ui.activity.*
@@ -122,7 +123,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
         swipeRefreshLayout.setOnRefreshListener {
 
-            DeviceConnectService.connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.heartRateDetection(1),object : CommCallback {
+            DeviceManager.writeCharacteristic(CommHelper.heartRateDetection(1),object : CommCallback {
                 override fun onSuccess(byteArray: ByteArray?) {
                     swipeRefreshLayout.isRefreshing = false
                     Logger.d("commOnSuccess")

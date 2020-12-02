@@ -8,9 +8,9 @@ class BloodPressureHistogramView : HistogramView2 {
     private var bloodPressureDatas : MutableList<IBloodPressureHistogramData> = mutableListOf()
     private var bloodPressureBarData : Array<FloatArray>? = null
 
-    constructor(context: Context?) : this(context,null)
-    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs,0)
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr){
+    constructor(context: Context) : this(context,null)
+    constructor(context: Context, attrs: AttributeSet?) : this(context, attrs,0)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr){
 
     }
 
@@ -24,8 +24,8 @@ class BloodPressureHistogramView : HistogramView2 {
                 var right = getBarRight(i)
                 val bottom = getBarTop(avgBloodDiastolic)
 
-                left += (right - left) * barSpaceLeft
-                right -= (right - left) * barSpaceRight
+                left += (right - left) * barSpace
+                right -= (right - left) * barSpace
                 canvas.drawRect(left, top, right, bottom, barPaint)
             }
         }

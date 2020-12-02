@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tool="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:background="@color/white"
     android:layout_height="match_parent">
 
     <com.hjq.bar.TitleBar
@@ -11,9 +11,143 @@
         android:layout_height="wrap_content"
         app:title="血压详情"/>
 
-    <com.mountains.bledemo.weiget.BloodPressureHistogramView
-        android:id="@+id/bloodPressureHistogramView"
+
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="256dp"/>
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:elevation="0dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="@color/white"
+                app:layout_scrollFlags="scroll">
+
+                <com.mountains.bledemo.weiget.BloodPressureHistogramView
+                    android:id="@+id/bloodPressureHistogramView"
+                    android:layout_width="match_parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:guideLabelMaximum="200"
+                    app:guideLabelMinimum="0"
+                    android:layout_height="232dp"/>
+
+                <TextView
+                    android:id="@+id/tvAvgBloodDiastolic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvAvgBloodDiastolicTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvAvgBloodDiastolicTitle"
+                    app:layout_constraintTop_toBottomOf="@id/bloodPressureHistogramView"
+                    tool:text="100 mmHg" />
+
+                <TextView
+                    android:id="@+id/tvAvgBloodSystolic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvAvgBloodSystolicTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvAvgBloodSystolicTitle"
+                    app:layout_constraintTop_toBottomOf="@id/bloodPressureHistogramView"
+                    tool:text="100 mmHg" />
+
+                <TextView
+                    android:id="@+id/tvMinBloodDiastolic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvMinBloodDiastolicTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvMinBloodDiastolicTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolic"
+                    tool:text="110 mmHg" />
+
+                <TextView
+                    android:id="@+id/tvMaxBloodSystolic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/mainTextColor"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="@id/tvMaxBloodSystolicTitle"
+                    app:layout_constraintStart_toStartOf="@id/tvMaxBloodSystolicTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolic"
+                    tool:text="90 mmHg" />
+
+                <TextView
+                    android:id="@+id/tvAvgBloodDiastolicTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="平均舒张压"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tvAvgBloodSystolicTitle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvAvgBloodDiastolic" />
+
+                <TextView
+                    android:id="@+id/tvAvgBloodSystolicTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="平均收缩压"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="@id/tvAvgBloodDiastolicTitle"
+                    app:layout_constraintEnd_toStartOf="@id/tvMinBloodDiastolicTitle"
+                    app:layout_constraintStart_toEndOf="@id/tvAvgBloodDiastolicTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolicTitle" />
+
+                <TextView
+                    android:id="@+id/tvMinBloodDiastolicTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="最低舒张压"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="@id/tvAvgBloodDiastolicTitle"
+                    app:layout_constraintEnd_toStartOf="@id/tvMaxBloodSystolicTitle"
+                    app:layout_constraintStart_toEndOf="@id/tvAvgBloodSystolicTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolicTitle" />
+
+                <TextView
+                    android:id="@+id/tvMaxBloodSystolicTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="最高收缩压"
+                    android:textColor="@color/subTextColor"
+                    android:textSize="14dp"
+                    app:layout_constraintBottom_toBottomOf="@id/tvAvgBloodDiastolicTitle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvMinBloodDiastolicTitle"
+                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolicTitle" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </LinearLayout>

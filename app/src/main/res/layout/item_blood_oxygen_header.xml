@@ -12,15 +12,15 @@
         android:id="@+id/ivIcon"
         android:layout_width="56dp"
         android:layout_height="56dp"
-        android:src="@drawable/ic_heart_rate"
+        android:src="@drawable/ic_blood_oxygen"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/tvHeartRateDetailsTitle"
+        android:id="@+id/tvBloodOxygenDetailsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="心率详情"
+        android:text="血氧详情"
         android:textColor="@color/mainTextColor"
         android:textSize="16dp"
         android:textStyle="bold"
@@ -29,29 +29,18 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/tvHeartRateTooLow"
+        android:id="@+id/tvBloodOxygenTooLow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:drawableStart="@drawable/shape_heart_rate_too_low"
         android:drawablePadding="4dp"
-        android:text="心率过低"
-        android:textSize="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/tvHeartRateTooHigh"
-        app:layout_constraintStart_toEndOf="@id/tvHeartRateDetailsTitle"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/tvHeartRateTooHigh"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:drawableStart="@drawable/shape_heart_rate_too_high"
-        android:drawablePadding="4dp"
-        android:text="心率过高"
+        android:text="血氧过低"
         android:textSize="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/tvHeartRateTooLow"
+        app:layout_constraintStart_toEndOf="@id/tvBloodOxygenDetailsTitle"
         app:layout_constraintTop_toTopOf="parent" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

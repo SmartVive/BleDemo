@@ -31,10 +31,10 @@
                 android:background="@color/white"
                 app:layout_scrollFlags="scroll">
 
-                <com.mountains.bledemo.weiget.HistogramView
+                <com.mountains.bledemo.weiget.HistogramView2
                     android:id="@+id/histogramView"
                     android:layout_width="match_parent"
-                    android:layout_height="280dp"
+                    android:layout_height="232dp"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
