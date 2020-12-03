@@ -6,11 +6,15 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import com.mountains.bledemo.util.DisplayUtil
 import com.orhanobut.logger.Logger
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.abs
+
 
 class SleepHistogramView2 : View {
     var sleepData = mutableListOf<ISleepHistogramData>()
@@ -32,13 +36,18 @@ class SleepHistogramView2 : View {
     var sleepDataSubTextColor = Color.GRAY
     var sleepDataMainTextColor = Color.BLACK
     //睡眠数据文字高度
-    var sleepDataTextHeight = 200f
+    var sleepDataTextHeight = 250f
+
+    lateinit var popupPaint:Paint
+    //popup宽高度
+    var popupWidth = 400f
+    var popupHeight = 175f
 
 
     //xy轴边距
     var axisMarginLeft = 60f
     var axisMarginRight = 60f
-    var axisMarginTop = 20f
+    var axisMarginTop = 0f
     var axisMarginBottom = 60f
 
 
@@ -53,6 +62,8 @@ class SleepHistogramView2 : View {
     private var xAxisLeft: Float = 0f
     private var xAxisRight: Float = 0f
     private var xAxisTop: Float = 0f
+
+    var touchX = -1f
 
 
     val simpleDateFormat by lazy { SimpleDateFormat("HH:mm", Locale.getDefault()) }
@@ -100,6 +111,12 @@ class SleepHistogramView2 : View {
         sleepDataMainTextPaint.color = sleepDataMainTextColor
         //sleepDataMainTextPaint.textAlign = Paint.Align.CENTER
         sleepDataMainTextPaint.textSize = DisplayUtil.dp2px(context, 26f).toFloat()
+
+        popupPaint = Paint()
+        popupPaint.isAntiAlias = true
+        popupPaint.color = Color.parseColor("#80000000")
+        popupPaint.style = Paint.Style.FILL
+        popupPaint.strokeWidth = 2f
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -108,6 +125,31 @@ class SleepHistogramView2 : View {
         xAxisRight = measuredWidth - axisMarginRight
         xAxisTop = measuredHeight - axisMarginBottom
         xAxisWidth = xAxisRight - xAxisLeft
+    }
+
+
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        parent.requestDisallowInterceptTouchEvent(true)
+        when(event.action){
+            MotionEvent.ACTION_DOWN,MotionEvent.ACTION_MOVE->{
+                touchX = event.x
+                //边界处理
+                if (touchX < xAxisLeft){
+                    touchX = xAxisLeft
+                }else if (touchX > xAxisRight){
+                    touchX = xAxisRight
+                }
+                invalidate()
+                return true
+            }
+            MotionEvent.ACTION_UP->{
+                touchX = -1f
+                invalidate()
+                return true
+            }
+        }
+        return true
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -119,13 +161,47 @@ class SleepHistogramView2 : View {
         //画条形
         drawBar(canvas)
 
-        drawSleepDataText(canvas)
+
+
+        if (touchX != -1f){
+
+            val popupLeft: Float
+            val popupRight: Float
+            if (touchX - popupWidth / 2f < 0) {
+                popupLeft = 0f
+                popupRight = popupLeft + popupWidth
+            }else if (touchX + popupWidth / 2f > measuredWidth){
+                popupRight = measuredWidth.toFloat()
+                popupLeft = popupRight - popupWidth
+            }else{
+                popupLeft  = touchX - popupWidth / 2f
+                popupRight = touchX + popupWidth / 2f
+            }
+
+            val popupTop = (sleepDataTextHeight - popupHeight) / 2f
+            val popupBottom = popupHeight + popupTop
+            canvas.drawRoundRect(popupLeft, popupTop, popupRight, popupBottom, 10f, 10f, popupPaint)
+            canvas.drawLine(touchX,popupBottom,touchX,xAxisTop,popupPaint)
+
+            val selectTime =  (sleepEndTime - sleepBeginTime) / (xAxisRight - xAxisLeft) * (touchX-xAxisLeft) / 1000
+            for(data in sleepData){
+                if(data.getSleepBeginTime()-sleepBeginTime <= selectTime && data.getSleepEndTime()-sleepBeginTime >= selectTime){
+                    Logger.e("${selectTime},${data.getSleepBeginTime()-sleepBeginTime}")
+                    break
+                }
+            }
+        } else {
+            drawSleepDataText(canvas)
+        }
     }
 
     private fun drawSleepDataText(canvas: Canvas){
         val date = SimpleDateFormat("MM.dd", Locale.getDefault()).format(sleepEndTime)
         val text = "$date-夜间睡眠时长"
-        val sleepDurationText = "7小时50分钟"
+        val sleepDuration = sleepEndTime - sleepBeginTime
+        val min = sleepDuration / 1000 / 60 % 60
+        val hour = sleepDuration / 1000 / 60 / 60
+        val sleepDurationText = "${hour}小时${min}分钟"
 
 
         val subTextRect = Rect()
@@ -136,12 +212,8 @@ class SleepHistogramView2 : View {
 
         val subTextHeight = subTextRect.bottom-subTextRect.top
         val mainTextHeight = mainTextRect.bottom - mainTextRect.top
-        Logger.e("subTextHeight:$subTextHeight")
-        Logger.e("mainTextHeight:$mainTextHeight")
 
         val textMargin = (sleepDataTextHeight - subTextHeight - mainTextHeight)/3
-
-        Logger.e("textMargin:$textMargin")
 
 
         val dateTextX = xAxisLeft
@@ -151,6 +223,7 @@ class SleepHistogramView2 : View {
 
         canvas.drawText(text,dateTextX,dateTextY,sleepDataSubTextPaint)
         canvas.drawText(sleepDurationText,sleepDurationX,sleepDurationY,sleepDataMainTextPaint)
+
 
         //canvas.drawRect(0f,0f,100f,200f,sleepDataMainTextPaint)
     }
