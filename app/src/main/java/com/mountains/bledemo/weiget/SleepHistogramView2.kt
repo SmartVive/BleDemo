@@ -4,39 +4,56 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
 import com.mountains.bledemo.util.DisplayUtil
+import com.orhanobut.logger.Logger
 import java.text.SimpleDateFormat
 import java.util.*
 
-class SleepHistogramView : View {
+class SleepHistogramView2 : View {
     var sleepData = mutableListOf<ISleepHistogramData>()
     //条形画笔
     lateinit var barPaint: Paint
-    //x、y轴画笔
+
+    //x轴画笔
     lateinit var axisPaint: Paint
-    //x、y轴颜色
+    //x轴颜色
     var axisColor = Color.DKGRAY
-    //x、y轴宽度
+    //x轴宽度
     var axisWidth = 2f
-    var textOffset = 0f
-    //x轴长度
-    var xAxisWidth = 0f
+    var axisTextOffset = 0f
 
-    var xAxisLeft: Float = 0f
-    var xAxisRight: Float = 0f
-    var xAxisTop: Float = 0f
+    //睡眠数据文字画笔
+    lateinit var sleepDataSubTextPaint:Paint
+    lateinit var sleepDataMainTextPaint:Paint
+    //睡眠数据文字颜色
+    var sleepDataSubTextColor = Color.GRAY
+    var sleepDataMainTextColor = Color.BLACK
+    //睡眠数据文字高度
+    var sleepDataTextHeight = 200f
 
-    //xy轴边
+
+    //xy轴边距
     var axisMarginLeft = 60f
     var axisMarginRight = 60f
-    var axisMarginTop = 60f
+    var axisMarginTop = 20f
     var axisMarginBottom = 60f
+
+
 
     //睡眠开始时间和结束时间
     var sleepBeginTime: Long = 0
     var sleepEndTime: Long = 0
+
+    //x轴长度
+    private var xAxisWidth = 0f
+    //x轴位置
+    private var xAxisLeft: Float = 0f
+    private var xAxisRight: Float = 0f
+    private var xAxisTop: Float = 0f
+
 
     val simpleDateFormat by lazy { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
@@ -64,7 +81,7 @@ class SleepHistogramView : View {
         axisPaint.textAlign = Paint.Align.CENTER
         val fontMetrics = Paint.FontMetrics()
         axisPaint.getFontMetrics(fontMetrics)
-        textOffset = (fontMetrics.descent + fontMetrics.ascent) / 2
+        axisTextOffset = (fontMetrics.bottom + fontMetrics.top) / 2
 
 
         barPaint = Paint()
@@ -72,11 +89,17 @@ class SleepHistogramView : View {
         barPaint.setColor(Color.RED)
         barPaint.strokeWidth = 1f
 
+        sleepDataSubTextPaint = Paint()
+        sleepDataSubTextPaint.isAntiAlias = true
+        sleepDataSubTextPaint.color = sleepDataSubTextColor
+        //sleepDataSubTextPaint.textAlign = Paint.Align.CENTER
+        sleepDataSubTextPaint.textSize = DisplayUtil.dp2px(context, 14f).toFloat()
 
-        /*axisMarginLeft = axisPaint.measureText("9999")
-        axisMarginBottom = (fontMetrics.descent - fontMetrics.ascent) * 2
-        axisMarginTop = axisMarginBottom
-        axisMarginRight = axisMarginLeft*/
+        sleepDataMainTextPaint = Paint()
+        sleepDataMainTextPaint.isAntiAlias = true
+        sleepDataMainTextPaint.color = sleepDataMainTextColor
+        //sleepDataMainTextPaint.textAlign = Paint.Align.CENTER
+        sleepDataMainTextPaint.textSize = DisplayUtil.dp2px(context, 26f).toFloat()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -95,6 +118,41 @@ class SleepHistogramView : View {
         drawXAxisLabel(canvas)
         //画条形
         drawBar(canvas)
+
+        drawSleepDataText(canvas)
+    }
+
+    private fun drawSleepDataText(canvas: Canvas){
+        val date = SimpleDateFormat("MM.dd", Locale.getDefault()).format(sleepEndTime)
+        val text = "$date-夜间睡眠时长"
+        val sleepDurationText = "7小时50分钟"
+
+
+        val subTextRect = Rect()
+        val mainTextRect = Rect()
+
+        sleepDataSubTextPaint.getTextBounds(text,0,text.length,subTextRect)
+        sleepDataMainTextPaint.getTextBounds(text,0,sleepDurationText.length,mainTextRect)
+
+        val subTextHeight = subTextRect.bottom-subTextRect.top
+        val mainTextHeight = mainTextRect.bottom - mainTextRect.top
+        Logger.e("subTextHeight:$subTextHeight")
+        Logger.e("mainTextHeight:$mainTextHeight")
+
+        val textMargin = (sleepDataTextHeight - subTextHeight - mainTextHeight)/3
+
+        Logger.e("textMargin:$textMargin")
+
+
+        val dateTextX = xAxisLeft
+        val dateTextY = textMargin + subTextHeight
+        val sleepDurationX = dateTextX
+        val sleepDurationY = dateTextY  + textMargin + mainTextHeight
+
+        canvas.drawText(text,dateTextX,dateTextY,sleepDataSubTextPaint)
+        canvas.drawText(sleepDurationText,sleepDurationX,sleepDurationY,sleepDataMainTextPaint)
+
+        //canvas.drawRect(0f,0f,100f,200f,sleepDataMainTextPaint)
     }
 
     /**
@@ -146,7 +204,7 @@ class SleepHistogramView : View {
      * 获取x轴标签纵坐标
      */
     private fun getXAxisLabelY(): Float {
-        return xAxisTop + axisMarginBottom/2 - textOffset
+        return xAxisTop + axisMarginBottom/2 - axisTextOffset
     }
 
     /**
@@ -154,7 +212,6 @@ class SleepHistogramView : View {
      */
     private fun getXAxisLabelText(index: Int):String{
         if(index == 0){
-
             return simpleDateFormat.format(sleepBeginTime)
         }else{
             return simpleDateFormat.format(sleepEndTime)
@@ -174,16 +231,16 @@ class SleepHistogramView : View {
     fun getBarY(type: Int):Float {
         when(type){
             TYPE_SOBER->{
-                return xAxisTop - (xAxisTop - axisMarginTop)/2
+                return xAxisTop - (xAxisTop - axisMarginTop - sleepDataTextHeight)*0.5f
             }
             TYPE_LIGHT->{
-                return xAxisTop - (xAxisTop - axisMarginTop)/3*2
+                return xAxisTop - (xAxisTop - axisMarginTop - sleepDataTextHeight)*0.75f
             }
             TYPE_DEEP->{
-                return axisMarginTop
+                return axisMarginTop + sleepDataTextHeight
             }
         }
-        return  axisMarginTop
+        return  axisMarginTop + sleepDataTextHeight
     }
 
     private fun initDataTime(){

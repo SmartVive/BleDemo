@@ -8,7 +8,7 @@ import com.mountains.bledemo.service.DeviceConnectService
 object DeviceManager {
     private var bleDevice:BleDevice? = null
 
-    fun setDevice(bleDevice: BleDevice){
+    fun setDevice(bleDevice: BleDevice?){
         this.bleDevice = bleDevice
     }
 

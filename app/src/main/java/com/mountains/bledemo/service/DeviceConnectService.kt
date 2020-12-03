@@ -1,27 +1,40 @@
 package com.mountains.bledemo.service
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.Intent
 import android.os.*
+import com.mountains.bledemo.R
+import com.mountains.bledemo.base.Const
 import com.mountains.bledemo.ble.BleDevice
 import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.BleManager
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.ble.callback.ConnectCallback
+import com.mountains.bledemo.event.DeviceStateEvent
+import com.mountains.bledemo.event.DisconnectAllDeviceEvent
 import com.mountains.bledemo.helper.*
 import com.mountains.bledemo.util.HexUtil
+import com.mountains.bledemo.util.SharedUtil
 import com.mountains.bledemo.util.ToastUtil
 import com.orhanobut.logger.Logger
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
+
 
 class DeviceConnectService : Service() {
     companion object{
-        const val DEVICE = "device"
-        //已连接的设备
-        var connectedDevice:BleDevice? = null
-
-        var ENABLE_NOTIFY_MSG = 100
+        const val CHANNEL_ID_STRING = "channelId"
+        const val ENABLE_NOTIFY_MSG = 100
     }
+
+    //已连接的设备
+    var connectedDeviceList:MutableList<BleDevice> = mutableListOf()
     val sportDataDecodeHelper = SportDataDecodeHelper()
     val deviceInfoDataDecodeHelper = DeviceInfoDataDecodeHelper()
     val healthDataDecodeHelper = HealthDataDecodeHelper()
@@ -38,12 +51,40 @@ class DeviceConnectService : Service() {
             super.handleMessage(msg)
             when(msg.what){
                 ENABLE_NOTIFY_MSG->{
-                    if (currentEnableNotifyRetryCount++ < enableNotifyRetryCount){
-                        enableNotify()
+                    val obj = msg.obj
+                    if (obj is Array<*> && obj[0] is BleDevice && obj[1] is ConnectCallback){
+                        val bleDevice = obj[0] as BleDevice
+                        val connectCallback = obj[1] as ConnectCallback
+                        if (currentEnableNotifyRetryCount++ < enableNotifyRetryCount){
+                            enableNotify(bleDevice,connectCallback)
+                        }else{
+                            connectFailCallback(bleDevice.getName(), BleException(BleException.CONNECT_FAIL_CODE,"开启通知失败"),connectCallback)
+                        }
                     }
+
                 }
             }
         }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        createNotificationChannel()
+        EventBus.getDefault().register(this)
+        val bindDeviceMac = SharedUtil.read(Const.BIND_DEVICE_MAC, "")
+        if (bindDeviceMac.isNotEmpty()){
+            connectDevice(bindDeviceMac,null)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        EventBus.getDefault().unregister(this)
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onMessageEvent(event:DisconnectAllDeviceEvent){
+        disConnectAllDevice()
     }
 
     inner class MyBinder : Binder() {
@@ -58,18 +99,22 @@ class DeviceConnectService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent?.let {
-            val bluetoothDevice = it.getParcelableExtra<BluetoothDevice>(DEVICE)
-            bluetoothDevice?.let {
-                if (connectedDevice!=null && connectedDevice!!.isConnected() && connectedDevice!!.device.address == bluetoothDevice.address){
-                    Logger.e("设备已连接，请勿重复连接")
-                }else{
-                    connectDevice(bluetoothDevice)
-                }
-
-            }
-        }
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun createNotificationChannel(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            var channel: NotificationChannel? = null
+            channel = NotificationChannel(
+                CHANNEL_ID_STRING,
+                getString(R.string.app_name),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(channel)
+            val notification: Notification = Notification.Builder(applicationContext, CHANNEL_ID_STRING).build()
+            startForeground(1, notification)
+        }
     }
 
     /**
@@ -77,22 +122,33 @@ class DeviceConnectService : Service() {
      */
     fun connectDevice(device: BluetoothDevice,connectCallback: ConnectCallback? = null){
         Logger.d("正在连接设备${device.name}")
+        EventBus.getDefault().post(DeviceStateEvent(device.name,DeviceStateEvent.CONNECTING_TYPE))
+
+        for (connectDevice in connectedDeviceList) {
+            if (connectDevice.isConnected() && connectDevice.getMac() == device.address) {
+                Logger.e("设备已连接，请勿重复连接")
+                connectSuccessCallback(connectDevice,connectCallback)
+                return
+            }
+        }
+
         BleManager.getInstance().connectDevice(device, object : ConnectCallback {
             override fun connectSuccess(bleDevice: BleDevice) {
-                connectCallback?.connectSuccess(bleDevice)
-                ToastUtil.show("连接成功:${bleDevice.device.name}")
-                connectedDevice = bleDevice
+                //connectCallback?.connectSuccess(bleDevice)
+                Logger.d("连接成功:${bleDevice.getMac()}")
                 DeviceManager.setDevice(bleDevice)
-                enableNotify()
+                enableNotify(bleDevice,connectCallback)
             }
 
             override fun connectFail(exception: BleException) {
-                connectCallback?.connectFail(exception)
+                connectFailCallback(device.name,exception,connectCallback)
+                DeviceManager.setDevice(null)
                 ToastUtil.show("连接失败：${exception.message}")
             }
 
             override fun disconnect() {
-                connectCallback?.disconnect()
+                disconnectCallback(device.name,connectCallback)
+                DeviceManager.setDevice(null)
                 ToastUtil.show("断开连接")
             }
 
@@ -100,21 +156,34 @@ class DeviceConnectService : Service() {
     }
 
     /**
+     * 连接设备
+     */
+    fun connectDevice(deviceMac: String,connectCallback: ConnectCallback? = null){
+        val remoteDevice = BleManager.getInstance().getRemoteDevice(deviceMac)
+        connectDevice(remoteDevice,connectCallback)
+    }
+
+    /**
      * 开启通知
      */
-    fun enableNotify(){
-        connectedDevice?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY, BaseUUID.DESC,true,object : CommCallback {
+    fun enableNotify(device: BleDevice,connectCallback: ConnectCallback?){
+        initNotifyCallBack(device)
+        device.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY, BaseUUID.DESC,true,object : CommCallback {
             override fun onSuccess(byteArray: ByteArray?) {
                 Logger.d("开启通知成功")
-                initNotifyCallBack()
-                syncTime()
+                ToastUtil.show("连接成功:${device.getMac()}")
+                connectedDeviceList.add(device)
+                connectSuccessCallback(device,connectCallback)
+                syncTime(device)
             }
 
             override fun onFail(exception: BleException) {
                 Logger.d("开启通知失败：${exception.message}")
                 //开启失败后延时开启
-                if (connectedDevice!=null && connectedDevice!!.isConnected()){
-                    handler.sendEmptyMessageDelayed(ENABLE_NOTIFY_MSG,2000)
+                if (device.isConnected()){
+                    val obj = arrayOf(device, connectCallback)
+                    val message = handler.obtainMessage(ENABLE_NOTIFY_MSG, obj)
+                    handler.sendMessageDelayed(message,2000)
                 }
             }
 
@@ -124,8 +193,8 @@ class DeviceConnectService : Service() {
     /**
      * 通知回调
      */
-    private fun initNotifyCallBack(){
-        connectedDevice?.addNotifyCallBack(object : CommCallback{
+    private fun initNotifyCallBack(device: BleDevice){
+        device.addNotifyCallBack(object : CommCallback{
             override fun onSuccess(byteArray: ByteArray?) {
                 //解析数据
                 Logger.d(byteArray)
@@ -150,8 +219,8 @@ class DeviceConnectService : Service() {
 
 
     //同步设备时间
-    private fun syncTime(){
-        connectedDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.setDeviceTime(),object :CommCallback{
+    private fun syncTime(device: BleDevice){
+        device.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.setDeviceTime(),object :CommCallback{
             override fun onSuccess(byteArray: ByteArray?) {
                 Logger.i("同步时间成功")
             }
@@ -161,5 +230,39 @@ class DeviceConnectService : Service() {
             }
 
         })
+    }
+
+    /**
+     * 连接成功
+     */
+    private fun connectSuccessCallback(device: BleDevice, connectCallback:ConnectCallback?){
+        EventBus.getDefault().post(DeviceStateEvent(device.getName(),DeviceStateEvent.CONNECTED_TYPE))
+        connectCallback?.connectSuccess(device)
+    }
+
+    /**
+     * 连接失败
+     */
+    private fun connectFailCallback(deviceName: String, bleException: BleException, connectCallback:ConnectCallback?){
+        EventBus.getDefault().post(DeviceStateEvent(deviceName,DeviceStateEvent.CONNECT_FAIL_TYPE))
+        connectCallback?.connectFail(bleException)
+    }
+
+    /**
+     * 断开连接
+     */
+    private fun disconnectCallback(deviceName: String, connectCallback:ConnectCallback?){
+        EventBus.getDefault().post(DeviceStateEvent(deviceName,DeviceStateEvent.DISCONNECT_TYPE))
+        connectCallback?.disconnect()
+    }
+
+
+    /**
+     * 断开所有设备
+     */
+    fun disConnectAllDevice(){
+        connectedDeviceList.forEach {
+            it.disconnect()
+        }
     }
 }

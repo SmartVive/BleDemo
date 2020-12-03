@@ -34,10 +34,10 @@
         <attr name="guideLabelSpaceTop" format="float"/>
         <attr name="guideLabelSpaceBottom" format="float"/>
 
-        <attr name="axisMarginLeft" format="float"/>
-        <attr name="axisMarginRight" format="float"/>
-        <attr name="axisMarginTop" format="float"/>
-        <attr name="axisMarginBottom" format="float"/>
+        <attr name="axisMarginLeft" format="dimension"/>
+        <attr name="axisMarginRight" format="dimension"/>
+        <attr name="axisMarginTop" format="dimension"/>
+        <attr name="axisMarginBottom" format="dimension"/>
 
         <attr name="xLabelStartTime" format="integer"/>
         <attr name="xLabelEndTime" format="integer"/>

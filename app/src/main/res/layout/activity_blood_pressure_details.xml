@@ -65,29 +65,6 @@
                     app:layout_constraintTop_toBottomOf="@id/bloodPressureHistogramView"
                     tool:text="100 mmHg" />
 
-                <TextView
-                    android:id="@+id/tvMinBloodDiastolic"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/mainTextColor"
-                    android:textSize="16dp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="@id/tvMinBloodDiastolicTitle"
-                    app:layout_constraintStart_toStartOf="@id/tvMinBloodDiastolicTitle"
-                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolic"
-                    tool:text="110 mmHg" />
-
-                <TextView
-                    android:id="@+id/tvMaxBloodSystolic"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/mainTextColor"
-                    android:textSize="16dp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="@id/tvMaxBloodSystolicTitle"
-                    app:layout_constraintStart_toStartOf="@id/tvMaxBloodSystolicTitle"
-                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolic"
-                    tool:text="90 mmHg" />
 
                 <TextView
                     android:id="@+id/tvAvgBloodDiastolicTitle"
@@ -110,33 +87,11 @@
                     android:textColor="@color/subTextColor"
                     android:textSize="14dp"
                     app:layout_constraintBottom_toBottomOf="@id/tvAvgBloodDiastolicTitle"
-                    app:layout_constraintEnd_toStartOf="@id/tvMinBloodDiastolicTitle"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/tvAvgBloodDiastolicTitle"
                     app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolicTitle" />
 
-                <TextView
-                    android:id="@+id/tvMinBloodDiastolicTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="最低舒张压"
-                    android:textColor="@color/subTextColor"
-                    android:textSize="14dp"
-                    app:layout_constraintBottom_toBottomOf="@id/tvAvgBloodDiastolicTitle"
-                    app:layout_constraintEnd_toStartOf="@id/tvMaxBloodSystolicTitle"
-                    app:layout_constraintStart_toEndOf="@id/tvAvgBloodSystolicTitle"
-                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolicTitle" />
 
-                <TextView
-                    android:id="@+id/tvMaxBloodSystolicTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="最高收缩压"
-                    android:textColor="@color/subTextColor"
-                    android:textSize="14dp"
-                    app:layout_constraintBottom_toBottomOf="@id/tvAvgBloodDiastolicTitle"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/tvMinBloodDiastolicTitle"
-                    app:layout_constraintTop_toTopOf="@id/tvAvgBloodDiastolicTitle" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

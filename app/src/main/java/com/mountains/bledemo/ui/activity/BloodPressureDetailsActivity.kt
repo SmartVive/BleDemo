@@ -48,8 +48,6 @@ class BloodPressureDetailsActivity : BaseActivity<BloodPressureDetailsPresenter>
 
         tvAvgBloodDiastolic.text = avgBloodDiastolic
         tvAvgBloodSystolic.text = avgBloodSystolic
-        tvMinBloodDiastolic.text = minBloodDiastolic
-        tvMaxBloodSystolic.text = maxBloodSystolic
 
         bloodPressureList.clear()
         bloodPressureList.addAll(list)

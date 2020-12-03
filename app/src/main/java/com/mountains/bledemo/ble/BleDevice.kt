@@ -124,9 +124,18 @@ class BleDevice(val device: BluetoothDevice) {
         }
     }
 
-
+    /**
+     * 获取mac
+     */
     fun getMac():String{
         return device.address
+    }
+
+    /**
+     * 获取name
+     */
+    fun getName():String{
+        return device.name
     }
 
     /**

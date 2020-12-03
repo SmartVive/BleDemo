@@ -1,24 +1,23 @@
 package com.mountains.bledemo.ui.activity
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mountains.bledemo.R
 import com.mountains.bledemo.adapter.StepAdapter
 import com.mountains.bledemo.base.BaseActivity
 import com.mountains.bledemo.bean.SportBean
 import com.mountains.bledemo.presenter.StepDetailsPresenter
+import com.mountains.bledemo.ui.fragment.CalendarDialogFragment
 import com.mountains.bledemo.util.CalendarUtil
 import com.mountains.bledemo.view.StepDetailsView
+import com.mountains.bledemo.weiget.SelectDateView
 import kotlinx.android.synthetic.main.activity_step_details.*
 import kotlinx.android.synthetic.main.include_date.*
-import java.util.*
 
 class StepDetailsActivity : BaseActivity<StepDetailsPresenter>(),StepDetailsView {
     val stepList = mutableListOf<SportBean.StepBean>()
     val stepAdapter by lazy { StepAdapter(R.layout.item_step,stepList) }
+    var currentSelectTime = System.currentTimeMillis()
 
     override fun createPresenter(): StepDetailsPresenter {
         return StepDetailsPresenter()
@@ -35,25 +34,48 @@ class StepDetailsActivity : BaseActivity<StepDetailsPresenter>(),StepDetailsView
         titleBar.leftView.setOnClickListener {
             finish()
         }
+        titleBar.rightView.setOnClickListener {
+            CalendarDialogFragment().show(supportFragmentManager,javaClass.name,currentSelectTime,object : CalendarDialogFragment.OnCalendarSelectListener{
+                override fun onCalendarSelect(calendarTime: Long) {
+                    currentSelectTime = calendarTime
+                    selectDateView.setDate(currentSelectTime)
+                    initData()
+                }
+
+            })
+        }
+
         recyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = stepAdapter
         }
 
-        tvDate.text = "今天"
+        selectDateView.setDate(currentSelectTime)
+        selectDateView.setOnDateChangeListener(object : SelectDateView.OnDateChangeListener{
+            override fun onDateChange(date: Long) {
+                currentSelectTime = date
+                initData()
+            }
+
+        })
+
     }
 
+
     private fun initData(){
-        val startTime = CalendarUtil.getTodayBeginCalendar().timeInMillis
-        val endTime = CalendarUtil.getTodayEndCalendar().timeInMillis
-        presenter.getStepsData(startTime,endTime)
+        val calendar = CalendarUtil.getCalendar(currentSelectTime)
+        CalendarUtil.setCalendarToBegin(calendar)
+        val beginTime = calendar.timeInMillis
+        CalendarUtil.setCalendarToEnd(calendar)
+        val endTime = calendar.timeInMillis
+        presenter.getStepsData(beginTime,endTime)
     }
 
 
     override fun onStepsData(stepsData: List<SportBean.StepBean>,totalSteps:String,totalDistance:String,totalCalorie:String) {
         histogramView.loadData(stepsData)
         stepList.clear()
-        stepList.addAll(stepsData.reversed())
+        stepList.addAll(stepsData)
         stepAdapter.notifyDataSetChanged()
 
         tvStep.text = totalSteps

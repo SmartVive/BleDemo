@@ -190,6 +190,20 @@ class BleManager private constructor() {
         bleDevice.connect(context,connectCallback)
     }
 
+    /**
+     * 根据mac,连接设备
+     */
+    fun connectDevice(mac: String, connectCallback: ConnectCallback){
+        val device = adapter.getRemoteDevice(mac)
+        connectDevice(device,connectCallback)
+    }
+
+    /**
+     * 根据mac获取BluetoothDevice
+     */
+    fun getRemoteDevice(mac: String):BluetoothDevice{
+        return adapter.getRemoteDevice(mac)
+    }
 
 
     interface BlueToothEnableListener{

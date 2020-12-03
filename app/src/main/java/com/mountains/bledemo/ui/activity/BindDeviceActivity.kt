@@ -16,12 +16,14 @@ import com.hjq.bar.OnTitleBarListener
 import com.mountains.bledemo.R
 import com.mountains.bledemo.adapter.BindDeviceAdapter
 import com.mountains.bledemo.base.BaseActivity
+import com.mountains.bledemo.base.Const
 import com.mountains.bledemo.ble.BleDevice
 import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.BleManager
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.presenter.BindDevicePresenter
 import com.mountains.bledemo.service.DeviceConnectService
+import com.mountains.bledemo.util.SharedUtil
 import com.mountains.bledemo.view.BindDeviceView
 import kotlinx.android.synthetic.main.activity_bind_device.*
 import java.lang.Exception
@@ -69,7 +71,6 @@ class BindDeviceActivity : BaseActivity<BindDevicePresenter>(),BindDeviceView{
 
     private fun initView(){
         val intent = Intent(getContext(), DeviceConnectService::class.java)
-        //intent.putExtra(DeviceConnectService.DEVICE,scanDeviceList[position])
         startService(intent)
         bindService(intent,serviceConnection, Context.BIND_AUTO_CREATE)
 
@@ -113,6 +114,7 @@ class BindDeviceActivity : BaseActivity<BindDevicePresenter>(),BindDeviceView{
     private fun connectDevice(device: BluetoothDevice){
         deviceConnectService?.connectDevice(device,object : ConnectCallback{
             override fun connectSuccess(bleDevice: BleDevice) {
+                SharedUtil.save(Const.BIND_DEVICE_MAC,bleDevice.getMac())
                 hideConnectingDialog()
                 finish()
             }
