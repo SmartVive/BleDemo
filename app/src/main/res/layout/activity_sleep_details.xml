@@ -32,7 +32,7 @@
                 android:background="@color/white"
                 app:layout_scrollFlags="scroll">
 
-                <com.mountains.bledemo.weiget.SleepHistogramView2
+                <com.mountains.bledemo.weiget.SleepHistogramView
                     android:id="@+id/sleepHistogramView"
                     android:layout_width="match_parent"
                     android:layout_height="192dp"

@@ -5,17 +5,8 @@
         <attr name="numberTextSize" format="dimension"/>
         <attr name="textSize" format="dimension"/>
     </declare-styleable>
-    
-   <!-- <declare-styleable name="HistogramView">
-        <attr name="axisColor" format="color"/>
-        <attr name="axisWidth" format="dimension"/>
-        <attr name="yAxisLabelCount" format="integer"/>
-        <attr name="xAxisLabelCount" format="integer"/>
-        <attr name="dividerLength" format="dimension"/>
-        
-    </declare-styleable>-->
 
-    <declare-styleable name="HistogramView2">
+    <declare-styleable name="HistogramView">
         <attr name="HistogramView_axisColor" format="color"/>
         <attr name="HistogramView_axisWidth" format="dimension"/>
         <attr name="HistogramView_guideColor" format="color"/>
@@ -42,15 +33,24 @@
 
         <attr name="HistogramView_xLabelBeginTime" format="integer"/>
         <attr name="HistogramView_xLabelEndTime" format="integer"/>
+        <attr name="HistogramView_dataUnit" format="string"/>
+        <attr name="HistogramView_popupColor" format="color"/>
+        <attr name="HistogramView_popupHeight" format="dimension"/>
+        <attr name="HistogramView_popupTextColor" format="color"/>
+        <attr name="HistogramView_popupTextMargin" format="dimension"/>
+        <attr name="HistogramView_popupRadius" format="dimension"/>
+        <attr name="HistogramView_popupTextSize" format="dimension"/>
     </declare-styleable>
 
-    <declare-styleable name="SleepHistogramView2">
+    <declare-styleable name="SleepHistogramView">
         <attr name="SleepHistogramView_chartMarginLeft" format="dimension"/>
         <attr name="SleepHistogramView_chartMarginTop" format="dimension"/>
         <attr name="SleepHistogramView_chartMarginRight" format="dimension"/>
         <attr name="chartMarginBottom" format="dimension"/>
         <attr name="SleepHistogramView_axisColor" format="color"/>
         <attr name="SleepHistogramView_axisWidth" format="dimension"/>
+        <attr name="SleepHistogramView_labelColor" format="color"/>
+        <attr name="SleepHistogramView_labelSize" format="dimension"/>
         <attr name="SleepHistogramView_deepTypeColor" format="color"/>
         <attr name="SleepHistogramView_lightTypeColor" format="color"/>
         <attr name="SleepHistogramView_soberTypeColor" format="color"/>
@@ -60,5 +60,13 @@
         <attr name="SleepHistogramView_popupHeight" format="dimension"/>
         <attr name="SleepHistogramView_popupTextColor" format="color"/>
         <attr name="SleepHistogramView_popupTextMargin" format="dimension"/>
+        <attr name="SleepHistogramView_axisTextSize" format="color"/>
+        <attr name="SleepHistogramView_sleepDataSubTextSize" format="dimension"/>
+        <attr name="SleepHistogramView_sleepDataMainTextSize" format="dimension"/>
+        <attr name="SleepHistogramView_popupSubTextSize" format="dimension"/>
+        <attr name="SleepHistogramView_popupMainTextSize" format="dimension"/>
+        <attr name="SleepHistogramView_indicatorTextSize" format="dimension"/>
+
+
     </declare-styleable>
 </resources>

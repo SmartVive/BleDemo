@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
 
-class BloodPressureHistogramView : HistogramView2 {
+class BloodPressureHistogramView : HistogramView {
     private var bloodPressureDatas : MutableList<IBloodPressureHistogramData> = mutableListOf()
     private var bloodPressureBarData : Array<FloatArray>? = null
 
