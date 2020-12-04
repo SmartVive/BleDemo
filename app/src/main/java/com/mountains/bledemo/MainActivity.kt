@@ -82,6 +82,9 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
             DataUpdateEvent.BLOOD_PRESSURE_UPDATE_TYPE -> {
                 presenter.getBloodPressureData()
             }
+            DataUpdateEvent.SLEEP_UPDATE_TYPE->{
+                presenter.getSleepData()
+            }
         }
     }
 

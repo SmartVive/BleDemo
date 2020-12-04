@@ -43,9 +43,9 @@
                 <com.mountains.bledemo.weiget.HistogramView2
                     android:id="@+id/histogramView"
                     app:layout_constraintTop_toBottomOf="@id/selectDateView"
-                    app:axisMarginLeft="32dp"
-                    app:axisMarginRight="32dp"
-                    app:axisMarginTop="8dp"
+                    app:HistogramView_axisMarginLeft="32dp"
+                    app:HistogramView_axisMarginRight="32dp"
+                    app:HistogramView_axisMarginTop="8dp"
                     android:layout_marginBottom="15dp"
                     android:layout_width="match_parent"
                     android:layout_height="232dp"/>

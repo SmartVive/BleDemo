@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.ColorInt
 import com.mountains.bledemo.R
 import com.mountains.bledemo.util.DisplayUtil
 
@@ -11,23 +12,26 @@ open class HistogramView2 : View {
     //x轴画笔
     private lateinit var xAxisPaint: Paint
     //x轴画笔颜色
-    var axisColor = Color.DKGRAY
+    @ColorInt
+    var axisColor:Int
     //x轴画笔宽度
-    var axisWidth = 2f
+    var axisWidth :Float
 
     //y轴辅助线
     private lateinit var guidePaint: Paint
     //y轴辅助线颜色
-    var guideColor = Color.LTGRAY
+    @ColorInt
+    var guideColor:Int
     //y轴辅助线宽度
-    var guideWidth = 2f
+    var guideWidth :Float
 
     //标签画笔
     private lateinit var labelPaint:Paint
     //标签颜色
-    var labelColor = Color.DKGRAY
+    @ColorInt
+    var labelColor :Int
     //标签字体大小
-    var labelSize:Float = 0f
+    var labelSize:Float
     //标签文体偏移
     private var labelTextOffset = 0f
 
@@ -35,42 +39,42 @@ open class HistogramView2 : View {
     //条形画笔
     lateinit var barPaint: Paint
     //条形颜色
-    var barColor = Color.RED
+    @ColorInt
+    var barColor:Int
     //条形左右边间距（以条形宽度的百分比为单位）
-    protected var barSpace = 0.2f
+    protected var barSpace :Float
 
     //y轴标签个数
-    var guideLabelCount = 5
+    var guideLabelCount :Int
     //x轴标签个数
-    var xLabelCount = 7
+    var xLabelCount :Int
     //条形数量，当多个数据在同一个时间段则会计算多个数据的平均值
-    protected var barCount = 48
+    protected var barCount :Int
     //辅助线的最大最小值
-    private var guideLabelMaximum = 100
-    private var guideLabelMinimum = 0
+    private var guideLabelMaximum :Int
+    private var guideLabelMinimum :Int
     //自动设置辅助线最大最小值
     private var isGuideAutoLabel = true
     //最大值与轴上最大值的顶部间距（以最大值的百分比为单位）,只有当isGuideAutoLabel==true才生效
-    private var guideLabelSpaceTop = 0.1f
+    private var guideLabelSpaceTop :Float
     //最小值与轴上最小值的底部间距（以最小值的百分比为单位）,只有当isGuideAutoLabel==true才生效
-    private var guideLabelSpaceBottom = 0.1f
+    private var guideLabelSpaceBottom :Float
 
 
     //分割线长度
     var xDividerHeight = 10f
 
     //x轴标签边距
-    var xLabelMarginLeft = 20f
-    var xLabelMarginRight = 20f
+    var xLabelMargin:Float
 
-    var axisMarginLeft = 80f
-    var axisMarginRight = 80f
-    var axisMarginTop = 80f
-    var axisMarginBottom = 80f
+    var axisMarginLeft :Float
+    var axisMarginRight :Float
+    var axisMarginTop :Float
+    var axisMarginBottom :Float
 
     //单位秒
-    var xLabelStartTime: Int = 0
-    var xLabelEndTime: Int = 86400
+    var xLabelStartTime: Int
+    var xLabelEndTime: Int
 
 
     //条形数据
@@ -111,29 +115,30 @@ open class HistogramView2 : View {
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
         val attributeSet = context.obtainStyledAttributes(attrs, R.styleable.HistogramView2)
-        axisColor = attributeSet.getColor(R.styleable.HistogramView2_axisColor,Color.DKGRAY)
-        axisWidth = attributeSet.getDimension(R.styleable.HistogramView2_axisWidth,2f)
-        guideColor = attributeSet.getColor(R.styleable.HistogramView2_guideColor,Color.LTGRAY)
-        guideWidth = attributeSet.getDimension(R.styleable.HistogramView2_guideColor,2f)
-        labelColor = attributeSet.getColor(R.styleable.HistogramView2_labelColor,Color.LTGRAY)
-        labelSize = attributeSet.getDimension(R.styleable.HistogramView2_labelSize,DisplayUtil.dp2px(context, 12f).toFloat())
-        barColor = attributeSet.getColor(R.styleable.HistogramView2_barColor,Color.RED)
-        barSpace = attributeSet.getFloat(R.styleable.HistogramView2_barSpace,0.2f)
-        guideLabelCount = attributeSet.getInt(R.styleable.HistogramView2_guideLabelCount,5)
-        xLabelCount = attributeSet.getInt(R.styleable.HistogramView2_xLabelCount,7)
-        barCount = attributeSet.getInt(R.styleable.HistogramView2_barCount,48)
-        guideLabelMaximum = attributeSet.getInt(R.styleable.HistogramView2_guideLabelMaximum,100)
-        guideLabelMinimum = attributeSet.getInt(R.styleable.HistogramView2_guideLabelMinimum,0)
-        isGuideAutoLabel = attributeSet.getBoolean(R.styleable.HistogramView2_isGuideAutoLabel,true)
-        guideLabelSpaceTop = attributeSet.getFloat(R.styleable.HistogramView2_guideLabelSpaceTop,0.1f)
-        guideLabelSpaceBottom = attributeSet.getFloat(R.styleable.HistogramView2_guideLabelSpaceBottom,0.1f)
+        axisColor = attributeSet.getColor(R.styleable.HistogramView2_HistogramView_axisColor,Color.DKGRAY)
+        axisWidth = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_axisWidth,2f)
+        guideColor = attributeSet.getColor(R.styleable.HistogramView2_HistogramView_guideColor,Color.LTGRAY)
+        guideWidth = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_guideColor,2f)
+        labelColor = attributeSet.getColor(R.styleable.HistogramView2_HistogramView_labelColor,Color.LTGRAY)
+        labelSize = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_labelSize,DisplayUtil.dp2px(context, 12f).toFloat())
+        barColor = attributeSet.getColor(R.styleable.HistogramView2_HistogramView_barColor,Color.RED)
+        barSpace = attributeSet.getFloat(R.styleable.HistogramView2_HistogramView_barSpace,0.2f)
+        guideLabelCount = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_guideLabelCount,5)
+        xLabelCount = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_xLabelCount,7)
+        barCount = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_barCount,48)
+        guideLabelMaximum = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_guideLabelMaximum,100)
+        guideLabelMinimum = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_guideLabelMinimum,0)
+        isGuideAutoLabel = attributeSet.getBoolean(R.styleable.HistogramView2_HistogramView_isGuideAutoLabel,true)
+        guideLabelSpaceTop = attributeSet.getFloat(R.styleable.HistogramView2_HistogramView_guideLabelSpaceTop,0.1f)
+        guideLabelSpaceBottom = attributeSet.getFloat(R.styleable.HistogramView2_HistogramView_guideLabelSpaceBottom,0.1f)
+        xLabelMargin = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_xLabelMargin,DisplayUtil.dp2px(context, 10f).toFloat())
 
-        axisMarginLeft = attributeSet.getDimension(R.styleable.HistogramView2_axisMarginLeft,DisplayUtil.dp2px(context,30f).toFloat())
-        axisMarginRight = attributeSet.getDimension(R.styleable.HistogramView2_axisMarginRight,DisplayUtil.dp2px(context,30f).toFloat())
-        axisMarginTop = attributeSet.getDimension(R.styleable.HistogramView2_axisMarginTop,DisplayUtil.dp2px(context,30f).toFloat())
-        axisMarginBottom = attributeSet.getDimension(R.styleable.HistogramView2_axisMarginBottom,DisplayUtil.dp2px(context,30f).toFloat())
-        xLabelStartTime = attributeSet.getInt(R.styleable.HistogramView2_xLabelStartTime,0)
-        xLabelEndTime = attributeSet.getInt(R.styleable.HistogramView2_xLabelEndTime,86400)
+        axisMarginLeft = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_axisMarginLeft,DisplayUtil.dp2px(context,30f).toFloat())
+        axisMarginRight = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_axisMarginRight,DisplayUtil.dp2px(context,30f).toFloat())
+        axisMarginTop = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_axisMarginTop,DisplayUtil.dp2px(context,30f).toFloat())
+        axisMarginBottom = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_axisMarginBottom,DisplayUtil.dp2px(context,30f).toFloat())
+        xLabelStartTime = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_xLabelStartTime,0)
+        xLabelEndTime = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_xLabelEndTime,86400)
         attributeSet.recycle()
         init()
     }
@@ -173,8 +178,8 @@ open class HistogramView2 : View {
         xAxisStopX = measuredWidth - axisMarginRight
         xAxisStopY = measuredHeight - axisMarginBottom
 
-        xLabelStartX = xAxisStartX + xLabelMarginLeft
-        xLabelStopX = xAxisStopX - xLabelMarginRight
+        xLabelStartX = xAxisStartX + xLabelMargin
+        xLabelStopX = xAxisStopX - xLabelMargin
 
         xAxisWidth = xAxisStopY - xAxisStartX
         xLabelWidth = xLabelStopX - xLabelStartX

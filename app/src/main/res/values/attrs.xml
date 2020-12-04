@@ -16,30 +16,49 @@
     </declare-styleable>-->
 
     <declare-styleable name="HistogramView2">
-        <attr name="axisColor" format="color"/>
-        <attr name="axisWidth" format="dimension"/>
-        <attr name="guideColor" format="color"/>
-        <attr name="guideWidth" format="dimension"/>
-        <attr name="labelColor" format="color"/>
-        <attr name="labelSize" format="dimension"/>
-        <attr name="barColor" format="color"/>
-        <attr name="barSpace" format="float"/>
-        <attr name="guideLabelCount" format="integer"/>
-        <attr name="xLabelCount" format="integer"/>
-        <attr name="barCount" format="integer"/>
-        <attr name="dividerLength" format="dimension"/>
-        <attr name="guideLabelMaximum" format="integer"/>
-        <attr name="guideLabelMinimum" format="integer"/>
-        <attr name="isGuideAutoLabel" format="boolean"/>
-        <attr name="guideLabelSpaceTop" format="float"/>
-        <attr name="guideLabelSpaceBottom" format="float"/>
+        <attr name="HistogramView_axisColor" format="color"/>
+        <attr name="HistogramView_axisWidth" format="dimension"/>
+        <attr name="HistogramView_guideColor" format="color"/>
+        <attr name="HistogramView_guideWidth" format="dimension"/>
+        <attr name="HistogramView_labelColor" format="color"/>
+        <attr name="HistogramView_labelSize" format="dimension"/>
+        <attr name="HistogramView_barColor" format="color"/>
+        <attr name="HistogramView_barSpace" format="float"/>
+        <attr name="HistogramView_guideLabelCount" format="integer"/>
+        <attr name="HistogramView_xLabelCount" format="integer"/>
+        <attr name="HistogramView_barCount" format="integer"/>
+        <attr name="HistogramView_dividerLength" format="dimension"/>
+        <attr name="HistogramView_guideLabelMaximum" format="integer"/>
+        <attr name="HistogramView_guideLabelMinimum" format="integer"/>
+        <attr name="HistogramView_isGuideAutoLabel" format="boolean"/>
+        <attr name="HistogramView_guideLabelSpaceTop" format="float"/>
+        <attr name="HistogramView_guideLabelSpaceBottom" format="float"/>
+        <attr name="HistogramView_xLabelMargin" format="dimension"/>
 
-        <attr name="axisMarginLeft" format="dimension"/>
-        <attr name="axisMarginRight" format="dimension"/>
-        <attr name="axisMarginTop" format="dimension"/>
-        <attr name="axisMarginBottom" format="dimension"/>
+        <attr name="HistogramView_axisMarginLeft" format="dimension"/>
+        <attr name="HistogramView_axisMarginRight" format="dimension"/>
+        <attr name="HistogramView_axisMarginTop" format="dimension"/>
+        <attr name="HistogramView_axisMarginBottom" format="dimension"/>
 
-        <attr name="xLabelStartTime" format="integer"/>
-        <attr name="xLabelEndTime" format="integer"/>
+        <attr name="HistogramView_xLabelStartTime" format="integer"/>
+        <attr name="HistogramView_xLabelEndTime" format="integer"/>
+    </declare-styleable>
+
+    <declare-styleable name="SleepHistogramView2">
+        <attr name="SleepHistogramView_chartMarginLeft" format="dimension"/>
+        <attr name="SleepHistogramView_chartMarginTop" format="dimension"/>
+        <attr name="SleepHistogramView_chartMarginRight" format="dimension"/>
+        <attr name="chartMarginBottom" format="dimension"/>
+        <attr name="SleepHistogramView_axisColor" format="color"/>
+        <attr name="SleepHistogramView_axisWidth" format="dimension"/>
+        <attr name="SleepHistogramView_deepTypeColor" format="color"/>
+        <attr name="SleepHistogramView_lightTypeColor" format="color"/>
+        <attr name="SleepHistogramView_soberTypeColor" format="color"/>
+        <attr name="SleepHistogramView_sleepDataSubTextColor" format="color"/>
+        <attr name="SleepHistogramView_sleepDataMainTextColor" format="color"/>
+        <attr name="SleepHistogramView_sleepDataTextHeight" format="color"/>
+        <attr name="SleepHistogramView_popupHeight" format="dimension"/>
+        <attr name="SleepHistogramView_popupTextColor" format="color"/>
+        <attr name="SleepHistogramView_popupTextMargin" format="dimension"/>
     </declare-styleable>
 </resources>

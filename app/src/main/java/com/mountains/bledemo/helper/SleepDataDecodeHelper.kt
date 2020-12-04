@@ -1,9 +1,11 @@
 package com.mountains.bledemo.helper
 
 import com.mountains.bledemo.bean.SleepBean
+import com.mountains.bledemo.event.DataUpdateEvent
 import com.mountains.bledemo.util.CalendarUtil
 import com.mountains.bledemo.util.HexUtil
 import com.orhanobut.logger.Logger
+import org.greenrobot.eventbus.EventBus
 import org.litepal.LitePal
 import org.litepal.extension.count
 import org.litepal.extension.find
@@ -80,6 +82,7 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
             addData();
             Logger.i("睡眠大数据:解析完成");
             saveSleepData()
+            EventBus.getDefault().post(DataUpdateEvent(DataUpdateEvent.SLEEP_UPDATE_TYPE))
         }
     }
 

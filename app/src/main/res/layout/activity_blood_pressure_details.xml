@@ -35,8 +35,8 @@
                     android:id="@+id/bloodPressureHistogramView"
                     android:layout_width="match_parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:guideLabelMaximum="200"
-                    app:guideLabelMinimum="0"
+                    app:HistogramView_guideLabelMaximum="200"
+                    app:HistogramView_guideLabelMinimum="0"
                     android:layout_height="232dp"/>
 
                 <TextView
