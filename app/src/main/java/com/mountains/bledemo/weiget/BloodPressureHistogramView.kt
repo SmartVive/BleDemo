@@ -45,7 +45,7 @@ class BloodPressureHistogramView : HistogramView2 {
         bloodPressureBarData = Array(barCount) {FloatArray(2)}
         bloodPressureBarData?.let {
             for (i in it.indices) {
-                val startTime = getBarStartTime(i)
+                val startTime = getBarBeginTime(i)
                 val endTime = getBarEndTime(i)
 
                 //多个数值用一个条形显示时，显示平均值

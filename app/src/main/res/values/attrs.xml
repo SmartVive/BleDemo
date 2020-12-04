@@ -40,7 +40,7 @@
         <attr name="HistogramView_axisMarginTop" format="dimension"/>
         <attr name="HistogramView_axisMarginBottom" format="dimension"/>
 
-        <attr name="HistogramView_xLabelStartTime" format="integer"/>
+        <attr name="HistogramView_xLabelBeginTime" format="integer"/>
         <attr name="HistogramView_xLabelEndTime" format="integer"/>
     </declare-styleable>
 

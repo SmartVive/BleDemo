@@ -3,10 +3,12 @@ package com.mountains.bledemo.weiget
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.ColorInt
 import com.mountains.bledemo.R
 import com.mountains.bledemo.util.DisplayUtil
+import com.orhanobut.logger.Logger
 
 open class HistogramView2 : View {
     //x轴画笔
@@ -73,8 +75,19 @@ open class HistogramView2 : View {
     var axisMarginBottom :Float
 
     //单位秒
-    var xLabelStartTime: Int
+    var xLabelBeginTime: Int
     var xLabelEndTime: Int
+
+    //popup画笔
+    private lateinit var popupPaint:Paint
+    //popup文字画笔
+    private lateinit var popupTextPaint:Paint
+    @ColorInt
+    var popupColor:Int = Color.parseColor("#f76955")
+    var popupHeight = 80f
+    @ColorInt
+    var popupTextColor : Int = Color.WHITE
+    var popupTextMargin: Float = 20f
 
 
     //条形数据
@@ -85,7 +98,8 @@ open class HistogramView2 : View {
 
 
 
-
+    //触摸位置
+    private var touchX = -1f
     //x轴坐标
     private var xAxisStartX = 0f
     private var xAxisStartY = 0f
@@ -110,6 +124,7 @@ open class HistogramView2 : View {
     //x轴两个条形距离
     private var xBarDistance = 0f
 
+    private val popupTextRect = Rect()
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -121,7 +136,7 @@ open class HistogramView2 : View {
         guideWidth = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_guideColor,2f)
         labelColor = attributeSet.getColor(R.styleable.HistogramView2_HistogramView_labelColor,Color.LTGRAY)
         labelSize = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_labelSize,DisplayUtil.dp2px(context, 12f).toFloat())
-        barColor = attributeSet.getColor(R.styleable.HistogramView2_HistogramView_barColor,Color.RED)
+        barColor = attributeSet.getColor(R.styleable.HistogramView2_HistogramView_barColor, Color.parseColor("#f76955"))
         barSpace = attributeSet.getFloat(R.styleable.HistogramView2_HistogramView_barSpace,0.2f)
         guideLabelCount = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_guideLabelCount,5)
         xLabelCount = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_xLabelCount,7)
@@ -137,7 +152,7 @@ open class HistogramView2 : View {
         axisMarginRight = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_axisMarginRight,DisplayUtil.dp2px(context,30f).toFloat())
         axisMarginTop = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_axisMarginTop,DisplayUtil.dp2px(context,30f).toFloat())
         axisMarginBottom = attributeSet.getDimension(R.styleable.HistogramView2_HistogramView_axisMarginBottom,DisplayUtil.dp2px(context,30f).toFloat())
-        xLabelStartTime = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_xLabelStartTime,0)
+        xLabelBeginTime = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_xLabelBeginTime,0)
         xLabelEndTime = attributeSet.getInt(R.styleable.HistogramView2_HistogramView_xLabelEndTime,86400)
         attributeSet.recycle()
         init()
@@ -169,6 +184,17 @@ open class HistogramView2 : View {
         barPaint.isAntiAlias = true
         barPaint.color = barColor
         barPaint.strokeWidth = 1f
+
+        popupPaint = Paint()
+        popupPaint.isAntiAlias = true
+        popupPaint.strokeWidth = 2f
+        popupPaint.color = popupColor
+        popupPaint.style = Paint.Style.FILL
+
+        popupTextPaint = Paint()
+        popupTextPaint.isAntiAlias = true
+        popupTextPaint.color = popupTextColor
+        popupTextPaint.textSize = DisplayUtil.dp2px(context, 14f).toFloat()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -187,6 +213,27 @@ open class HistogramView2 : View {
         yLabelHeight = measuredHeight - axisMarginBottom - axisMarginTop
 
         xBarDistance = xLabelWidth / (barCount)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        when(event.action){
+            MotionEvent.ACTION_DOWN,MotionEvent.ACTION_MOVE->{
+                parent.requestDisallowInterceptTouchEvent(true)
+                touchX = event.x
+                //边界处理
+                if (touchX <  xLabelStartX){
+                    touchX = xLabelStartX
+                }else if (touchX > xLabelStopX){
+                    touchX = xLabelStopX
+                }
+            }
+            MotionEvent.ACTION_UP->{
+                parent.requestDisallowInterceptTouchEvent(false)
+                touchX = -1f
+            }
+        }
+        invalidate()
+        return true
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -208,6 +255,46 @@ open class HistogramView2 : View {
 
         //画条线数据
         drawBar(canvas)
+
+        //画popup
+        if (touchX != -1f){
+            canvas.drawLine(touchX,xAxisStopY,touchX,100f,popupPaint)
+
+
+            val selectTime =  xLabelBeginTime + ((xLabelEndTime - xLabelBeginTime) / (xLabelStopX - xLabelStartX) * (touchX-xLabelStartX)).toLong()
+            val index = getIndexByTime(selectTime) ?: return
+            val value = barData!![index]
+            val beginTime = timeFormat(getBarBeginTime(index))
+            val endTime = timeFormat(getBarEndTime(index))
+            val text = "$value bpm $beginTime-$endTime"
+            //Logger.e(text)
+            popupTextPaint.getTextBounds(text,0,text.length,popupTextRect)
+            val textWidth = popupTextRect.width()
+            val textHeight = popupTextRect.bottom - popupTextRect.top
+
+
+            val popupWidth = textWidth + popupTextMargin*2
+            val popupLeft :Float
+            val popupRight :Float
+            val popupTop = axisMarginTop / 2f
+            val popupBottom = popupTop + popupHeight
+            if (touchX - popupWidth / 2f < 0) {
+                popupLeft = 0f
+                popupRight = popupLeft + popupWidth
+            }else if (touchX + popupWidth / 2f > measuredWidth){
+                popupRight = measuredWidth.toFloat()
+                popupLeft = popupRight - popupWidth
+            }else{
+                popupLeft  = touchX - popupWidth / 2f
+                popupRight = touchX + popupWidth / 2f
+            }
+
+            val textX = popupLeft + popupTextMargin
+            val textY = popupTop + (popupHeight) / 2f + textHeight/2f
+
+            canvas.drawRoundRect(popupLeft,popupTop,popupRight,popupBottom,8f,8f,popupPaint)
+            canvas.drawText(text,textX,textY,popupTextPaint)
+        }
     }
 
     /**
@@ -363,7 +450,7 @@ open class HistogramView2 : View {
      * 获取x轴标签时间
      */
     open fun getXAxisLabelTime(index:Int):Int{
-        return (xLabelEndTime - xLabelStartTime) / (xLabelCount - 1) * index
+        return (xLabelEndTime - xLabelBeginTime) / (xLabelCount - 1) * index
     }
 
 
@@ -423,15 +510,15 @@ open class HistogramView2 : View {
     /**
      * 获取条形的开始时间
      */
-    fun getBarStartTime(index: Int):Int{
-        return index * ((xLabelEndTime - xLabelStartTime) / barCount)
+    fun getBarBeginTime(index: Int):Int{
+        return index * ((xLabelEndTime - xLabelBeginTime) / barCount)
     }
 
     /**
      * 获取条形的结束时间
      */
     fun getBarEndTime(index: Int):Int{
-        return (index+1) * ((xLabelEndTime - xLabelStartTime) / barCount)
+        return (index+1) * ((xLabelEndTime - xLabelBeginTime) / barCount)
     }
 
     /**
@@ -449,6 +536,19 @@ open class HistogramView2 : View {
         return "$hourStr:$minStr"
     }
 
+    /**
+     * 根据时间戳获取数据
+     */
+    private fun getIndexByTime(time:Long):Int?{
+        barData?.forEachIndexed { index, value ->
+            val beginTime = getBarBeginTime(index)
+            val endTime = getBarEndTime(index)
+            if(time in beginTime..endTime){
+                return index
+            }
+        }
+        return null
+    }
 
     /**
      * 初始化条形数据
@@ -457,14 +557,14 @@ open class HistogramView2 : View {
         barData = FloatArray(barCount)
         barData?.let {
             for (i in it.indices) {
-                val startTime = getBarStartTime(i)
+                val beginTime = getBarBeginTime(i)
                 val endTime = getBarEndTime(i)
 
                 //多个数值用一个条形显示时，显示平均值
                 var sumValue = 0f
                 var count = 0
                 for (data in datas) {
-                    if (data.getHistogramTime() in startTime until endTime) {
+                    if (data.getHistogramTime() in beginTime until endTime) {
                         sumValue += data.getHistogramValue()
                         count++
                     }

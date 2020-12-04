@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
+import androidx.core.util.rangeTo
 import com.mountains.bledemo.R
 import com.mountains.bledemo.util.DisplayUtil
 import java.text.SimpleDateFormat
@@ -212,15 +213,12 @@ class SleepHistogramView2 : View {
                 }else if (touchX > xAxisRight){
                     touchX = xAxisRight
                 }
-                invalidate()
-                return true
             }
             MotionEvent.ACTION_UP->{
                 touchX = -1f
-                invalidate()
-                return true
             }
         }
+        invalidate()
         return true
     }
 
@@ -484,9 +482,9 @@ class SleepHistogramView2 : View {
     /**
      * 根据时间戳获取睡眠数据
      */
-    fun getSleepDataByTime(time: Long):ISleepHistogramData?{
-        for(data in sleepData) {
-            if (data.getSleepBeginTime() <= time && data.getSleepEndTime() >= time) {
+    fun getSleepDataByTime(time: Long): ISleepHistogramData? {
+        for (data in sleepData) {
+            if (time in data.getSleepBeginTime()..data.getSleepEndTime()) {
                 return data
             }
         }
