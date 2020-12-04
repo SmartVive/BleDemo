@@ -2,6 +2,7 @@ package com.mountains.bledemo.weiget
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Path
 import android.util.AttributeSet
 
 class BloodPressureHistogramView : HistogramView {
@@ -26,7 +27,12 @@ class BloodPressureHistogramView : HistogramView {
 
                 left += (right - left) * barSpace
                 right -= (right - left) * barSpace
-                canvas.drawRect(left, top, right, bottom, barPaint)
+                //canvas.drawRect(left, top, right, bottom, barPaint)
+                val path =  Path()
+                val radius = floatArrayOf(barTopLeftRadius,barTopLeftRadius,barTopRightRadius,
+                    barTopRightRadius,barBottomLeftRadius,barBottomLeftRadius,barBottomRightRadius,barBottomRightRadius)
+                path.addRoundRect(left, top, right, bottom,radius, Path.Direction.CW)
+                canvas.drawPath(path,barPaint)
             }
         }
     }

@@ -36,6 +36,10 @@
                     android:layout_width="match_parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:HistogramView_guideLabelMaximum="200"
+                    app:HistogramView_barTopLeftRadius="8dp"
+                    app:HistogramView_barTopRightRadius="8dp"
+                    app:HistogramView_barBottomLeftRadius="8dp"
+                    app:HistogramView_barBottomRightRadius="8dp"
                     app:HistogramView_guideLabelMinimum="0"
                     android:layout_height="232dp"/>
 

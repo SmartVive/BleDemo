@@ -47,6 +47,8 @@
                     app:HistogramView_axisMarginRight="32dp"
                     app:HistogramView_axisMarginTop="8dp"
                     app:HistogramView_dataUnit="步"
+                    app:HistogramView_barTopLeftRadius="8dp"
+                    app:HistogramView_barTopRightRadius="8dp"
                     android:layout_marginBottom="15dp"
                     android:layout_width="match_parent"
                     android:layout_height="232dp"/>

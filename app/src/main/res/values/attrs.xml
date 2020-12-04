@@ -40,6 +40,10 @@
         <attr name="HistogramView_popupTextMargin" format="dimension"/>
         <attr name="HistogramView_popupRadius" format="dimension"/>
         <attr name="HistogramView_popupTextSize" format="dimension"/>
+        <attr name="HistogramView_barTopLeftRadius" format="dimension"/>
+        <attr name="HistogramView_barTopRightRadius" format="dimension"/>
+        <attr name="HistogramView_barBottomLeftRadius" format="dimension"/>
+        <attr name="HistogramView_barBottomRightRadius" format="dimension"/>
     </declare-styleable>
 
     <declare-styleable name="SleepHistogramView">
@@ -66,7 +70,6 @@
         <attr name="SleepHistogramView_popupSubTextSize" format="dimension"/>
         <attr name="SleepHistogramView_popupMainTextSize" format="dimension"/>
         <attr name="SleepHistogramView_indicatorTextSize" format="dimension"/>
-
 
     </declare-styleable>
 </resources>

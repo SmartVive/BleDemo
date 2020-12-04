@@ -53,6 +53,12 @@ open class HistogramView : View {
     //条形左右边间距（以条形宽度的百分比为单位）
     protected var barSpace: Float
 
+    //bar圆角
+    var barTopLeftRadius: Float
+    var barTopRightRadius: Float
+    var barBottomLeftRadius: Float
+    var barBottomRightRadius: Float
+
     //y轴标签个数
     var guideLabelCount: Int
 
@@ -186,6 +192,10 @@ open class HistogramView : View {
         popupTextMargin = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_popupTextMargin, dp2px(10f))
         popupRadius = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_popupRadius, dp2px(8f))
         popupTextSize = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_popupTextSize,dp2px(14f))
+        barTopLeftRadius = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_barTopLeftRadius,0f)
+        barTopRightRadius = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_barTopRightRadius,0f)
+        barBottomLeftRadius = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_barBottomLeftRadius,0f)
+        barBottomRightRadius = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_barBottomRightRadius,0f)
         attributeSet.recycle()
         init()
     }
@@ -364,7 +374,12 @@ open class HistogramView : View {
 
                 left += (right - left) * barSpace
                 right -= (right - left) * barSpace
-                canvas.drawRect(left, top, right, bottom, barPaint)
+                //canvas.drawRect(left, top, right, bottom, barPaint)
+                val path =  Path()
+                val radius = floatArrayOf(barTopLeftRadius,barTopLeftRadius,barTopRightRadius,
+                    barTopRightRadius,barBottomLeftRadius,barBottomLeftRadius,barBottomRightRadius,barBottomRightRadius)
+                path.addRoundRect(left, top, right, bottom,radius, Path.Direction.CW)
+                canvas.drawPath(path,barPaint)
             }
         }
     }

@@ -33,6 +33,8 @@
 
                 <com.mountains.bledemo.weiget.HistogramView
                     android:id="@+id/histogramView"
+                    app:HistogramView_barTopLeftRadius="8dp"
+                    app:HistogramView_barTopRightRadius="8dp"
                     android:layout_width="match_parent"
                     android:layout_height="232dp"
                     app:HistogramView_dataUnit="%"

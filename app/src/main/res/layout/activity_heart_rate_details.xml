@@ -35,6 +35,8 @@
                     android:id="@+id/histogramView"
                     android:layout_width="match_parent"
                     android:layout_height="232dp"
+                    app:HistogramView_barTopLeftRadius="8dp"
+                    app:HistogramView_barTopRightRadius="8dp"
                     app:HistogramView_dataUnit="bmp"
                     app:layout_constraintTop_toTopOf="parent" />
 
