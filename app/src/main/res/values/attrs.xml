@@ -6,6 +6,13 @@
         <attr name="textSize" format="dimension"/>
     </declare-styleable>
 
+    <declare-styleable name="SimpleHistogramView">
+
+        <attr name="SimpleHistogramView_isGuideAutoLabel" format="boolean"/>
+        <attr name="SimpleHistogramView_guideLabelSpaceTop" format="float"/>
+        <attr name="SimpleHistogramView_guideLabelSpaceBottom" format="float"/>
+    </declare-styleable>
+
     <declare-styleable name="HistogramView">
         <attr name="HistogramView_axisColor" format="color"/>
         <attr name="HistogramView_axisWidth" format="dimension"/>

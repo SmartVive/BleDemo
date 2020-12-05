@@ -31,9 +31,10 @@
                 android:background="@color/white"
                 app:layout_scrollFlags="scroll">
 
-                <com.mountains.bledemo.weiget.BloodPressureHistogramView
+                <com.mountains.bledemo.weiget.BloodPressureHistogramView2
                     android:id="@+id/bloodPressureHistogramView"
                     android:layout_width="match_parent"
+                    app:HistogramView_dataUnit="mmHg"
                     app:layout_constraintTop_toTopOf="parent"
                     app:HistogramView_guideLabelMaximum="200"
                     app:HistogramView_barTopLeftRadius="8dp"

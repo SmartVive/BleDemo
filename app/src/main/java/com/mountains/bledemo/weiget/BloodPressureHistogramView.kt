@@ -43,7 +43,6 @@ class BloodPressureHistogramView : HistogramView {
 
         //initYAxisLabel()
         initBloodPressureBarData()
-        //initAxisMargin()
         postInvalidate()
     }
 

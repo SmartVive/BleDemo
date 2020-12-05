@@ -8,9 +8,9 @@ import android.view.View
 import androidx.annotation.ColorInt
 import com.mountains.bledemo.R
 
-open class HistogramView : View {
+abstract class BaseHistogramView : View {
     //x轴画笔
-    private lateinit var xAxisPaint: Paint
+    protected lateinit var xAxisPaint: Paint
 
     //x轴画笔颜色
     @ColorInt
@@ -20,7 +20,7 @@ open class HistogramView : View {
     var axisWidth: Float
 
     //y轴辅助线
-    private lateinit var guidePaint: Paint
+    protected lateinit var guidePaint: Paint
 
     //y轴辅助线颜色
     @ColorInt
@@ -30,7 +30,7 @@ open class HistogramView : View {
     var guideWidth: Float
 
     //标签画笔
-    private lateinit var labelPaint: Paint
+    protected lateinit var labelPaint: Paint
 
     //标签颜色
     @ColorInt
@@ -44,7 +44,7 @@ open class HistogramView : View {
 
 
     //条形画笔
-    lateinit var barPaint: Paint
+    protected lateinit var barPaint: Paint
 
     //条形颜色
     @ColorInt
@@ -69,17 +69,8 @@ open class HistogramView : View {
     protected var barCount: Int
 
     //辅助线的最大最小值
-    private var guideLabelMaximum: Int
-    private var guideLabelMinimum: Int
-
-    //自动设置辅助线最大最小值
-    private var isGuideAutoLabel = true
-
-    //最大值与轴上最大值的顶部间距（以最大值的百分比为单位）,只有当isGuideAutoLabel==true才生效
-    private var guideLabelSpaceTop: Float
-
-    //最小值与轴上最小值的底部间距（以最小值的百分比为单位）,只有当isGuideAutoLabel==true才生效
-    private var guideLabelSpaceBottom: Float
+    var guideLabelMaximum: Int
+    var guideLabelMinimum: Int
 
 
     //分割线长度
@@ -98,10 +89,10 @@ open class HistogramView : View {
     var xLabelEndTime: Int
 
     //popup画笔
-    private lateinit var popupPaint: Paint
+    protected lateinit var popupPaint: Paint
 
     //popup文字画笔
-    private lateinit var popupTextPaint: Paint
+    protected lateinit var popupTextPaint: Paint
     var popupTextSize:Float
 
     @ColorInt
@@ -119,35 +110,31 @@ open class HistogramView : View {
     var dataUnit: String
 
 
-    //条形数据
-    protected var barData: FloatArray? = null
-
-
     //触摸位置
-    private var touchX = -1f
+    protected var touchX = -1f
 
     //x轴坐标
-    private var xAxisStartX = 0f
-    private var xAxisStartY = 0f
-    private var xAxisStopX = 0f
-    private var xAxisStopY = 0f
+    protected var xAxisStartX = 0f
+    protected var xAxisStartY = 0f
+    protected var xAxisStopX = 0f
+    protected var xAxisStopY = 0f
 
     //x轴坐标
-    private var xLabelStartX = 0f
-    private var xLabelStopX = 0f
+    protected var xLabelStartX = 0f
+    protected var xLabelStopX = 0f
 
     //x轴总长度
-    private var xAxisWidth = 0f
+    protected var xAxisWidth = 0f
 
     //y标签总高度
-    private var yLabelHeight = 0f
+    protected var yLabelHeight = 0f
 
     //x轴标签总长度
-    private var xLabelWidth = 0f
+    protected var xLabelWidth = 0f
 
     //popup位置
-    private var popupTop = 0f
-    private var popupBottom = 0f
+    protected var popupTop = 0f
+    protected var popupBottom = 0f
 
 
     //x轴分割线两点距离
@@ -156,7 +143,7 @@ open class HistogramView : View {
     //x轴两个条形距离
     private var xBarDistance = 0f
 
-    private val popupTextRect = Rect()
+    protected val popupTextRect = Rect()
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -175,9 +162,7 @@ open class HistogramView : View {
         barCount = attributeSet.getInt(R.styleable.HistogramView_HistogramView_barCount, 48)
         guideLabelMaximum = attributeSet.getInt(R.styleable.HistogramView_HistogramView_guideLabelMaximum, 100)
         guideLabelMinimum = attributeSet.getInt(R.styleable.HistogramView_HistogramView_guideLabelMinimum, 0)
-        isGuideAutoLabel = attributeSet.getBoolean(R.styleable.HistogramView_HistogramView_isGuideAutoLabel, true)
-        guideLabelSpaceTop = attributeSet.getFloat(R.styleable.HistogramView_HistogramView_guideLabelSpaceTop, 0.1f)
-        guideLabelSpaceBottom = attributeSet.getFloat(R.styleable.HistogramView_HistogramView_guideLabelSpaceBottom, 0.1f)
+
         xLabelMargin = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_xLabelMargin, dp2px(10f))
         axisMarginLeft = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_axisMarginLeft, dp2px(30f))
         axisMarginRight = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_axisMarginRight, dp2px(30f))
@@ -360,53 +345,19 @@ open class HistogramView : View {
         }
     }
 
-    /**
-     * 画条形数据
-     */
-    open fun drawBar(canvas: Canvas) {
-        for (i in 0 until barCount) {
-            barData?.let {
-                val avg = it[i]
-                val top = getBarTop(avg)
-                var left = getBarLeft(i)
-                var right = getBarRight(i)
-                val bottom = getBarBottom()
-
-                left += (right - left) * barSpace
-                right -= (right - left) * barSpace
-                //canvas.drawRect(left, top, right, bottom, barPaint)
-                val path =  Path()
-                val radius = floatArrayOf(barTopLeftRadius,barTopLeftRadius,barTopRightRadius,
-                    barTopRightRadius,barBottomLeftRadius,barBottomLeftRadius,barBottomRightRadius,barBottomRightRadius)
-                path.addRoundRect(left, top, right, bottom,radius, Path.Direction.CW)
-                canvas.drawPath(path,barPaint)
-            }
-        }
-    }
 
     /**
      * 画popup
      */
-    open fun drawPopup(canvas: Canvas) {
+    fun drawPopup(canvas: Canvas) {
         //当未触摸时不显示
         if (touchX == -1f) {
             return
         }
 
         //当前选择的时间
-        val selectTime =
-            xLabelBeginTime + ((xLabelEndTime - xLabelBeginTime) / (xLabelStopX - xLabelStartX) * (touchX - xLabelStartX)).toLong()
-        val index = getIndexByTime(selectTime) ?: return
-
-        val value = barData!![index]
-        val beginTime = timeFormat(getBarBeginTime(index))
-        val endTime = timeFormat(getBarEndTime(index))
-
-        val text: String = if (value.isNaN()) {
-            "暂无记录 $beginTime-$endTime"
-        } else {
-            "${value.toInt()}$dataUnit $beginTime-$endTime"
-        }
+        val selectTime = xLabelBeginTime + ((xLabelEndTime - xLabelBeginTime) / (xLabelStopX - xLabelStartX) * (touchX - xLabelStartX)).toLong()
+        val text: String = getPopupText(selectTime)
         popupTextPaint.getTextBounds(text, 0, text.length, popupTextRect)
         val textWidth = popupTextRect.width()
         val textHeight = popupTextRect.height()
@@ -434,7 +385,6 @@ open class HistogramView : View {
         //数据文字
         canvas.drawText(text, textX, textY, popupTextPaint)
     }
-
 
     /**
      * 获取辅助线startX
@@ -543,7 +493,7 @@ open class HistogramView : View {
     /**
      * 获取条形top
      */
-    open fun getBarTop(value: Float): Float {
+    open fun getBarY(value: Float): Float {
         val differ = guideLabelMaximum - guideLabelMinimum
         return xAxisStopY - ((value - guideLabelMinimum) / differ) * yLabelHeight
     }
@@ -562,12 +512,6 @@ open class HistogramView : View {
         return xLabelStartX + (index + 1) * xBarDistance
     }
 
-    /**
-     * 获取条形Bottom
-     */
-    open fun getBarBottom(): Float {
-        return xAxisStopY
-    }
 
 
     /**
@@ -584,10 +528,12 @@ open class HistogramView : View {
         return (index + 1) * ((xLabelEndTime - xLabelBeginTime) / barCount)
     }
 
+    abstract fun getPopupText(selectTime: Long):String
+
     /**
      * 时间转换
      */
-    private fun timeFormat(second: Int): String {
+    protected fun timeFormat(second: Int): String {
         var hourStr = (second / 60 / 60).toString()
         var minStr = (second / 60 % 60).toString()
         if (hourStr.length == 1) {
@@ -599,70 +545,16 @@ open class HistogramView : View {
         return "$hourStr:$minStr"
     }
 
-    /**
-     * 根据时间戳获取数据
-     */
-    private fun getIndexByTime(time: Long): Int? {
-        barData?.forEachIndexed { index, value ->
-            val beginTime = getBarBeginTime(index)
-            val endTime = getBarEndTime(index)
-            if (time in beginTime..endTime) {
-                return index
-            }
-        }
-        return null
-    }
+
 
     private fun dp2px(dpValue: Float): Float {
         val density = resources.displayMetrics.density
         return (dpValue * density + 0.5f)
     }
 
-    /**
-     * 初始化条形数据
-     */
-    private fun initBarData() {
-        barData = FloatArray(barCount)
-        barData?.let {
-            for (i in it.indices) {
-                val beginTime = getBarBeginTime(i)
-                val endTime = getBarEndTime(i)
+    abstract fun drawBar(canvas: Canvas)
 
-                //多个数值用一个条形显示时，显示平均值
-                var sumValue = 0f
-                var count = 0
-                for (data in datas) {
-                    if (data.getHistogramTime() in beginTime until endTime) {
-                        sumValue += data.getHistogramValue()
-                        count++
-                    }
-                }
-                it[i] = (sumValue / count)
-            }
-        }
-    }
-
-    /**
-     * 初始化辅助线标签
-     */
-    fun initGuideLabel() {
-        if (isGuideAutoLabel && datas.isNotEmpty()) {
-            //遍历y轴数据，计算y轴最大值最小值
-            val max = datas.maxBy { it.getHistogramValue() }!!.getHistogramValue()
-            val min = datas.minBy { it.getHistogramValue() }!!.getHistogramValue()
-            guideLabelMaximum = (max + (max * guideLabelSpaceTop)).toInt()
-            guideLabelMinimum = (min - (min * guideLabelSpaceBottom)).toInt()
-        }
-    }
+    //abstract fun drawPopup(canvas: Canvas)
 
 
-    var datas: MutableList<IHistogramData> = mutableListOf()
-    fun loadData(data: List<IHistogramData>) {
-        datas.clear()
-        datas.addAll(data)
-
-        initGuideLabel()
-        initBarData()
-        postInvalidate()
-    }
 }
