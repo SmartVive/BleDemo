@@ -1,5 +1,6 @@
 package com.mountains.bledemo.weiget
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -33,7 +34,7 @@ class StepsView : View {
     var numberOffset: Float = 0f
     var textOffset: Float = 0f
 
-    //we文字大小
+    //文字大小
     var numberTextSize = 0f
     var textSize = 0f
 
@@ -82,8 +83,14 @@ class StepsView : View {
     }
 
     fun setCurrentSteps(current: Int) {
-        currentSteps = current
-        postInvalidate()
+        //currentSteps = current
+        val valueAnimator = ValueAnimator.ofInt(currentSteps, current)
+        valueAnimator.duration = 300
+        valueAnimator.addUpdateListener {
+            currentSteps = it.animatedValue as Int
+            postInvalidate()
+        }
+        valueAnimator.start()
     }
 
     fun getCurrentSteps(): Int {

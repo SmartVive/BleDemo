@@ -1,5 +1,6 @@
 package com.mountains.bledemo.weiget
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Path
@@ -56,32 +57,47 @@ class SimpleHistogramView : BaseHistogramView<IHistogramData> {
         return text
     }
 
-    override fun getBarMaxValue(): Float? {
+   /* override fun getBarMaxValue(): Float? {
        return  barData?.filter { !it.isNaN() }?.max()
     }
 
     override fun getBarMinValue(): Float? {
         return barData?.filter { !it.isNaN() }?.min()
+    }*/
+
+    override fun getBarMaxValue(): Float? {
+        return 100f
+    }
+
+    override fun getBarMinValue(): Float? {
+        return 50f
     }
 
     /**
      * 初始化条形数据
      */
     override fun initBarData() {
-        barData = FloatArray(barCount) {index->
-            val beginTime = getBarBeginTime(index)
-            val endTime = getBarEndTime(index)
 
-            //多个数值用一个条形显示时，显示平均值
-            //所在时间段的所有数据
-            val filterList = dataList.filter { it.getHistogramTime() in beginTime until endTime }
-            if (filterList.isEmpty()){
-                Float.NaN
-            }else{
-                (filterList.sumBy { it.getHistogramValue() } / filterList.size).toFloat()
+
+        val valueAnimator = ValueAnimator.ofFloat(0f, 1f)
+        valueAnimator.duration = 500
+        valueAnimator.addUpdateListener {
+            barData = FloatArray(barCount) {index->
+                val beginTime = getBarBeginTime(index)
+                val endTime = getBarEndTime(index)
+
+                //多个数值用一个条形显示时，显示平均值
+                //所在时间段的所有数据
+                val filterList = dataList.filter { it.getHistogramTime() in beginTime until endTime }
+                if (filterList.isEmpty()){
+                    Float.NaN
+                }else{
+                    (filterList.sumBy { it.getHistogramValue() } / filterList.size) * it.animatedValue as Float
+                }
             }
-
+            postInvalidate()
         }
+        valueAnimator.start()
     }
 
 

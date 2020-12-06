@@ -5,7 +5,6 @@ import com.chad.library.adapter.base.viewholder.BaseViewHolder
 import com.mountains.bledemo.R
 import com.mountains.bledemo.bean.SportBean
 import com.mountains.bledemo.util.CalendarUtil
-import kotlinx.android.synthetic.main.item_step.view.*
 
 class StepAdapter(layoutResId:Int,data:MutableList<SportBean.StepBean>) : BaseQuickAdapter<SportBean.StepBean,BaseViewHolder>(layoutResId, data) {
 

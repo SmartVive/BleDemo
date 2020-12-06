@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.include_date.*
 
 class StepDetailsActivity : BaseActivity<StepDetailsPresenter>(),StepDetailsView {
     val stepList = mutableListOf<SportBean.StepBean>()
-    val stepAdapter by lazy { StepAdapter(R.layout.item_step,stepList) }
+    val stepAdapter by lazy { StepAdapter(R.layout.item_heart_rate,stepList) }
     var currentSelectTime = System.currentTimeMillis()
 
     override fun createPresenter(): StepDetailsPresenter {

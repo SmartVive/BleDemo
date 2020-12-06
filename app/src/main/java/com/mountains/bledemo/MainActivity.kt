@@ -145,6 +145,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
 
         swipeRefreshLayout.setOnRefreshListener {
             initData()
+            swipeRefreshLayout.isRefreshing = false
         }
 
         layoutStep.setOnClickListener {
