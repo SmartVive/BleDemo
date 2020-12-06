@@ -5,8 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Path
 import android.util.AttributeSet
 
-class BloodPressureHistogramView2 : BaseHistogramView {
-    private var dataList : MutableList<BloodPressureHistogramView.IBloodPressureHistogramData> = mutableListOf()
+class BloodPressureHistogramView2 : BaseHistogramView<BloodPressureHistogramView.IBloodPressureHistogramData> {
     private var barData : Array<FloatArray>? = null
 
     constructor(context: Context) : this(context,null)
@@ -14,55 +13,9 @@ class BloodPressureHistogramView2 : BaseHistogramView {
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
 
-    /*override fun drawPopup(canvas: Canvas) {
-        //当未触摸时不显示
-        if (touchX == -1f) {
-            return
-        }
-
-        //当前选择的时间
-        val selectTime =
-            xLabelBeginTime + ((xLabelEndTime - xLabelBeginTime) / (xLabelStopX - xLabelStartX) * (touchX - xLabelStartX)).toLong()
-        val index = getIndexByTime(selectTime) ?: return
-
-        val avgBloodDiastolic = barData!![index][0]
-        val avgBloodSystolic = barData!![index][1]
-        val beginTime = timeFormat(getBarBeginTime(index))
-        val endTime = timeFormat(getBarEndTime(index))
-
-        val text: String = if (avgBloodDiastolic.isNaN() || avgBloodSystolic.isNaN()) {
-            "暂无记录 $beginTime-$endTime"
-        } else {
-            "${avgBloodDiastolic.toInt()}/${avgBloodSystolic.toInt()} $dataUnit $beginTime-$endTime"
-        }
-        popupTextPaint.getTextBounds(text, 0, text.length, popupTextRect)
-        val textWidth = popupTextRect.width()
-        val textHeight = popupTextRect.height()
-
-        //文字位置
-        val textY = popupTop + (popupHeight) / 2f + textHeight / 2f
-        val textX: Float
-        //边界处理
-        if (touchX - textWidth / 2f - popupTextMargin < 0) {
-            textX = popupTextMargin
-        } else if (touchX + textWidth / 2f + popupTextMargin > measuredWidth) {
-            textX = measuredWidth - textWidth - popupTextMargin
-        } else {
-            textX = touchX - textWidth / 2f
-        }
-
-        //popup位置
-        val popupLeft = textX - popupTextMargin
-        val popupRight = textX + textWidth + popupTextMargin
-
-        //画触摸提示线
-        canvas.drawLine(touchX, xAxisStopY, touchX, popupBottom, popupPaint)
-        //popup
-        canvas.drawRoundRect(popupLeft, popupTop, popupRight, popupBottom, popupRadius, popupRadius, popupPaint)
-        //数据文字
-        canvas.drawText(text, textX, textY, popupTextPaint)
-    }*/
-
+    /**
+     * popup文字
+     */
     override fun getPopupText(selectTime: Long): String {
         val index = getIndexByTime(selectTime) ?: return "暂无记录"
 
@@ -78,6 +31,7 @@ class BloodPressureHistogramView2 : BaseHistogramView {
         }
         return text
     }
+
 
     override fun drawBar(canvas: Canvas) {
         for (i in 0 until barCount) {
@@ -100,54 +54,35 @@ class BloodPressureHistogramView2 : BaseHistogramView {
         }
     }
 
+    override fun getBarMaxValue(): Float? {
+        return barData?.maxBy { it[1] }?.get(1)
+    }
+
+    override fun getBarMinValue(): Float? {
+        return barData?.minBy { it[0] }?.get(0)
+    }
+
 
     /**
      * 初始化条形数据
      */
-    private fun initBarData() {
-        barData = Array(barCount) {FloatArray(2)}
-        barData?.let {
-            for (i in it.indices) {
-                val startTime = getBarBeginTime(i)
-                val endTime = getBarEndTime(i)
-
-                //多个数值用一个条形显示时，显示平均值
-                var sumBloodDiastolic = 0f
-                var sumBloodSystolic = 0f
-                var count = 0
-                for (data in dataList) {
-                    if (data.getHistogramTime() in startTime until endTime) {
-                        sumBloodDiastolic += data.getHistogramBloodDiastolic()
-                        sumBloodSystolic += data.getHistogramBloodSystolic()
-                        count++
-                    }
-                }
-                it[i] = floatArrayOf(sumBloodDiastolic/count,sumBloodSystolic/count)
-            }
-        }
-    }
-
-    /**
-     * 根据时间戳获取数据
-     */
-    private fun getIndexByTime(time: Long): Int? {
-        barData?.forEachIndexed { index, value ->
-            val beginTime = getBarBeginTime(index)
+    override fun initBarData() {
+        barData = Array(barCount) {index->
+            val startTime = getBarBeginTime(index)
             val endTime = getBarEndTime(index)
-            if (time in beginTime..endTime) {
-                return index
+
+            //多个数值用一个条形显示时，显示平均值
+            //所在时间段的所有数据
+            val filterList = dataList.filter { it.getHistogramTime() in startTime until endTime }
+            if (filterList.isEmpty()){
+                floatArrayOf(Float.NaN,Float.NaN)
+            }else{
+                val avgBloodDiastolic = (filterList.sumBy { it.getHistogramBloodDiastolic() } / filterList.size).toFloat()
+                val avgBloodSystolic = (filterList.sumBy { it.getHistogramBloodSystolic() } / filterList.size).toFloat()
+                floatArrayOf(avgBloodDiastolic,avgBloodSystolic)
             }
+
         }
-        return null
-    }
-
-
-    fun loadBloodPressureData(data:List<BloodPressureHistogramView.IBloodPressureHistogramData>){
-        dataList.clear()
-        dataList.addAll(data)
-
-        initBarData()
-        postInvalidate()
     }
 
 }

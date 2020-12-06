@@ -122,7 +122,12 @@ class DeviceConnectService : Service() {
      */
     fun connectDevice(device: BluetoothDevice,connectCallback: ConnectCallback? = null){
         Logger.d("正在连接设备${device.name}")
-        EventBus.getDefault().post(DeviceStateEvent(device.name,DeviceStateEvent.CONNECTING_TYPE))
+        val name = if (device.name != null){
+            device.name
+        }else{
+            device.address
+        }
+        EventBus.getDefault().post(DeviceStateEvent(name,DeviceStateEvent.CONNECTING_TYPE))
 
         for (connectDevice in connectedDeviceList) {
             if (connectDevice.isConnected() && connectDevice.getMac() == device.address) {

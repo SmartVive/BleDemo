@@ -8,8 +8,8 @@ import org.litepal.extension.find
 
 class BloodOxygenDetailsPresenter : BasePresenter<BloodOxygenDetailsView>() {
 
-    fun getBloodOxygenData(startTime:Long,endTime:Long){
-        val bloodOxygenData = LitePal.where("datetime between ? and ?", "$startTime", "$endTime").order("datetime desc")
+    fun getBloodOxygenData(beginTime:Long, endTime:Long){
+        val bloodOxygenData = LitePal.where("datetime between ? and ?", "$beginTime", "$endTime").order("datetime desc")
             .find<BloodOxygenBean>()
 
 
@@ -26,6 +26,6 @@ class BloodOxygenDetailsPresenter : BasePresenter<BloodOxygenDetailsView>() {
         val minBloodOxygenString = "$minBloodOxygen %"
         val avgBloodOxygenString = "$avgBloodOxygen %"
 
-        view?.onBloodOxygenData(bloodOxygenData,avgBloodOxygenString,maxBloodOxygenString,minBloodOxygenString)
+        view?.onBloodOxygenData(bloodOxygenData,avgBloodOxygenString,minBloodOxygenString,maxBloodOxygenString)
     }
 }

@@ -135,7 +135,7 @@ class BleDevice(val device: BluetoothDevice) {
      * 获取name
      */
     fun getName():String{
-        return device.name
+        return device.name ?: device.address
     }
 
     /**

@@ -63,6 +63,7 @@ class SleepHistogramView : View {
     var popupTextMargin: Float
     var popupSubTextSize : Float
     var popupMainTextSize : Float
+    var popupDate:String = ""
 
     //标注画笔，标注颜色对应的睡眠类型
     private lateinit var indicatorPaint: Paint
@@ -249,7 +250,7 @@ class SleepHistogramView : View {
         drawBar(canvas)
 
 
-        if (touchX != -1f){
+        if (touchX != -1f && sleepData.isNotEmpty()){
             drawSleepDataPopup(canvas)
         } else {
             drawSleepDurationText(canvas)
@@ -337,11 +338,18 @@ class SleepHistogramView : View {
      * 画睡眠时长数据
      */
     fun drawSleepDurationText(canvas: Canvas){
-        val date = SimpleDateFormat("MM.dd", Locale.getDefault()).format(sleepEndTime)
-        val text = "$date-夜间睡眠时长"
-        val sleepDurationText = formatDurationText(sleepBeginTime,sleepEndTime)
+        val dateText:String
+        val sleepDurationText:String
+        if (sleepData.isEmpty()){
+            dateText = "$popupDate-夜间睡眠时长"
+            sleepDurationText = "暂无记录"
+        }else{
+            dateText = "$popupDate-夜间睡眠时长"
+            sleepDurationText = formatDurationText(sleepBeginTime,sleepEndTime)
+        }
 
-        sleepDataSubTextPaint.getTextBounds(text,0,text.length,sleepDataSubTextRect)
+
+        sleepDataSubTextPaint.getTextBounds(dateText,0,dateText.length,sleepDataSubTextRect)
         sleepDataMainTextPaint.getTextBounds(sleepDurationText,0,sleepDurationText.length,sleepDataMainTextRect)
 
         val subTextHeight = sleepDataSubTextRect.bottom-sleepDataSubTextRect.top
@@ -355,7 +363,7 @@ class SleepHistogramView : View {
         val sleepDurationX = dateTextX
         val sleepDurationY = dateTextY  + textMargin + mainTextHeight
 
-        canvas.drawText(text,dateTextX,dateTextY,sleepDataSubTextPaint)
+        canvas.drawText(dateText,dateTextX,dateTextY,sleepDataSubTextPaint)
         canvas.drawText(sleepDurationText,sleepDurationX,sleepDurationY,sleepDataMainTextPaint)
     }
 
@@ -444,11 +452,19 @@ class SleepHistogramView : View {
      * 获取x轴第index个标签文字
      */
     private fun getXAxisLabelText(index: Int):String{
-        if(index == 0){
-            return simpleDateFormat.format(sleepBeginTime)
-        }else{
-            return simpleDateFormat.format(sleepEndTime)
-        }
+       if (sleepData.isEmpty()){
+           if (index == 0){
+               return "00:00"
+           }else{
+               return "23:59"
+           }
+       }else{
+           if(index == 0){
+               return simpleDateFormat.format(sleepBeginTime)
+           }else{
+               return simpleDateFormat.format(sleepEndTime)
+           }
+       }
     }
 
     /**
@@ -481,8 +497,8 @@ class SleepHistogramView : View {
             sleepBeginTime = sleepData.first().getSleepBeginTime()
             sleepEndTime = sleepData.last().getSleepEndTime()
         }else{
-            sleepBeginTime = 57600000
-            sleepEndTime = 144000000-1
+            sleepBeginTime = 0
+            sleepEndTime = 0
         }
 
     }
@@ -530,9 +546,10 @@ class SleepHistogramView : View {
         return (dpValue * density + 0.5f)
     }
 
-    fun loadData(data:List<ISleepHistogramData>){
+    fun loadData(data:List<ISleepHistogramData>,popupDate:String){
         sleepData.clear()
         sleepData.addAll(data)
+        this.popupDate = popupDate
         initDataTime()
         postInvalidate()
     }

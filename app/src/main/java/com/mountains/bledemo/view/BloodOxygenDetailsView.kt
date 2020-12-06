@@ -5,5 +5,5 @@ import com.mountains.bledemo.bean.BloodOxygenBean
 
 interface BloodOxygenDetailsView : BaseView {
 
-    fun onBloodOxygenData(bloodOxygenData:List<BloodOxygenBean>,avgBloodOxygen:String,maxBloodOxygen:String,minBloodOxygen:String)
+    fun onBloodOxygenData(bloodOxygenData:List<BloodOxygenBean>,avgBloodOxygen:String,minBloodOxygen:String,maxBloodOxygen:String)
 }

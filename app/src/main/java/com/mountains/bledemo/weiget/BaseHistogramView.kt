@@ -8,7 +8,9 @@ import android.view.View
 import androidx.annotation.ColorInt
 import com.mountains.bledemo.R
 
-abstract class BaseHistogramView : View {
+abstract class BaseHistogramView<T> : View {
+    protected val dataList = mutableListOf<T>()
+
     //x轴画笔
     protected lateinit var xAxisPaint: Paint
 
@@ -28,6 +30,14 @@ abstract class BaseHistogramView : View {
 
     //y轴辅助线宽度
     var guideWidth: Float
+
+    //自动设置辅助线最大最小值
+    var isGuideAutoLabel : Boolean
+    //最大值与轴上最大值的顶部间距（以最大值的百分比为单位）,只有当isGuideAutoLabel==true才生效
+    var guideLabelSpaceTop: Float
+    //最小值与轴上最小值的底部间距（以最小值的百分比为单位）,只有当isGuideAutoLabel==true才生效
+    var guideLabelSpaceBottom: Float
+
 
     //标签画笔
     protected lateinit var labelPaint: Paint
@@ -110,6 +120,10 @@ abstract class BaseHistogramView : View {
     var dataUnit: String
 
 
+
+
+
+
     //触摸位置
     protected var touchX = -1f
 
@@ -162,7 +176,9 @@ abstract class BaseHistogramView : View {
         barCount = attributeSet.getInt(R.styleable.HistogramView_HistogramView_barCount, 48)
         guideLabelMaximum = attributeSet.getInt(R.styleable.HistogramView_HistogramView_guideLabelMaximum, 100)
         guideLabelMinimum = attributeSet.getInt(R.styleable.HistogramView_HistogramView_guideLabelMinimum, 0)
-
+        isGuideAutoLabel = attributeSet.getBoolean(R.styleable.HistogramView_HistogramView_isGuideAutoLabel, true)
+        guideLabelSpaceTop = attributeSet.getFloat(R.styleable.HistogramView_HistogramView_guideLabelSpaceTop, 0.1f)
+        guideLabelSpaceBottom = attributeSet.getFloat(R.styleable.HistogramView_HistogramView_guideLabelSpaceBottom, 0.1f)
         xLabelMargin = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_xLabelMargin, dp2px(10f))
         axisMarginLeft = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_axisMarginLeft, dp2px(30f))
         axisMarginRight = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_axisMarginRight, dp2px(30f))
@@ -172,7 +188,7 @@ abstract class BaseHistogramView : View {
         xLabelEndTime = attributeSet.getInt(R.styleable.HistogramView_HistogramView_xLabelEndTime, 86400)
         dataUnit = attributeSet.getString(R.styleable.HistogramView_HistogramView_dataUnit) ?: ""
         popupColor = attributeSet.getColor(R.styleable.HistogramView_HistogramView_popupColor, Color.parseColor("#f76955"))
-        popupHeight = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_popupHeight, dp2px(40f))
+        popupHeight = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_popupHeight, dp2px(36f))
         popupTextColor = attributeSet.getColor(R.styleable.HistogramView_HistogramView_popupTextColor, Color.WHITE)
         popupTextMargin = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_popupTextMargin, dp2px(10f))
         popupRadius = attributeSet.getDimension(R.styleable.HistogramView_HistogramView_popupRadius, dp2px(8f))
@@ -528,7 +544,20 @@ abstract class BaseHistogramView : View {
         return (index + 1) * ((xLabelEndTime - xLabelBeginTime) / barCount)
     }
 
-    abstract fun getPopupText(selectTime: Long):String
+    /**
+     * 根据时间戳获取数据
+     */
+    fun getIndexByTime(time: Long): Int? {
+        for (i in 0 until barCount){
+            val beginTime = getBarBeginTime(i)
+            val endTime = getBarEndTime(i)
+            if (time in beginTime..endTime) {
+                return i
+            }
+        }
+        return null
+    }
+
 
     /**
      * 时间转换
@@ -545,6 +574,18 @@ abstract class BaseHistogramView : View {
         return "$hourStr:$minStr"
     }
 
+    /**
+     * 初始化辅助线标签
+     */
+    fun initGuideLabel() {
+        val max = getBarMaxValue()
+        val min = getBarMinValue()
+        if (isGuideAutoLabel && max!=null && min!=null) {
+            guideLabelMaximum = (max + (max * guideLabelSpaceTop)).toInt()
+            guideLabelMinimum = (min - (min * guideLabelSpaceBottom)).toInt()
+        }
+    }
+
 
 
     private fun dp2px(dpValue: Float): Float {
@@ -552,9 +593,24 @@ abstract class BaseHistogramView : View {
         return (dpValue * density + 0.5f)
     }
 
+    fun loadData(data:List<T>){
+        dataList.clear()
+        dataList.addAll(data)
+
+        initBarData()
+        initGuideLabel()
+        postInvalidate()
+    }
+
+    abstract fun initBarData()
+
     abstract fun drawBar(canvas: Canvas)
 
-    //abstract fun drawPopup(canvas: Canvas)
+    abstract fun getPopupText(selectTime: Long):String
 
+    //获取bar数据最大值
+    abstract fun getBarMaxValue():Float?
 
+    //获取bar数据最小值
+    abstract fun getBarMinValue():Float?
 }

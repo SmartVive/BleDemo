@@ -40,7 +40,7 @@
                     android:id="@+id/selectDateView"
                     app:layout_constraintTop_toTopOf="parent"/>
 
-                <com.mountains.bledemo.weiget.HistogramView
+                <com.mountains.bledemo.weiget.SimpleHistogramView
                     android:id="@+id/histogramView"
                     app:layout_constraintTop_toBottomOf="@id/selectDateView"
                     app:HistogramView_axisMarginLeft="32dp"

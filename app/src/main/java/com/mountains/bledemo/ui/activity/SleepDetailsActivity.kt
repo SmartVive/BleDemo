@@ -8,13 +8,14 @@ import com.mountains.bledemo.presenter.SleepDetailsPresenter
 import com.mountains.bledemo.ui.fragment.CalendarDialogFragment
 import com.mountains.bledemo.util.CalendarUtil
 import com.mountains.bledemo.view.SleepDetailsView
+import com.mountains.bledemo.weiget.SelectDateView
 import kotlinx.android.synthetic.main.activity_sleep_details.*
 import kotlinx.android.synthetic.main.activity_sleep_details.tvDeepTime
 import java.text.SimpleDateFormat
 import java.util.*
 
 class SleepDetailsActivity : BaseActivity<SleepDetailsPresenter>(),SleepDetailsView {
-    private var selectTimeMillis:Long? = null
+    var currentSelectTime = System.currentTimeMillis()
 
     override fun createPresenter(): SleepDetailsPresenter {
         return SleepDetailsPresenter()
@@ -31,61 +32,53 @@ class SleepDetailsActivity : BaseActivity<SleepDetailsPresenter>(),SleepDetailsV
         titleBar.leftView.setOnClickListener {
             finish()
         }
-
         titleBar.rightView.setOnClickListener {
-            CalendarDialogFragment().show(supportFragmentManager,javaClass.simpleName,selectTimeMillis,object : CalendarDialogFragment.OnCalendarSelectListener{
+            CalendarDialogFragment().show(supportFragmentManager,javaClass.name,currentSelectTime,object : CalendarDialogFragment.OnCalendarSelectListener{
                 override fun onCalendarSelect(calendarTime: Long) {
-                    selectTimeMillis = calendarTime
-                    val calendar = Calendar.getInstance()
-                    calendar.timeInMillis = calendarTime
-                    calendar.add(Calendar.DAY_OF_YEAR,-1)
-                    calendar.set(Calendar.HOUR_OF_DAY,21)
-                    val beginTime = calendar.timeInMillis
-                    calendar.add(Calendar.DAY_OF_YEAR,1)
-                    calendar.set(Calendar.HOUR_OF_DAY,12)
-                    val endTime = calendar.timeInMillis
-                    presenter.getSleepData(beginTime,endTime)
+                    currentSelectTime = calendarTime
+                    selectDateView.setDate(currentSelectTime)
+                    initData()
                 }
 
             })
         }
+
+        selectDateView.setDate(currentSelectTime)
+        selectDateView.setOnDateChangeListener(object : SelectDateView.OnDateChangeListener{
+            override fun onDateChange(date: Long) {
+                currentSelectTime = date
+                initData()
+            }
+        })
+
     }
 
     private fun initData(){
-        val yesterdayCalendar = CalendarUtil.getYesterdayCalendar()
-        yesterdayCalendar.set(Calendar.HOUR_OF_DAY,21)
-        val todayBeginCalendar = CalendarUtil.getTodayBeginCalendar()
-        todayBeginCalendar.set(Calendar.HOUR_OF_DAY,12)
-
-        val beginTime = yesterdayCalendar.timeInMillis
-        val endTime = todayBeginCalendar.timeInMillis
+        val calendar = CalendarUtil.getCalendar(currentSelectTime)
+        calendar.set(Calendar.MINUTE,0)
+        calendar.set(Calendar.SECOND,0)
+        calendar.set(Calendar.MILLISECOND,0)
+        calendar.set(Calendar.HOUR_OF_DAY,12)
+        val endTime = calendar.timeInMillis
+        calendar.add(Calendar.DAY_OF_MONTH,-1)
+        calendar.set(Calendar.HOUR_OF_DAY,21)
+        val beginTime = calendar.timeInMillis
         presenter.getSleepData(beginTime,endTime)
     }
 
-    override fun onSleepData(sleepData: SleepBean?) {
-        if (sleepData != null){
-            sleepHistogramView.loadData(sleepData.sleepData)
 
-            tvDeepTime.text = dateFormat(sleepData.deep)
-            tvLightTime.text = dateFormat(sleepData.light)
-            tvSoberTime.text = dateFormat(sleepData.sober)
-        }else{
-            tvDeepTime.text = "--"
-            tvLightTime.text = "--"
-            tvSoberTime.text = "--"
-            sleepHistogramView.loadData(emptyList())
-        }
-
-
+    override fun onSleepData(
+        sleepData: List<SleepBean.SleepData>,
+        deepDuration: String,
+        lightDuration: String,
+        soberDuration: String
+    ) {
+        val popupDate = SimpleDateFormat("MM.dd", Locale.getDefault()).format(currentSelectTime)
+        sleepHistogramView.loadData(sleepData,popupDate)
+        tvDeepTime.text = deepDuration
+        tvLightTime.text = lightDuration
+        tvSoberTime.text =soberDuration
     }
 
-    private fun dateFormat(min:Int):String{
-        val hourStr = (min / 60)
-        val minStr = (min  % 60)
 
-        if (hourStr == 0){
-            return "${minStr}分钟"
-        }
-        return "${hourStr}小时${minStr}分钟"
-    }
 }
