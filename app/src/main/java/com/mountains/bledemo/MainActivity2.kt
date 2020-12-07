@@ -9,6 +9,7 @@ import com.mountains.bledemo.base.BasePresenter
 import com.mountains.bledemo.base.BaseView
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.ui.fragment.DeviceFragment
+import com.mountains.bledemo.ui.fragment.HomeFragment
 import kotlinx.android.synthetic.main.activity_main2.*
 
 class MainActivity2 : BaseActivity<BasePresenter<BaseView>>() {
@@ -28,6 +29,7 @@ class MainActivity2 : BaseActivity<BasePresenter<BaseView>>() {
 
         initView()
         initService()
+        initFragment()
     }
 
     private fun initView(){
@@ -45,13 +47,18 @@ class MainActivity2 : BaseActivity<BasePresenter<BaseView>>() {
         }
     }
 
+    private fun initFragment(){
+        showFragment(DEVICE_TAG)
+        showFragment(HOME_TAG)
+    }
+
     private fun showFragment(tag:String){
         val transaction = supportFragmentManager.beginTransaction()
         var fragment = supportFragmentManager.findFragmentByTag(tag)
         if (fragment == null){
             fragment = createFragment(tag)
             fragment?.let {
-                transaction.add(R.id.flMain,fragment)
+                transaction.add(R.id.flMain,fragment,tag)
             }
         }else{
             transaction.show(fragment)
@@ -62,7 +69,7 @@ class MainActivity2 : BaseActivity<BasePresenter<BaseView>>() {
     private fun createFragment(tag: String):Fragment?{
         when(tag){
             HOME_TAG->{
-                return DeviceFragment()
+                return HomeFragment()
             }
             DEVICE_TAG->{
                 return DeviceFragment()

@@ -1,6 +1,6 @@
 package com.mountains.bledemo.event
 
-class DeviceStateEvent(val deviceName:String, val type:Int) {
+class DeviceStateEvent(val deviceMac: String ,val deviceName:String?, val type:Int) {
     companion object{
         const val CONNECTED_TYPE = 1
         const val CONNECT_FAIL_TYPE = 2

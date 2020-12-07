@@ -1,15 +1,13 @@
 package com.mountains.bledemo.helper
 
-import android.util.Log
 import com.mountains.bledemo.bean.DeviceInfoBean
 import com.mountains.bledemo.event.DeviceInfoEvent
 import com.mountains.bledemo.util.HexUtil
 import com.orhanobut.logger.Logger
 import org.greenrobot.eventbus.EventBus
-import kotlin.experimental.and
 
 
-class DeviceInfoDataDecodeHelper : IDataDecodeHelper {
+class DeviceInfoDecodeHelper : IDataDecodeHelper {
 
     override fun decode(bArr: ByteArray) {
 
@@ -53,6 +51,7 @@ class DeviceInfoDataDecodeHelper : IDataDecodeHelper {
             EventBus.getDefault().post(DeviceInfoEvent(deviceInfoBean))
         }
 
-
     }
+
+
 }

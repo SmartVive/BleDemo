@@ -7,12 +7,14 @@ import com.mountains.bledemo.util.HexUtil
  * 同步设备数据
  */
 class SyncDataHelper {
+    var isSyncDeviceInfoData = true
     var isSyncRealTimeSportData = true
     var isSyncHistorySportData = true
     var isSyncHistorySleepData = true
     var isSyncHeartRateData = true
 
     fun startSync() {
+        isSyncDeviceInfoData = true
         isSyncRealTimeSportData = true
         isSyncHistorySportData = true
         isSyncHistorySleepData = true
@@ -21,11 +23,17 @@ class SyncDataHelper {
 
 
     fun decode(bArr: ByteArray) {
+        //同步时间完成后同步设备信息
+        if (isSyncDeviceInfoData && HexUtil.bytes2HexString(bArr).startsWith("05020101")) {
+            isSyncDeviceInfoData = false
+            DeviceManager.writeCharacteristic(CommHelper.getDeviceInfo())
+        }
+
+
         //同步时间完成后同步实时步数
-        if (isSyncRealTimeSportData && HexUtil.bytes2HexString(bArr).startsWith("05020101")) {
+        if (isSyncRealTimeSportData && HexUtil.bytes2HexString(bArr).startsWith("050102",true)) {
             isSyncRealTimeSportData = false
             DeviceManager.writeCharacteristic(CommHelper.getRealTimeSportData())
-
         }
 
 

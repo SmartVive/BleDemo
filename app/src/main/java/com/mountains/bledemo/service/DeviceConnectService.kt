@@ -36,7 +36,7 @@ class DeviceConnectService : Service() {
     //已连接的设备
     var connectedDeviceList:MutableList<BleDevice> = mutableListOf()
     val sportDataDecodeHelper = SportDataDecodeHelper()
-    val deviceInfoDataDecodeHelper = DeviceInfoDataDecodeHelper()
+    val deviceInfoDataDecodeHelper = DeviceInfoDecodeHelper()
     val healthDataDecodeHelper = HealthDataDecodeHelper()
     val sleepDataDecodeHelper = SleepDataDecodeHelper()
     val syncDataHelper = SyncDataHelper()
@@ -58,7 +58,7 @@ class DeviceConnectService : Service() {
                         if (currentEnableNotifyRetryCount++ < enableNotifyRetryCount){
                             enableNotify(bleDevice,connectCallback)
                         }else{
-                            connectFailCallback(bleDevice.getName(), BleException(BleException.CONNECT_FAIL_CODE,"开启通知失败"),connectCallback)
+                            connectFailCallback(bleDevice.getMac(),bleDevice.getName(), BleException(BleException.CONNECT_FAIL_CODE,"开启通知失败"),connectCallback)
                         }
                     }
 
@@ -127,12 +127,12 @@ class DeviceConnectService : Service() {
         }else{
             device.address
         }
-        EventBus.getDefault().post(DeviceStateEvent(name,DeviceStateEvent.CONNECTING_TYPE))
+        EventBus.getDefault().post(DeviceStateEvent(device.address,name,DeviceStateEvent.CONNECTING_TYPE))
 
         for (connectDevice in connectedDeviceList) {
             if (connectDevice.isConnected() && connectDevice.getMac() == device.address) {
                 Logger.e("设备已连接，请勿重复连接")
-                connectSuccessCallback(connectDevice,connectCallback)
+                connectSuccessCallback(connectDevice.getMac(),connectDevice.getName(),connectDevice,connectCallback)
                 return
             }
         }
@@ -146,13 +146,13 @@ class DeviceConnectService : Service() {
             }
 
             override fun connectFail(exception: BleException) {
-                connectFailCallback(device.name,exception,connectCallback)
+                connectFailCallback(device.address,device.name,exception,connectCallback)
                 DeviceManager.setDevice(null)
                 ToastUtil.show("连接失败：${exception.message}")
             }
 
             override fun disconnect() {
-                disconnectCallback(device.name,connectCallback)
+                disconnectCallback(device.address,device.name,connectCallback)
                 DeviceManager.setDevice(null)
                 ToastUtil.show("断开连接")
             }
@@ -178,7 +178,7 @@ class DeviceConnectService : Service() {
                 Logger.d("开启通知成功")
                 ToastUtil.show("连接成功:${device.getMac()}")
                 connectedDeviceList.add(device)
-                connectSuccessCallback(device,connectCallback)
+                connectSuccessCallback(device.getMac(),device.getName(),device,connectCallback)
                 syncTime(device)
             }
 
@@ -240,24 +240,24 @@ class DeviceConnectService : Service() {
     /**
      * 连接成功
      */
-    private fun connectSuccessCallback(device: BleDevice, connectCallback:ConnectCallback?){
-        EventBus.getDefault().post(DeviceStateEvent(device.getName(),DeviceStateEvent.CONNECTED_TYPE))
+    private fun connectSuccessCallback(deviceMac: String,deviceName: String?, device: BleDevice,connectCallback:ConnectCallback?){
+        EventBus.getDefault().post(DeviceStateEvent(deviceMac,deviceName,DeviceStateEvent.CONNECTED_TYPE))
         connectCallback?.connectSuccess(device)
     }
 
     /**
      * 连接失败
      */
-    private fun connectFailCallback(deviceName: String, bleException: BleException, connectCallback:ConnectCallback?){
-        EventBus.getDefault().post(DeviceStateEvent(deviceName,DeviceStateEvent.CONNECT_FAIL_TYPE))
+    private fun connectFailCallback(deviceMac: String,deviceName: String?, bleException: BleException, connectCallback:ConnectCallback?){
+        EventBus.getDefault().post(DeviceStateEvent(deviceMac,deviceName,DeviceStateEvent.CONNECT_FAIL_TYPE))
         connectCallback?.connectFail(bleException)
     }
 
     /**
      * 断开连接
      */
-    private fun disconnectCallback(deviceName: String, connectCallback:ConnectCallback?){
-        EventBus.getDefault().post(DeviceStateEvent(deviceName,DeviceStateEvent.DISCONNECT_TYPE))
+    private fun disconnectCallback(deviceMac: String,deviceName: String?, connectCallback:ConnectCallback?){
+        EventBus.getDefault().post(DeviceStateEvent(deviceMac,deviceName,DeviceStateEvent.DISCONNECT_TYPE))
         connectCallback?.disconnect()
     }
 

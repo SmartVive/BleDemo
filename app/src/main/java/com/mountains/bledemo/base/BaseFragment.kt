@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import com.mountains.bledemo.util.ToastUtil
 
 abstract class BaseFragment<P:BasePresenter<*>>:Fragment(),BaseView {
-    var presenter : P? = null
+    lateinit var presenter : P
 
     abstract fun createPresenter():P
 
@@ -19,12 +19,12 @@ abstract class BaseFragment<P:BasePresenter<*>>:Fragment(),BaseView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         presenter = createPresenter()
-        presenter?.attachView(this)
+        presenter.attachView(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        presenter?.destroy()
+        presenter.destroy()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

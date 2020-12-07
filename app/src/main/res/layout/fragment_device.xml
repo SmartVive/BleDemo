@@ -3,6 +3,7 @@
     xmlns:tool="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
     android:paddingLeft="16dp"
@@ -37,6 +38,7 @@
         tool:text="EB:D2:F4:7D:C9:CA" />
 
     <ImageView
+        android:id="@+id/ivElectricity"
         android:layout_width="wrap_content"
         android:layout_height="24dp"
         android:layout_marginTop="8dp"
@@ -54,12 +56,12 @@
         android:id="@+id/tvFindDevice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="32dp"
-        android:paddingBottom="32dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"
         android:textColor="@color/mainTextColor"
         android:drawableEnd="@drawable/ic_find"
         android:textSize="16dp"
-        tool:text="查找手环"/>
+        android:text="查找手环"/>
 
     <View
         android:layout_width="match_parent"
@@ -70,12 +72,12 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="32dp"
-        android:paddingBottom="32dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"
         android:textColor="@color/mainTextColor"
         android:drawableEnd="@drawable/ic_push"
         android:textSize="16dp"
-        tool:text="推送"/>
+        android:text="推送"/>
 
     <View
         android:layout_width="match_parent"

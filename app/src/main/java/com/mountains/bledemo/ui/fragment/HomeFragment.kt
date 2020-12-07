@@ -1,61 +1,52 @@
-package com.mountains.bledemo
+package com.mountains.bledemo.ui.fragment
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
+import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
+import com.mountains.bledemo.R
 import com.mountains.bledemo.adapter.CardAdapter
-import com.mountains.bledemo.base.BaseActivity
+import com.mountains.bledemo.base.BaseFragment
 import com.mountains.bledemo.bean.CardItemData
 import com.mountains.bledemo.event.DataUpdateEvent
 import com.mountains.bledemo.event.DeviceStateEvent
 import com.mountains.bledemo.event.DisconnectAllDeviceEvent
 import com.mountains.bledemo.event.SportEvent
-import com.mountains.bledemo.presenter.MainPresenter
-import com.mountains.bledemo.service.DeviceConnectService
+import com.mountains.bledemo.presenter.HomePresenter
 import com.mountains.bledemo.ui.activity.*
 import com.mountains.bledemo.util.DisplayUtil
-import com.mountains.bledemo.view.MainView
+import com.mountains.bledemo.view.HomeView
 import com.mountains.bledemo.weiget.CardItemDataDecoration
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_home.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+class HomeFragment : BaseFragment<HomePresenter>(),HomeView {
+    private val cardItemList = mutableListOf<CardItemData>()
+    private val cardItemAdapter by lazy { CardAdapter(R.layout.item_card, cardItemList) }
 
-class MainActivity : BaseActivity<MainPresenter>(), MainView {
-
-    val cardItemList = mutableListOf<CardItemData>()
-    val cardItemAdapter by lazy { CardAdapter(R.layout.item_card, cardItemList) }
-
-
-    override fun createPresenter(): MainPresenter {
-        return MainPresenter()
+    override fun createPresenter(): HomePresenter {
+        return HomePresenter()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        EventBus.getDefault().register(this)
+    override fun setContentView(): Int {
+        return R.layout.fragment_home
+    }
 
-        // 启动服务的地方
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val intent = Intent(this, DeviceConnectService::class.java)
-            startForegroundService(intent)
-        } else {
-            val intent = Intent(this, DeviceConnectService::class.java)
-            startService(intent)
-        }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         initView()
         initCard()
         initData()
+        EventBus.getDefault().register(this)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onDestroyView() {
+        super.onDestroyView()
         EventBus.getDefault().post(DisconnectAllDeviceEvent())
         EventBus.getDefault().unregister(this)
     }
@@ -88,26 +79,8 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         }
     }
 
-    /*@Subscribe(threadMode = ThreadMode.MAIN)
-    fun onDeviceConnectState(deviceStateEvent: DeviceStateEvent){
-        val deviceName = deviceStateEvent.deviceName
-        when(deviceStateEvent.type){
-            DeviceStateEvent.CONNECTED_TYPE->{
-                setDeviceState(deviceName,"已连接")
-            }
-            DeviceStateEvent.CONNECT_FAIL_TYPE->{
-                setDeviceState(deviceName,"连接失败")
-            }
-            DeviceStateEvent.DISCONNECT_TYPE->{
-                setDeviceState(deviceName,"断开连接")
-            }
-            DeviceStateEvent.CONNECTING_TYPE->{
-                setDeviceState(deviceName,"正在连接...")
-            }
-        }
-    }*/
 
-    private fun initView() {
+    private fun initView(){
         recyclerView.apply {
             layoutManager = GridLayoutManager(context, 2)
             addItemDecoration(CardItemDataDecoration(DisplayUtil.dp2px(context, 12f)))
@@ -149,15 +122,13 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         }
 
         layoutStep.setOnClickListener {
-            val intent = Intent(this, StepDetailsActivity::class.java)
+            val intent = Intent(requireContext(), StepDetailsActivity::class.java)
             startActivity(intent)
         }
 
         stepsView.setMaxSteps(8000)
-        tvGoal.text = "8000"
-
+        tvGoal.text = "${stepsView.getMaxSteps()}"
     }
-
 
     private fun initCard() {
         val deviceCard = CardItemData(CardItemData.DEVICE_TYPE, R.drawable.ic_card_device, "", "", "设备")
@@ -188,7 +159,7 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         cardItemAdapter.notifyDataSetChanged()
     }
 
-    private fun initData() {
+    private fun initData(){
         presenter.getHeartRateData()
         presenter.getBloodOxygenData()
         presenter.getSleepData()
@@ -239,11 +210,4 @@ class MainActivity : BaseActivity<MainPresenter>(), MainView {
         cardItemAdapter.notifyDataSetChanged()
     }
 
-    fun setDeviceState(name:String,state:String){
-        cardItemList.filter { it.itemType == CardItemData.DEVICE_TYPE }.forEach {
-            it.value = name
-            it.time = state
-        }
-        cardItemAdapter.notifyDataSetChanged()
-    }
 }
