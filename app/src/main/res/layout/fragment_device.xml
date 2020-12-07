@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tool="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp">
+
+    <TextView
+        android:id="@+id/tvDeviceName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:textColor="@color/mainTextColor"
+        android:textSize="26dp"
+        android:textStyle="bold"
+        tool:text="IT118" />
+
+    <TextView
+        android:id="@+id/tvDeviceState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/subTextColor"
+        android:textSize="14dp"
+        tool:text="正在连接..." />
+
+    <TextView
+        android:id="@+id/tvDeviceMac"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/subTextColor"
+        android:textSize="14dp"
+        tool:text="EB:D2:F4:7D:C9:CA" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="24dp"
+        android:layout_marginTop="8dp"
+        android:adjustViewBounds="true"
+        android:layout_marginBottom="32dp"
+        android:src="@drawable/ic_electricity_lv1"
+        android:tint="@color/subTextColor" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/dividing" />
+
+    <TextView
+        android:id="@+id/tvFindDevice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="32dp"
+        android:paddingBottom="32dp"
+        android:textColor="@color/mainTextColor"
+        android:drawableEnd="@drawable/ic_find"
+        android:textSize="16dp"
+        tool:text="查找手环"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/dividing" />
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="32dp"
+        android:paddingBottom="32dp"
+        android:textColor="@color/mainTextColor"
+        android:drawableEnd="@drawable/ic_push"
+        android:textSize="16dp"
+        tool:text="推送"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/dividing" />
+
+</LinearLayout>
