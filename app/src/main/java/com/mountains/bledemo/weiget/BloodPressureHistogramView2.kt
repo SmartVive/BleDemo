@@ -1,5 +1,6 @@
 package com.mountains.bledemo.weiget
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Path
@@ -7,6 +8,7 @@ import android.util.AttributeSet
 
 class BloodPressureHistogramView2 : BaseHistogramView<BloodPressureHistogramView.IBloodPressureHistogramData> {
     private var barData : Array<FloatArray>? = null
+    private var animBarData:Array<FloatArray>? = null
 
     constructor(context: Context) : this(context,null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs,0)
@@ -19,8 +21,8 @@ class BloodPressureHistogramView2 : BaseHistogramView<BloodPressureHistogramView
     override fun getPopupText(selectTime: Long): String {
         val index = getIndexByTime(selectTime) ?: return "暂无记录"
 
-        val avgBloodDiastolic = barData!![index][0]
-        val avgBloodSystolic = barData!![index][1]
+        val avgBloodDiastolic = animBarData!![index][0]
+        val avgBloodSystolic = animBarData!![index][1]
         val beginTime = timeFormat(getBarBeginTime(index))
         val endTime = timeFormat(getBarEndTime(index))
 
@@ -35,7 +37,7 @@ class BloodPressureHistogramView2 : BaseHistogramView<BloodPressureHistogramView
 
     override fun drawBar(canvas: Canvas) {
         for (i in 0 until barCount) {
-            barData?.let {
+            animBarData?.let {
                 val avgBloodDiastolic = it[i][0]
                 val avgBloodSystolic = it[i][1]
                 val top = getBarY(avgBloodSystolic)
@@ -55,11 +57,11 @@ class BloodPressureHistogramView2 : BaseHistogramView<BloodPressureHistogramView
     }
 
     override fun getBarMaxValue(): Float? {
-        return barData?.maxBy { it[1] }?.get(1)
+        return barData?.filter { !it[0].isNaN() }?.maxBy { it[1] }?.get(1)
     }
 
     override fun getBarMinValue(): Float? {
-        return barData?.minBy { it[0] }?.get(0)
+        return barData?.filter { !it[0].isNaN() }?.minBy { it[0] }?.get(0)
     }
 
 
@@ -83,6 +85,24 @@ class BloodPressureHistogramView2 : BaseHistogramView<BloodPressureHistogramView
             }
 
         }
+    }
+
+    override fun initAnimBarData() {
+        val valueAnimator = ValueAnimator.ofFloat(0f, 1f)
+        valueAnimator.duration = 500
+        valueAnimator.addUpdateListener {
+            animBarData = Array(barCount) {index->
+                val avgBloodDiastolic = barData!![index][0]
+                val avgBloodSystolic = barData!![index][1]
+                val centerValue = (avgBloodDiastolic+avgBloodSystolic) / 2
+
+                val animBloodDiastolic = centerValue - (centerValue - avgBloodDiastolic) * it.animatedValue as Float
+                val animBloodSystolic = centerValue + (avgBloodSystolic - centerValue) * it.animatedValue as Float
+                floatArrayOf(animBloodDiastolic,animBloodSystolic)
+            }
+            invalidate()
+        }
+        valueAnimator.start()
     }
 
 }

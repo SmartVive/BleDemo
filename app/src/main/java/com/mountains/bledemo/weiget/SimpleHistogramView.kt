@@ -9,6 +9,7 @@ import com.mountains.bledemo.R
 
 class SimpleHistogramView : BaseHistogramView<IHistogramData> {
     private var barData:FloatArray? = null
+    private var animBarData:FloatArray? = null
 
     constructor(context: Context) : this(context,null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs,0)
@@ -21,7 +22,7 @@ class SimpleHistogramView : BaseHistogramView<IHistogramData> {
      */
     override fun drawBar(canvas: Canvas) {
         for (i in 0 until barCount) {
-            barData?.let {
+            animBarData?.let {
                 val avg = it[i]
                 val top = getBarY(avg)
                 var left = getBarLeft(i)
@@ -48,7 +49,7 @@ class SimpleHistogramView : BaseHistogramView<IHistogramData> {
         val index = getIndexByTime(selectTime) ?: return "暂无记录"
         val beginTime = timeFormat(getBarBeginTime(index))
         val endTime = timeFormat(getBarEndTime(index))
-        val value = barData!![index]
+        val value = animBarData!![index]
         val text: String = if (value.isNaN()) {
             "暂无记录 $beginTime-$endTime"
         } else {
@@ -57,49 +58,43 @@ class SimpleHistogramView : BaseHistogramView<IHistogramData> {
         return text
     }
 
-   /* override fun getBarMaxValue(): Float? {
+    override fun getBarMaxValue(): Float? {
        return  barData?.filter { !it.isNaN() }?.max()
     }
 
     override fun getBarMinValue(): Float? {
         return barData?.filter { !it.isNaN() }?.min()
-    }*/
-
-    override fun getBarMaxValue(): Float? {
-        return 100f
-    }
-
-    override fun getBarMinValue(): Float? {
-        return 50f
     }
 
     /**
      * 初始化条形数据
      */
     override fun initBarData() {
+        barData = FloatArray(barCount) {index->
+            val beginTime = getBarBeginTime(index)
+            val endTime = getBarEndTime(index)
 
-
-        val valueAnimator = ValueAnimator.ofFloat(0f, 1f)
-        valueAnimator.duration = 500
-        valueAnimator.addUpdateListener {
-            barData = FloatArray(barCount) {index->
-                val beginTime = getBarBeginTime(index)
-                val endTime = getBarEndTime(index)
-
-                //多个数值用一个条形显示时，显示平均值
-                //所在时间段的所有数据
-                val filterList = dataList.filter { it.getHistogramTime() in beginTime until endTime }
-                if (filterList.isEmpty()){
-                    Float.NaN
-                }else{
-                    (filterList.sumBy { it.getHistogramValue() } / filterList.size) * it.animatedValue as Float
-                }
+            //多个数值用一个条形显示时，显示平均值
+            //所在时间段的所有数据
+            val filterList = dataList.filter { it.getHistogramTime() in beginTime until endTime }
+            if (filterList.isEmpty()){
+                Float.NaN
+            }else{
+                (filterList.sumBy { it.getHistogramValue() } / filterList.size).toFloat()
             }
-            postInvalidate()
         }
-        valueAnimator.start()
     }
 
 
-
+    override fun initAnimBarData() {
+        val valueAnimator = ValueAnimator.ofFloat(0f, 1f)
+        valueAnimator.duration = 500
+        valueAnimator.addUpdateListener {
+            animBarData = FloatArray(barCount) {index->
+                guideLabelMinimum + ((barData!![index] - guideLabelMinimum)* it.animatedValue as Float)
+            }
+            invalidate()
+        }
+        valueAnimator.start()
+    }
 }

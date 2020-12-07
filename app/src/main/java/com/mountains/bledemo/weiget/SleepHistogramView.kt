@@ -1,5 +1,6 @@
 package com.mountains.bledemo.weiget
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -98,6 +99,7 @@ class SleepHistogramView : View {
     private var xAxisLeft: Float = 0f
     private var xAxisRight: Float = 0f
     private var xAxisBottom: Float = 0f
+    private var chartTop: Float = 0f
 
     //popup位置
     private var popupTop = 0f
@@ -112,6 +114,8 @@ class SleepHistogramView : View {
 
     //触摸位置，显示popup用
     var touchX = -1f
+    //动画值,实现bar动画
+    var animValue:Float = 0f
 
 
     val simpleDateFormat by lazy { SimpleDateFormat("HH:mm", Locale.getDefault()) }
@@ -212,6 +216,7 @@ class SleepHistogramView : View {
         xAxisLeft = chartMarginLeft
         xAxisRight = measuredWidth - chartMarginRight
         xAxisBottom = measuredHeight - chartMarginBottom
+        chartTop = xAxisBottom - chartMarginTop - sleepDataTextHeight
         xAxisWidth = xAxisRight - xAxisLeft
 
         popupTop = (sleepDataTextHeight - popupHeight) / 2f
@@ -478,18 +483,19 @@ class SleepHistogramView : View {
      * 根据类型获取条形纵坐标
      */
     fun getBarY(type: Int):Float {
+        var barY = 0f
         when(type){
             TYPE_SOBER->{
-                return xAxisBottom - (xAxisBottom - chartMarginTop - sleepDataTextHeight)*0.5f
+                barY =  (xAxisBottom - chartTop)*0.5f
             }
             TYPE_LIGHT->{
-                return xAxisBottom - (xAxisBottom - chartMarginTop - sleepDataTextHeight)*0.75f
+                barY =  (xAxisBottom - chartTop)*0.75f
             }
             TYPE_DEEP->{
-                return chartMarginTop + sleepDataTextHeight
+                barY = xAxisBottom - chartTop
             }
         }
-        return  chartMarginTop + sleepDataTextHeight
+        return xAxisBottom - (barY * animValue)
     }
 
     private fun initDataTime(){
@@ -551,6 +557,12 @@ class SleepHistogramView : View {
         sleepData.addAll(data)
         this.popupDate = popupDate
         initDataTime()
-        postInvalidate()
+        val valueAnimator = ValueAnimator.ofFloat(0f, 1f)
+        valueAnimator.duration = 300
+        valueAnimator.addUpdateListener {
+            animValue = it.animatedValue as Float
+            postInvalidate()
+        }
+        valueAnimator.start()
     }
 }

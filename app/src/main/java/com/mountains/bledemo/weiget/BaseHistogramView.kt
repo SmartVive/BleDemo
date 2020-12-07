@@ -599,8 +599,14 @@ abstract class BaseHistogramView<T> : View {
 
         initBarData()
         initGuideLabel()
+        initAnimBarData()
         postInvalidate()
     }
+
+    /**
+     * 动画数据
+     */
+    abstract fun initAnimBarData()
 
     abstract fun initBarData()
 
