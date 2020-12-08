@@ -33,6 +33,16 @@
         <activity android:name=".ui.activity.BloodPressureDetailsActivity" />
 
         <service android:name=".service.DeviceConnectService" />
+
+        <service
+            android:name=".service.NotificationService"
+            android:priority="1000"
+            android:label="通知监控"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

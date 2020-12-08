@@ -28,13 +28,12 @@ class MainActivity2 : BaseActivity<BasePresenter<BaseView>>() {
         setContentView(R.layout.activity_main2)
 
         initView()
-        initService()
         initFragment()
+        initService()
     }
 
     private fun initView(){
         bottomNavigationView.setOnNavigationItemSelectedListener {
-            hideAllFragment()
             when(it.itemId){
                 R.id.menuHome->{
                     showFragment(HOME_TAG)
@@ -53,6 +52,7 @@ class MainActivity2 : BaseActivity<BasePresenter<BaseView>>() {
     }
 
     private fun showFragment(tag:String){
+        hideAllFragment()
         val transaction = supportFragmentManager.beginTransaction()
         var fragment = supportFragmentManager.findFragmentByTag(tag)
         if (fragment == null){
@@ -63,7 +63,7 @@ class MainActivity2 : BaseActivity<BasePresenter<BaseView>>() {
         }else{
             transaction.show(fragment)
         }
-        transaction.commit()
+        transaction.commitNow()
     }
 
     private fun createFragment(tag: String):Fragment?{
@@ -84,7 +84,7 @@ class MainActivity2 : BaseActivity<BasePresenter<BaseView>>() {
         for (fragment in fragments){
             transaction.hide(fragment)
         }
-        transaction.commit()
+        transaction.commitNow()
     }
 
     private fun initService(){

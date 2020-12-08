@@ -42,8 +42,8 @@
         android:layout_width="wrap_content"
         android:layout_height="24dp"
         android:layout_marginTop="8dp"
-        android:adjustViewBounds="true"
         android:layout_marginBottom="32dp"
+        android:adjustViewBounds="true"
         android:src="@drawable/ic_electricity_lv1"
         android:tint="@color/subTextColor" />
 
@@ -52,32 +52,136 @@
         android:layout_height="1px"
         android:background="@color/dividing" />
 
-    <TextView
-        android:id="@+id/tvFindDevice"
+    <LinearLayout
+        android:id="@+id/layoutFindDevice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="24dp"
-        android:paddingBottom="24dp"
-        android:textColor="@color/mainTextColor"
-        android:drawableEnd="@drawable/ic_find"
-        android:textSize="16dp"
-        android:text="查找手环"/>
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="查找手环"
+            android:textColor="@color/mainTextColor"
+            android:textSize="16dp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_device_find" />
+
+    </LinearLayout>
+
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
         android:background="@color/dividing" />
 
-
-    <TextView
+    <LinearLayout
+        android:id="@+id/layoutPush"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="24dp"
-        android:paddingBottom="24dp"
-        android:textColor="@color/mainTextColor"
-        android:drawableEnd="@drawable/ic_push"
-        android:textSize="16dp"
-        android:text="推送"/>
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvPush"
+            android:layout_width="0dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="推送"
+            android:textColor="@color/mainTextColor"
+            android:textSize="16dp" />
+
+        <Switch
+            android:id="@+id/switchPush"
+            android:layout_width="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_height="wrap_content"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_device_push" />
+
+    </LinearLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/dividing" />
+
+    <LinearLayout
+        android:id="@+id/layoutAutoHeartRateDetection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="心率自动检测"
+            android:textColor="@color/mainTextColor"
+            android:textSize="16dp" />
+
+        <Switch
+            android:id="@+id/switchAutoHeartRateDetection"
+            android:layout_width="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_height="wrap_content"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_device_heart_rate" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/dividing" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="抬腕亮屏"
+            android:textColor="@color/mainTextColor"
+            android:textSize="16dp" />
+
+        <Switch
+            android:id="@+id/switchLiftWristBrightScreen"
+            android:layout_width="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_height="wrap_content"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_device_left_wrist_bright_screen" />
+
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"
