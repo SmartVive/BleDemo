@@ -1,9 +1,7 @@
 package com.mountains.bledemo.ui.fragment
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -17,6 +15,7 @@ import com.mountains.bledemo.event.DeviceInfoEvent
 import com.mountains.bledemo.event.DeviceStateEvent
 import com.mountains.bledemo.helper.CommHelper
 import com.mountains.bledemo.helper.DeviceManager
+import com.mountains.bledemo.helper.DeviceStorage
 import com.mountains.bledemo.presenter.DevicePresenter
 import com.mountains.bledemo.service.NotificationService
 import com.mountains.bledemo.view.DeviceView
@@ -113,18 +112,24 @@ class DeviceFragment : BaseFragment<DevicePresenter>(),DeviceView {
             }
         }
 
+        //自动检测心率
         switchAutoHeartRateDetection.setOnCheckedChangeListener { compoundButton, b ->
             if (!compoundButton.isPressed) return@setOnCheckedChangeListener
-            if (b){
-                DeviceManager.writeCharacteristic(CommHelper.setDeviceOtherInfo(true,false,true))
-            }else{
-                DeviceManager.writeCharacteristic(CommHelper.setDeviceOtherInfo(true,false,false))
-            }
+            presenter.setAutoHeartRateDetection(b)
+        }
+
+        //抬腕亮屏
+        switchLiftWristBrightScreen.setOnCheckedChangeListener {  compoundButton, b ->
+            if (!compoundButton.isPressed) return@setOnCheckedChangeListener
+            presenter.setLiftWristBrightScreen(b)
         }
 
         if (isEnabledNotificationService()){
             switchPush.isChecked = true
         }
+
+        switchAutoHeartRateDetection.isChecked = presenter.isAutoHeartRateDetection
+        switchLiftWristBrightScreen.isChecked = presenter.isLiftWristBrightScreen
     }
 
     //启用通知监听

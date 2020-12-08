@@ -71,8 +71,9 @@ class DeviceConnectService : Service() {
         super.onCreate()
         createNotificationChannel()
         EventBus.getDefault().register(this)
-        val bindDeviceMac = SharedUtil.read(Const.BIND_DEVICE_MAC, "")
-        if (bindDeviceMac.isNotEmpty()){
+        //val bindDeviceMac = SharedUtil.read(Const.BIND_DEVICE_MAC, "")
+        val bindDeviceMac = DeviceStorage.getInstance().mac
+        if (!bindDeviceMac.isNullOrBlank()){
             connectDevice(bindDeviceMac,null)
         }
     }
@@ -105,8 +106,7 @@ class DeviceConnectService : Service() {
     private fun createNotificationChannel(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            var channel: NotificationChannel? = null
-            channel = NotificationChannel(
+            val channel = NotificationChannel(
                 CHANNEL_ID_STRING,
                 getString(R.string.app_name),
                 NotificationManager.IMPORTANCE_HIGH

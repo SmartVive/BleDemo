@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import com.mountains.bledemo.base.BaseActivity
 import com.mountains.bledemo.base.BasePresenter
 import com.mountains.bledemo.base.BaseView
+import com.mountains.bledemo.helper.DeviceStorage
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.ui.fragment.DeviceFragment
 import com.mountains.bledemo.ui.fragment.HomeFragment

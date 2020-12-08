@@ -21,6 +21,7 @@ import com.mountains.bledemo.ble.BleDevice
 import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.BleManager
 import com.mountains.bledemo.ble.callback.ConnectCallback
+import com.mountains.bledemo.helper.DeviceStorage
 import com.mountains.bledemo.presenter.BindDevicePresenter
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.util.SharedUtil
@@ -114,7 +115,11 @@ class BindDeviceActivity : BaseActivity<BindDevicePresenter>(),BindDeviceView{
     private fun connectDevice(device: BluetoothDevice){
         deviceConnectService?.connectDevice(device,object : ConnectCallback{
             override fun connectSuccess(bleDevice: BleDevice) {
-                SharedUtil.save(Const.BIND_DEVICE_MAC,bleDevice.getMac())
+                val deviceStorage = DeviceStorage.getInstance()
+                deviceStorage.mac = bleDevice.getMac()
+                deviceStorage.name = bleDevice.getName()
+                deviceStorage.save()
+                //SharedUtil.save(Const.BIND_DEVICE_MAC,bleDevice.getMac())
                 hideConnectingDialog()
                 finish()
             }
