@@ -18,6 +18,7 @@ import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.helper.DeviceStorage
 import com.mountains.bledemo.presenter.DevicePresenter
 import com.mountains.bledemo.service.NotificationService
+import com.mountains.bledemo.ui.activity.AlarmClockActivity
 import com.mountains.bledemo.view.DeviceView
 import kotlinx.android.synthetic.main.fragment_device.*
 import org.greenrobot.eventbus.EventBus
@@ -87,6 +88,8 @@ class DeviceFragment : BaseFragment<DevicePresenter>(),DeviceView {
 
 
     private fun initView(){
+
+        //查找手环
         layoutFindDevice.setOnClickListener {
             val dialog = AlertDialog.Builder(requireContext())
                 .setMessage("手环震动中...")
@@ -98,7 +101,13 @@ class DeviceFragment : BaseFragment<DevicePresenter>(),DeviceView {
             DeviceManager.writeCharacteristic(CommHelper.findDevice(true))
         }
 
+        //闹钟
+        layoutAlarmClock.setOnClickListener {
+            val intent = Intent(requireContext(), AlarmClockActivity::class.java)
+            startActivity(intent)
+        }
 
+        //推送
         switchPush.setOnCheckedChangeListener { compoundButton, b ->
             if (!compoundButton.isPressed ) return@setOnCheckedChangeListener
             if (b){

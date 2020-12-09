@@ -1,12 +1,7 @@
 package com.mountains.bledemo.helper
 
-import java.util.*
 import androidx.recyclerview.widget.ItemTouchHelper
-
-
-
-
-
+import java.util.*
 
 
 object CommHelper {
@@ -206,6 +201,30 @@ object CommHelper {
         byteSet.add(endByte(3, 3))
         return byteSet
     }
+
+    /**
+     * 设置闹钟
+     * @param index 第几个闹钟
+     * @param isOpen 是否开启
+     * @param repeat 重复
+     * @param hour 小时
+     * @param minute 分钟
+     * @param i6
+     */
+    fun setAlarmClock(index: Int, isOpen: Int, repeat: Int, hour: Int, minute: Int, i6: Int): ByteArray {
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 2
+        bArr[2] = 4
+        bArr[3] = index.toByte()
+        bArr[4] = isOpen.toByte()
+        bArr[5] = repeat.toByte()
+        bArr[6] = hour.toByte()
+        bArr[7] = minute.toByte()
+        bArr[8] = i6.toByte()
+        return bArr
+    }
+
 
     private fun cutShortString(str:String):String {
         if (str.length > 200) {

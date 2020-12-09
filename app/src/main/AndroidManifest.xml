@@ -31,6 +31,7 @@
         <activity android:name=".ui.activity.SleepDetailsActivity" />
         <activity android:name=".ui.activity.BloodOxygenDetailsActivity" />
         <activity android:name=".ui.activity.BloodPressureDetailsActivity" />
+        <activity android:name=".ui.activity.AlarmClockActivity" />
 
         <service android:name=".service.DeviceConnectService" />
 
