@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tool="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.hjq.bar.TitleBar
+        android:id="@+id/titleBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:leftIcon="@drawable/ic_back"
+        app:rightIcon="@drawable/ic_check"
+        app:title="添加闹钟" />
+
+
+    <TimePicker
+        android:id="@+id/timePicker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/dividing" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="重复"
+        android:textColor="@color/mainTextColor"
+        android:textSize="18dp" />
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.mountains.bledemo.weiget.SquareCheckBox
+            android:id="@+id/cbMonday"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/selector_bg_week"
+            android:button="@null"
+            android:textColor="@drawable/selector_week_text"
+            android:gravity="center"
+            android:text="一" />
+
+        <com.mountains.bledemo.weiget.SquareCheckBox
+            android:id="@+id/cbTuesday"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:textColor="@drawable/selector_week_text"
+            android:background="@drawable/selector_bg_week"
+            android:button="@null"
+            android:gravity="center"
+            android:text="二" />
+
+        <com.mountains.bledemo.weiget.SquareCheckBox
+            android:id="@+id/cbWednesday"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/selector_bg_week"
+            android:textColor="@drawable/selector_week_text"
+            android:button="@null"
+            android:gravity="center"
+            android:text="三" />
+
+        <com.mountains.bledemo.weiget.SquareCheckBox
+            android:id="@+id/cbThursday"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/selector_bg_week"
+            android:textColor="@drawable/selector_week_text"
+            android:button="@null"
+            android:gravity="center"
+            android:text="四" />
+
+        <com.mountains.bledemo.weiget.SquareCheckBox
+            android:id="@+id/cbFriday"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/selector_bg_week"
+            android:textColor="@drawable/selector_week_text"
+            android:button="@null"
+            android:gravity="center"
+            android:text="五" />
+
+        <com.mountains.bledemo.weiget.SquareCheckBox
+            android:id="@+id/cbSaturday"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/selector_bg_week"
+            android:textColor="@drawable/selector_week_text"
+            android:button="@null"
+            android:gravity="center"
+            android:text="六" />
+
+        <com.mountains.bledemo.weiget.SquareCheckBox
+            android:id="@+id/cbSunday"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/selector_bg_week"
+            android:textColor="@drawable/selector_week_text"
+            android:button="@null"
+            android:gravity="center"
+            android:text="日" />
+
+    </LinearLayout>
+
+</LinearLayout>

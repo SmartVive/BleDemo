@@ -225,6 +225,13 @@ object CommHelper {
         return bArr
     }
 
+    fun getAlarmClock():ByteArray{
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 1
+        bArr[2] = 4
+        return bArr
+    }
 
     private fun cutShortString(str:String):String {
         if (str.length > 200) {
