@@ -97,7 +97,7 @@ class BloodOxygenDetectionFragment : BaseFragment<BloodOxygenDetectionPresenter>
     override fun onDestroyView() {
         super.onDestroyView()
         if (isDetecting){
-            presenter?.stopBloodOxygenDetection()
+            presenter.stopBloodOxygenDetection()
         }
         EventBus.getDefault().unregister(this)
         handler.removeMessages(DETECTION_TIME_OUT_MSG)
@@ -106,11 +106,11 @@ class BloodOxygenDetectionFragment : BaseFragment<BloodOxygenDetectionPresenter>
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onMessageEvent(event:BloodOxygenDetectionEvent){
         tvBloodOxygen.text = "${event.value}"
-        presenter?.addBloodOxygenDetectionResult(event.value)
+        presenter.addBloodOxygenDetectionResult(event.value)
         count++
         if (count >= 10){
             count = 0
-            presenter?.bloodOxygenDetectionFinish()
+            presenter.bloodOxygenDetectionFinish()
         }
     }
 

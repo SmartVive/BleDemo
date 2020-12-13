@@ -12,6 +12,7 @@ import com.mountains.bledemo.event.DataUpdateEvent
 import com.mountains.bledemo.event.DeviceStateEvent
 import com.mountains.bledemo.event.DisconnectAllDeviceEvent
 import com.mountains.bledemo.event.SportEvent
+import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.presenter.HomePresenter
 import com.mountains.bledemo.ui.activity.*
 import com.mountains.bledemo.util.DisplayUtil
@@ -79,6 +80,24 @@ class HomeFragment : BaseFragment<HomePresenter>(),HomeView {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onDeviceConnectState(deviceStateEvent: DeviceStateEvent){
+        when(deviceStateEvent.type){
+            DeviceStateEvent.CONNECTED_TYPE->{
+                initData()
+            }
+            DeviceStateEvent.CONNECT_FAIL_TYPE->{
+                initData()
+            }
+            DeviceStateEvent.DISCONNECT_TYPE->{
+                tvCalorie.text = "0"
+                tvMileage.text = "0.00"
+                stepsView.setCurrentSteps(0)
+                initData()
+            }
+        }
+    }
+
 
     private fun initView(){
         recyclerView.apply {
@@ -131,7 +150,7 @@ class HomeFragment : BaseFragment<HomePresenter>(),HomeView {
     }
 
     private fun initCard() {
-        val deviceCard = CardItemData(CardItemData.DEVICE_TYPE, R.drawable.ic_card_device, "", "", "设备")
+        //val deviceCard = CardItemData(CardItemData.DEVICE_TYPE, R.drawable.ic_card_device, "", "", "设备")
         val healthDetection = CardItemData(CardItemData.DETECTION_TYPE, R.drawable.ic_card_detection, "", "", "健康体检")
         val heartCard =
             CardItemData(CardItemData.HEART_RATE_TYPE, R.drawable.ic_card_heart, "0 - 0 bpm", "最后一次:暂无数据", "心率记录")
@@ -150,7 +169,7 @@ class HomeFragment : BaseFragment<HomePresenter>(),HomeView {
             "血氧记录"
         )
         val sleepCard = CardItemData(CardItemData.SLEEP_TYPE, R.drawable.ic_card_sleep, "0h 0min", "最后一次:暂无数据", "睡眠记录")
-        cardItemList.add(deviceCard)
+        //cardItemList.add(deviceCard)
         cardItemList.add(healthDetection)
         cardItemList.add(heartCard)
         cardItemList.add(bloodPressureCard)

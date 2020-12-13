@@ -35,7 +35,7 @@ class AlarmClockAddPresenter : BasePresenter<AlarmClockAddView>() {
             }
 
             val repeat = getRepeat(repeatArray)
-            val alarmClockBean = createAlarmClockBean(index, hour, minute, mac, repeatArray)
+            val alarmClockBean = createAlarmClockBean(mac, index, hour, minute, repeatArray)
 
 
 
@@ -51,7 +51,7 @@ class AlarmClockAddPresenter : BasePresenter<AlarmClockAddView>() {
         }
 
         val repeat = getRepeat(repeatArray)
-        val alarmClockBean = createAlarmClockBean(index, hour, minute, mac, repeatArray)
+        val alarmClockBean = createAlarmClockBean(mac,index, hour, minute,  repeatArray)
         alarmClockBean.assignBaseObjId(id)
 
 
@@ -74,7 +74,7 @@ class AlarmClockAddPresenter : BasePresenter<AlarmClockAddView>() {
     }
 
 
-    private fun createAlarmClockBean(index: Int,hour: Int,minute: Int,mac:String,repeatArray: MutableList<Boolean>):AlarmClockBean{
+    private fun createAlarmClockBean(mac:String,index: Int,hour: Int,minute: Int,repeatArray: MutableList<Boolean>):AlarmClockBean{
         val alarmClockBean = AlarmClockBean()
         alarmClockBean.index = index
         alarmClockBean.hour = hour

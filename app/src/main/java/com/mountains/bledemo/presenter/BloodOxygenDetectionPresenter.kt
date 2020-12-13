@@ -64,10 +64,11 @@ class BloodOxygenDetectionPresenter : BasePresenter<BloodOxygenDetectionView>() 
     }
 
     private fun saveBloodOxygen(value:Int){
+        val mac = DeviceManager.getDevice()?.getMac() ?: return
         val currentCalendar = CalendarUtil.getCurrentCalendar()
         val datetime = currentCalendar.timeInMillis
         val timeIndex = CalendarUtil.convertTimeToIndex(currentCalendar, 1)
-        val newData = BloodOxygenBean(datetime,timeIndex,value)
+        val newData = BloodOxygenBean(mac,datetime,timeIndex,value)
         val oldData = LitePal.where("datetime = ?","$datetime").find<BloodOxygenBean>()
         if (oldData.isNotEmpty()){
             newData.update(oldData.first().id)

@@ -6,6 +6,7 @@ import org.litepal.crud.LitePalSupport
 
 
 class SleepBean : LitePalSupport() {
+    var mac: String = ""
     var beginDateTime: Long = 0
     var endDateTime: Long = 0
     var deep: Int = 0
@@ -16,16 +17,18 @@ class SleepBean : LitePalSupport() {
     companion object {
         //浅睡眠
         const val STATUS_LIGHT = 0
+
         //深睡眠
         const val STATUS_DEEP = 1
+
         //清醒
         const val STATUS_SOBER = 2
     }
 
 
-    class SleepData : LitePalSupport(),ISleepHistogramData {
-        var beginTime : Long = 0
-        var endTime : Long = 0
+    class SleepData : LitePalSupport(), ISleepHistogramData {
+        var beginTime: Long = 0
+        var endTime: Long = 0
         var minutes: Int = 0
         var statuss: Int = 0
         var values: Int = 0

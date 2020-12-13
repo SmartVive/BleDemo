@@ -5,6 +5,7 @@ import com.mountains.bledemo.bean.BloodOxygenBean
 import com.mountains.bledemo.bean.BloodPressureBean
 import com.mountains.bledemo.bean.HeartRateBean
 import com.mountains.bledemo.bean.SleepBean
+import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.util.CalendarUtil
 import com.mountains.bledemo.view.HomeView
 import org.litepal.LitePal
@@ -14,10 +15,16 @@ import java.util.*
 class HomePresenter  : BasePresenter<HomeView>() {
 
     fun getHeartRateData() {
+        val mac = DeviceManager.getDevice()?.getMac()
+        if (mac == null){
+            view?.onHeartRateData("0 - 0 bpm", "最后一次:暂无数据")
+            return
+        }
+
         val todayBeginTime = CalendarUtil.getTodayBeginCalendar().timeInMillis
         val todayEndTime = CalendarUtil.getTodayEndCalendar().timeInMillis
         val heartRateList =
-            LitePal.where("datetime between ? and ? and value > ?", "$todayBeginTime", "$todayEndTime", "0")
+            LitePal.where("mac = ? and datetime between ? and ? and value > ?", mac,"$todayBeginTime", "$todayEndTime", "0")
                 .order("datetime desc")
                 .find<HeartRateBean>()
 
@@ -37,10 +44,16 @@ class HomePresenter  : BasePresenter<HomeView>() {
     }
 
     fun getBloodOxygenData() {
+        val mac = DeviceManager.getDevice()?.getMac()
+        if (mac == null){
+            view?.onBloodOxygenData("0 - 0 %", "最后一次:暂无数据")
+            return
+        }
+
         val todayBeginTime = CalendarUtil.getTodayBeginCalendar().timeInMillis
         val todayEndTime = CalendarUtil.getTodayEndCalendar().timeInMillis
         val bloodOxygenList =
-            LitePal.where("datetime between ? and ? and value > ?", "$todayBeginTime", "$todayEndTime", "0")
+            LitePal.where("mac = ? and datetime between ? and ? and value > ?", mac,"$todayBeginTime", "$todayEndTime", "0")
                 .order("datetime desc")
                 .find<BloodOxygenBean>()
 
@@ -57,6 +70,12 @@ class HomePresenter  : BasePresenter<HomeView>() {
     }
 
     fun getSleepData() {
+        val mac = DeviceManager.getDevice()?.getMac()
+        if (mac == null){
+            view?.onSleepData("0h 0min", "最后一次:暂无数据")
+            return
+        }
+
         val yesterdayCalendar = CalendarUtil.getYesterdayCalendar()
         yesterdayCalendar.set(Calendar.HOUR_OF_DAY, 21)
         val todayBeginCalendar = CalendarUtil.getTodayBeginCalendar()
@@ -65,7 +84,7 @@ class HomePresenter  : BasePresenter<HomeView>() {
         val beginTime = yesterdayCalendar.timeInMillis
         val endTime = todayBeginCalendar.timeInMillis
 
-        val sleepData = LitePal.where("beginDateTime >= ? and endDateTime <= ?", "$beginTime", "$endTime")
+        val sleepData = LitePal.where("mac = ? and beginDateTime >= ? and endDateTime <= ?",mac, "$beginTime", "$endTime")
             .order("beginDateTime desc").find<SleepBean>(true)
 
         if (sleepData.isEmpty()) {
@@ -87,9 +106,15 @@ class HomePresenter  : BasePresenter<HomeView>() {
     }
 
     fun getBloodPressureData() {
+        val mac = DeviceManager.getDevice()?.getMac()
+        if (mac == null){
+            view?.onBloodPressureData("0 / 0 mmHg","最后一次:暂无数据")
+            return
+        }
+
         val todayBeginTime = CalendarUtil.getTodayBeginCalendar().timeInMillis
         val todayEndTime = CalendarUtil.getTodayEndCalendar().timeInMillis
-        val bloodPressureData = LitePal.where("datetime between ? and ?", "$todayBeginTime", "$todayEndTime").order("datetime desc")
+        val bloodPressureData = LitePal.where("mac = ? and datetime between ? and ? ", mac,"$todayBeginTime", "$todayEndTime").order("datetime desc")
             .find<BloodPressureBean>()
         if (bloodPressureData.isEmpty()){
             view?.onBloodPressureData("0 / 0 mmHg","最后一次:暂无数据")

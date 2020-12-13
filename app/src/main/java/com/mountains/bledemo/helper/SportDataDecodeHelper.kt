@@ -23,7 +23,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
     val calories = mutableListOf<SportBean.CalorieBean>()
 
 
-    override fun decode(bArr: ByteArray) {
+    override fun decode(bArr: ByteArray,mac:String) {
         if (HexUtil.bytes2HexString(bArr).startsWith("050701",true)) {
             Logger.d(bArr)
             Logger.i("实时运动数据:解析开始")
@@ -74,7 +74,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
                         if (value > 10000) {
                             value = 0
                         }
-                        steps.add(SportBean.StepBean(mStepDataCalendar!!.timeInMillis, timeIndex, value))
+                        steps.add(SportBean.StepBean(mac,mStepDataCalendar!!.timeInMillis, timeIndex, value))
                         mStepDataCalendar!!.add(Calendar.MINUTE, 30)
                     }
                 } else {
@@ -102,7 +102,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
                         val timeIndex = CalendarUtil.convertTimeToIndex(mDistanceDataCalendar!!, 30)
                         val date = CalendarUtil.format("yyyy-MM-dd HH:mm:ss", mDistanceDataCalendar!!)
                         Logger.i("距离大数据:%d,index:%d,时间:%s", Integer.valueOf(value), Integer.valueOf(timeIndex), date)
-                        this.distances.add(SportBean.DistanceBean(mDistanceDataCalendar!!.timeInMillis, timeIndex, value))
+                        this.distances.add(SportBean.DistanceBean(mac,mDistanceDataCalendar!!.timeInMillis, timeIndex, value))
                         mDistanceDataCalendar!!.add(Calendar.MINUTE, 30)
                     }
 
@@ -131,7 +131,7 @@ class SportDataDecodeHelper : IDataDecodeHelper {
                         val timeIndex = CalendarUtil.convertTimeToIndex(mCaloriesDataCalendar!!, 30)
                         val date = CalendarUtil.format("yyyy-MM-dd HH:mm:ss", mCaloriesDataCalendar!!)
                         Logger.i("卡路里大数据:%d,index:%d,时间:%s", value, timeIndex, date)
-                        calories.add(SportBean.CalorieBean(mCaloriesDataCalendar!!.timeInMillis, timeIndex, value))
+                        calories.add(SportBean.CalorieBean(mac,mCaloriesDataCalendar!!.timeInMillis, timeIndex, value))
                         mCaloriesDataCalendar!!.add(Calendar.MINUTE, 30)
                     }
                 } else {

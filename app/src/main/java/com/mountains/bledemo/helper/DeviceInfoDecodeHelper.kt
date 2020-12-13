@@ -9,7 +9,7 @@ import org.greenrobot.eventbus.EventBus
 
 class DeviceInfoDecodeHelper : IDataDecodeHelper {
 
-    override fun decode(bArr: ByteArray) {
+    override fun decode(bArr: ByteArray,mac:String) {
 
         if (HexUtil.bytes2HexString(bArr).startsWith("050102")) {
             if (bArr.size < 10) {

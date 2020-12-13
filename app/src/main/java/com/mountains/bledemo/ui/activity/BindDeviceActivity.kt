@@ -1,5 +1,6 @@
 package com.mountains.bledemo.ui.activity
 
+import android.app.Activity
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanResult
 import android.content.ComponentName
@@ -121,6 +122,7 @@ class BindDeviceActivity : BaseActivity<BindDevicePresenter>(),BindDeviceView{
                 deviceStorage.save()
                 //SharedUtil.save(Const.BIND_DEVICE_MAC,bleDevice.getMac())
                 hideConnectingDialog()
+                setResult(Activity.RESULT_OK)
                 finish()
             }
 

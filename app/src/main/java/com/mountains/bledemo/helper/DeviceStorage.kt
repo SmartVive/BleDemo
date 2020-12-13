@@ -24,6 +24,15 @@ class DeviceStorage private constructor() {
         device.save()
     }
 
+    fun delete(){
+        LitePal.deleteAll(Device::class.java)
+        id = null
+        name = null
+        mac = null
+        isAutoHeartRateDetection = false
+        isLiftWristBrightScreen = false
+    }
+
     companion object{
         private var instance:DeviceStorage? = null
         fun getInstance():DeviceStorage{

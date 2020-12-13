@@ -2,6 +2,7 @@ package com.mountains.bledemo.presenter
 
 import com.mountains.bledemo.base.BasePresenter
 import com.mountains.bledemo.bean.HeartRateBean
+import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.view.HeartRateDetailsView
 import org.litepal.LitePal
 import org.litepal.extension.find
@@ -9,11 +10,17 @@ import org.litepal.extension.find
 class HeartRateDetailsPresenter : BasePresenter<HeartRateDetailsView>() {
 
     fun getHeartRate(beginTime:Long, endTime:Long){
-        val heartRateData = LitePal.where("datetime between ? and ? and value > ?", "$beginTime", "$endTime","0").order("datetime desc")
+        val mac = DeviceManager.getDevice()?.getMac()
+        if (mac == null){
+            view?.onHeartRateData(emptyList(),"--", "--", "--")
+            return
+        }
+
+        val heartRateData = LitePal.where("mac = ? and datetime between ? and ? and value > ?", mac,"$beginTime", "$endTime","0").order("datetime desc")
             .find<HeartRateBean>()
 
         if (heartRateData.isEmpty()){
-            view?.onHeartRateData(heartRateData,"--", "--", "--")
+            view?.onHeartRateData(emptyList(),"--", "--", "--")
             return
         }
 

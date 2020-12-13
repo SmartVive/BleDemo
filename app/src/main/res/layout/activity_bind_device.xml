@@ -23,7 +23,7 @@
         android:id="@+id/btnScan"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#393939"
+        android:background="@drawable/bg_btn_main"
         android:textColor="@color/white"
         android:text="扫描"/>
 

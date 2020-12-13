@@ -22,7 +22,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
     var temperatures = mutableListOf<TemperatureBean>()
 
 
-    override fun decode(bArr: ByteArray) {
+    override fun decode(bArr: ByteArray,mac:String) {
 
         if (HexUtil.bytes2HexString(bArr).startsWith("050702")) {
             Logger.i("实时体检数据:解析开始")
@@ -85,7 +85,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
                             Logger.w("心率大数据:数据异常,心率:%d", heart)
                             heart = 0
                         }
-                        heartRates.add(HeartRateBean(mHeartRateDataCalendar.timeInMillis,timeIndex, heart))
+                        heartRates.add(HeartRateBean(mac,mHeartRateDataCalendar.timeInMillis,timeIndex, heart))
                         mHeartRateDataCalendar.add(Calendar.MINUTE, 15)
                     }
                 }
@@ -119,7 +119,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
                         val timeIndex = CalendarUtil.convertTimeToIndex(mTemperatureDataCalendar, 1)
                         val date = CalendarUtil.format("yyyy-MM-dd HH:mm:ss", mTemperatureDataCalendar)
                         Logger.i("体温大数据:%d,index:%d,时间:%s", temp, timeIndex, date);
-                        temperatures.add(TemperatureBean(mTemperatureDataCalendar.timeInMillis,timeIndex, temp))
+                        temperatures.add(TemperatureBean(mac,mTemperatureDataCalendar.timeInMillis,timeIndex, temp))
                         mTemperatureDataCalendar.add(12, 30)
                     }
                 }

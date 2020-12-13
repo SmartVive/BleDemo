@@ -71,9 +71,10 @@ class BloodPressureDetectionPresenter : BasePresenter<BloodPressureDetectionView
      * 保存数据
      */
     private fun saveBloodPressure(bloodDiastolic:Int,bloodSystolic:Int){
+        val mac = DeviceManager.getDevice()?.getMac() ?: return
         val currentCalendar = CalendarUtil.getCurrentCalendar()
         val timeIndex = CalendarUtil.convertTimeToIndex(currentCalendar, 1)
-        val newData = BloodPressureBean(currentCalendar.timeInMillis, timeIndex, bloodDiastolic, bloodSystolic)
+        val newData = BloodPressureBean(mac,currentCalendar.timeInMillis, timeIndex, bloodDiastolic, bloodSystolic)
         val oldData = LitePal.where("datetime = ?", "${currentCalendar.timeInMillis}").find<BloodPressureBean>()
         if (oldData.isNotEmpty()){
             //有历史数据，更新

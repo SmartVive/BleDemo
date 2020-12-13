@@ -2,6 +2,7 @@ package com.mountains.bledemo.presenter
 
 import com.mountains.bledemo.base.BasePresenter
 import com.mountains.bledemo.bean.SportBean
+import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.view.StepDetailsView
 import org.litepal.LitePal
 import org.litepal.extension.find
@@ -12,14 +13,20 @@ import java.math.RoundingMode
 class StepDetailsPresenter : BasePresenter<StepDetailsView>() {
 
     fun getStepsData(startTime: Long, endTime: Long) {
-        val stepsData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime", "0")
+        val mac = DeviceManager.getDevice()?.getMac()
+        if (mac == null){
+            view?.onStepsData(emptyList(), "--", "--", "--")
+            return
+        }
+
+        val stepsData = LitePal.where("mac = ? and datetime between ? and ? and value > ?", mac,"$startTime", "$endTime", "0")
             .order("datetime desc")
             .find<SportBean.StepBean>()
 
-        val distanceData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime", "0")
+        val distanceData = LitePal.where("mac = ? and datetime between ? and ? and value > ?",mac, "$startTime", "$endTime", "0")
             .find<SportBean.DistanceBean>()
 
-        val calorieData = LitePal.where("datetime between ? and ? and value > ?", "$startTime", "$endTime", "0")
+        val calorieData = LitePal.where("mac = ? and datetime between ? and ? and value > ?", mac,"$startTime", "$endTime", "0")
             .find<SportBean.CalorieBean>()
 
 

@@ -12,9 +12,9 @@ class SportBean(
     val calorie: Int
 ) {
 
-    open class BaseSportBean: LitePalSupport,Comparable <BaseSportBean>,IHistogramData {
-        val id:Long = 0
-        @Column(unique = true)
+    open class BaseSportBean : LitePalSupport, Comparable<BaseSportBean>, IHistogramData {
+        val id: Long = 0
+        var mac: String = ""
         var dateTime: Long = 0L
         var index: Int = 0
         var value: Int = 0
@@ -22,10 +22,11 @@ class SportBean(
 
         constructor()
 
-        constructor(dateTime: Long,index: Int,value: Int){
+        constructor(mac: String, dateTime: Long, index: Int, value: Int) {
             this.dateTime = dateTime
             this.index = index
             this.value = value
+            this.mac = mac
         }
 
         override fun compareTo(other: BaseSportBean): Int {
@@ -37,30 +38,30 @@ class SportBean(
         }
 
         override fun getHistogramTime(): Long {
-            val histogramTime:Long
+            val histogramTime: Long
             calendar.timeInMillis = dateTime
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
             val minute = calendar.get(Calendar.MINUTE)
             val sencond = calendar.get(Calendar.SECOND)
-            histogramTime = hour*60L*60L + minute*60L + sencond
+            histogramTime = hour * 60L * 60L + minute * 60L + sencond
             return histogramTime
         }
 
     }
 
-    class StepBean : BaseSportBean{
-        constructor():super()
-        constructor(dateTime: Long, index: Int, value: Int):super( dateTime, index, value)
+    class StepBean : BaseSportBean {
+        constructor() : super()
+        constructor(mac: String,dateTime: Long, index: Int, value: Int) : super(mac, dateTime, index, value)
     }
 
-    class DistanceBean : BaseSportBean{
-        constructor():super()
-        constructor(dateTime: Long, index: Int, value: Int):super( dateTime, index, value)
+    class DistanceBean : BaseSportBean {
+        constructor() : super()
+        constructor(mac: String,dateTime: Long, index: Int, value: Int) : super(mac, dateTime, index, value)
     }
 
-    class CalorieBean : BaseSportBean{
-        constructor():super()
-        constructor(dateTime: Long, index: Int, value: Int):super( dateTime, index, value)
+    class CalorieBean : BaseSportBean {
+        constructor() : super()
+        constructor(mac: String,dateTime: Long, index: Int, value: Int) : super(mac, dateTime, index, value)
     }
 
 }

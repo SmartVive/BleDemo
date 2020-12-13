@@ -1,5 +1,6 @@
 package com.mountains.bledemo
 
+import android.content.ContentValues
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -7,11 +8,14 @@ import androidx.fragment.app.Fragment
 import com.mountains.bledemo.base.BaseActivity
 import com.mountains.bledemo.base.BasePresenter
 import com.mountains.bledemo.base.BaseView
+import com.mountains.bledemo.bean.*
 import com.mountains.bledemo.helper.DeviceStorage
 import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.ui.fragment.DeviceFragment
 import com.mountains.bledemo.ui.fragment.HomeFragment
 import kotlinx.android.synthetic.main.activity_main2.*
+import org.litepal.LitePal
+import org.litepal.extension.findAll
 
 class MainActivity2 : BaseActivity<BasePresenter<BaseView>>() {
     companion object{

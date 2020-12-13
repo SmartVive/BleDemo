@@ -18,7 +18,7 @@ class AlarmClockPresenter : BasePresenter<AlarmClockView>() {
     fun getAlarmClockList(){
         val mac = DeviceStorage.getInstance().mac
         if (mac == null){
-            view?.showToast("获取闹钟失败：获取设备mac失败")
+            view?.onAlarmClockList(emptyList())
             return
         }
         val alarmClockList = LitePal.where("mac = ?", mac).find<AlarmClockBean>(true)

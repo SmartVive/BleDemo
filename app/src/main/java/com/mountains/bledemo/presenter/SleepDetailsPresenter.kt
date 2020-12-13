@@ -2,6 +2,7 @@ package com.mountains.bledemo.presenter
 
 import com.mountains.bledemo.base.BasePresenter
 import com.mountains.bledemo.bean.SleepBean
+import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.view.SleepDetailsView
 import org.litepal.LitePal
 import org.litepal.extension.find
@@ -9,7 +10,13 @@ import org.litepal.extension.find
 class SleepDetailsPresenter : BasePresenter<SleepDetailsView>() {
 
     fun getSleepData(beginTime:Long,endTime:Long){
-        val sleepData = LitePal.where("beginDateTime >= ? and endDateTime <= ?", "$beginTime", "$endTime").order("beginDateTime desc").find<SleepBean>(true)
+        val mac = DeviceManager.getDevice()?.getMac()
+        if (mac == null){
+            view?.onSleepData(emptyList(), "--", "--", "--")
+            return
+        }
+
+        val sleepData = LitePal.where("mac = ? and beginDateTime >= ? and endDateTime <= ?", mac,"$beginTime", "$endTime").order("beginDateTime desc").find<SleepBean>(true)
         if (sleepData.isEmpty()){
             view?.onSleepData(emptyList(),"--","--","--")
         }else{

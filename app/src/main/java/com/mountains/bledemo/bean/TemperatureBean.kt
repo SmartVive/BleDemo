@@ -5,14 +5,15 @@ import org.litepal.crud.LitePalSupport
 
 class TemperatureBean : LitePalSupport {
     val id:Long = 0
-    @Column(unique = true)
+    var mac: String = ""
     var dateTime: Long = 0L
     var index: Int = 0
     var value: Int = 0
 
     constructor()
 
-    constructor(dateTime: Long,index: Int,value: Int){
+    constructor(mac:String,dateTime: Long,index: Int,value: Int){
+        this.mac = mac
         this.dateTime = dateTime
         this.index = index
         this.value = value

@@ -2,6 +2,7 @@ package com.mountains.bledemo.presenter
 
 import com.mountains.bledemo.base.BasePresenter
 import com.mountains.bledemo.bean.BloodOxygenBean
+import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.view.BloodOxygenDetailsView
 import org.litepal.LitePal
 import org.litepal.extension.find
@@ -9,12 +10,18 @@ import org.litepal.extension.find
 class BloodOxygenDetailsPresenter : BasePresenter<BloodOxygenDetailsView>() {
 
     fun getBloodOxygenData(beginTime:Long, endTime:Long){
-        val bloodOxygenData = LitePal.where("datetime between ? and ?", "$beginTime", "$endTime").order("datetime desc")
+        val mac = DeviceManager.getDevice()?.getMac()
+        if (mac == null){
+            view?.onBloodOxygenData(emptyList(),"--","--","--")
+            return
+        }
+
+        val bloodOxygenData = LitePal.where("mac = ? and datetime between ? and ?", mac,"$beginTime", "$endTime").order("datetime desc")
             .find<BloodOxygenBean>()
 
 
         if (bloodOxygenData.isEmpty()){
-            view?.onBloodOxygenData(bloodOxygenData,"--","--","--")
+            view?.onBloodOxygenData(emptyList(),"--","--","--")
             return
         }
 

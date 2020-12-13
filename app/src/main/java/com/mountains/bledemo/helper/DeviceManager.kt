@@ -12,8 +12,12 @@ object DeviceManager {
         this.bleDevice = bleDevice
     }
 
+    fun getDevice():BleDevice?{
+        return bleDevice
+    }
+
     fun writeCharacteristic(data: ByteArray,callback: CommCallback? = null){
-        if (bleDevice != null){
+        if (bleDevice != null && bleDevice!!.isConnected()){
             bleDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,data,callback)
         }else{
             callback?.onFail(BleException(BleException.DEVICE_NOT_CONNECTED,"设备未连接！"))

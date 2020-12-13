@@ -15,6 +15,7 @@ import kotlin.experimental.and
 
 
 class SleepDataDecodeHelper : IDataDecodeHelper {
+    private var mac:String = ""
     private var startCalendar: Calendar? = null
     private var endCalendar: Calendar? = null
     private var sleepDataCalendar: Calendar = Calendar.getInstance()
@@ -26,9 +27,10 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
 
 
 
-    override fun decode(bArr: ByteArray) {
+    override fun decode(bArr: ByteArray,mac:String) {
         if (HexUtil.bytes2HexString(bArr).startsWith("050704")) {
             Logger.d(bArr)
+            this.mac = mac
             val index = bArr[3].toInt() and 255
             if (index == 0) {
                 Logger.i("睡眠大数据:解析开始")
@@ -100,6 +102,7 @@ class SleepDataDecodeHelper : IDataDecodeHelper {
     private fun addData() {
         if(sleepDataList.isNotEmpty() && startCalendar!=null && endCalendar != null){
             val sleepBean = SleepBean()
+            sleepBean.mac = mac
             sleepBean.beginDateTime = startCalendar!!.timeInMillis
             sleepBean.endDateTime = endCalendar!!.timeInMillis
             sleepBean.sleepData = sleepDataList

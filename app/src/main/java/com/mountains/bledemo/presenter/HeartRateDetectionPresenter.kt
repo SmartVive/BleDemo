@@ -70,11 +70,12 @@ class HeartRateDetectionPresenter : BasePresenter<HeartRateDetectionView>() {
      * 保存数据
      */
     private fun saveHeartRate(value:Int){
+        val mac = DeviceManager.getDevice()?.getMac() ?: return
         val currentCalendar = CalendarUtil.getCurrentCalendar()
         val dateTime = currentCalendar.timeInMillis
         val timeIndex = CalendarUtil.convertTimeToIndex(currentCalendar, 1)
         val oldData = LitePal.where("datetime = ?", "$dateTime").find<HeartRateBean>()
-        val newData = HeartRateBean(dateTime, timeIndex, value)
+        val newData = HeartRateBean(mac,dateTime, timeIndex, value)
         if (oldData.isNotEmpty()){
             //已存在时更新
             newData.update(oldData.first().id)

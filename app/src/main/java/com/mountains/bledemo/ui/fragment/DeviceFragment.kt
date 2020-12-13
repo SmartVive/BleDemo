@@ -13,12 +13,16 @@ import com.mountains.bledemo.R
 import com.mountains.bledemo.base.BaseFragment
 import com.mountains.bledemo.event.DeviceInfoEvent
 import com.mountains.bledemo.event.DeviceStateEvent
+import com.mountains.bledemo.event.DisconnectAllDeviceEvent
 import com.mountains.bledemo.helper.CommHelper
 import com.mountains.bledemo.helper.DeviceManager
+import com.mountains.bledemo.helper.DeviceStorage
 import com.mountains.bledemo.presenter.DevicePresenter
+import com.mountains.bledemo.service.DeviceConnectService
 import com.mountains.bledemo.service.NotificationService
 import com.mountains.bledemo.ui.activity.AlarmClockActivity
 import com.mountains.bledemo.ui.activity.AlarmClockAddActivity
+import com.mountains.bledemo.ui.activity.BindDeviceActivity
 import com.mountains.bledemo.view.DeviceView
 import kotlinx.android.synthetic.main.fragment_device.*
 import org.greenrobot.eventbus.EventBus
@@ -27,6 +31,11 @@ import org.greenrobot.eventbus.ThreadMode
 
 
 class DeviceFragment : BaseFragment<DevicePresenter>(),DeviceView {
+
+    companion object{
+        const val BIND_DEVICE_REQUEST_CODE = 100
+    }
+
     override fun createPresenter(): DevicePresenter {
         return DevicePresenter()
     }
@@ -88,6 +97,26 @@ class DeviceFragment : BaseFragment<DevicePresenter>(),DeviceView {
 
 
     private fun initView(){
+        if (DeviceStorage.getInstance().mac == null){
+            layoutNotBindDevice.visibility = View.VISIBLE
+            btnBindDevice.setOnClickListener {
+                val intent = Intent(context, BindDeviceActivity::class.java)
+                startActivityForResult(intent,BIND_DEVICE_REQUEST_CODE)
+            }
+            return
+        }
+
+        layoutNotBindDevice.visibility = View.GONE
+        tvDeviceName.text = DeviceStorage.getInstance().name
+        tvDeviceMac.text = DeviceStorage.getInstance().mac
+
+        //解除绑定
+        unBindDevice.setOnClickListener {
+            EventBus.getDefault().post(DisconnectAllDeviceEvent())
+            DeviceStorage.getInstance().delete()
+            initView()
+        }
+
 
         //查找手环
         layoutFindDevice.setOnClickListener {
@@ -186,13 +215,14 @@ class DeviceFragment : BaseFragment<DevicePresenter>(),DeviceView {
             if (isNotificationListenerEnabled()) {
                 switchPush.isChecked = true
             }
+            if (requestCode == BIND_DEVICE_REQUEST_CODE){
+                initView()
+            }
         }
     }
 
 
     private fun setDeviceState(deviceMac:String,deviceName: String?,deviceState:String){
-        tvDeviceName.text = deviceName
-        tvDeviceMac.text = deviceMac
         tvDeviceState.text = deviceState
     }
 }

@@ -5,9 +5,9 @@ import org.litepal.annotation.Column
 import org.litepal.crud.LitePalSupport
 import java.util.*
 
-class HeartRateBean : LitePalSupport,Comparable<HeartRateBean>,IHistogramData {
-    val id:Long = 0
-    @Column(unique = true)
+class HeartRateBean : LitePalSupport, Comparable<HeartRateBean>, IHistogramData {
+    val id: Long = 0
+    var mac: String = ""
     var dateTime: Long = 0L
     var index: Int = 0
     var value: Int = 0
@@ -15,7 +15,8 @@ class HeartRateBean : LitePalSupport,Comparable<HeartRateBean>,IHistogramData {
 
     constructor()
 
-    constructor(dateTime: Long,index: Int,value: Int){
+    constructor(mac: String, dateTime: Long, index: Int, value: Int) {
+        this.mac = mac
         this.dateTime = dateTime
         this.index = index
         this.value = value
@@ -30,12 +31,12 @@ class HeartRateBean : LitePalSupport,Comparable<HeartRateBean>,IHistogramData {
     }
 
     override fun getHistogramTime(): Long {
-        val histogramTime:Long
+        val histogramTime: Long
         calendar.timeInMillis = dateTime
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
         val second = calendar.get(Calendar.SECOND)
-        histogramTime = hour*60L*60L + minute*60L + second
+        histogramTime = hour * 60L * 60L + minute * 60L + second
         return histogramTime
     }
 }
