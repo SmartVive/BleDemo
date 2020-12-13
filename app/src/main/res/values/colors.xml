@@ -5,6 +5,7 @@
     <color name="colorAccent">#FFA000</color>
     <color name="mainTextColor">#333333</color>
     <color name="subTextColor">#666666</color>
+    <color name="disableTextColor">#9999</color>
     <color name="dividing">#999999</color>
     <color name="white">#fff</color>
     <color name="windowBackground">#fafafa</color>

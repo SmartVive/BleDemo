@@ -225,6 +225,7 @@ object CommHelper {
         return bArr
     }
 
+
     fun getAlarmClock():ByteArray{
         val bArr = ByteArray(20)
         bArr[0] = 5
