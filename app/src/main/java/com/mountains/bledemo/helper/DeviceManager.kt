@@ -22,6 +22,5 @@ object DeviceManager {
         }else{
             callback?.onFail(BleException(BleException.DEVICE_NOT_CONNECTED,"设备未连接！"))
         }
-
     }
 }

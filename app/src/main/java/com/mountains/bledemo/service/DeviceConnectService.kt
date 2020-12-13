@@ -30,7 +30,10 @@ import org.greenrobot.eventbus.ThreadMode
 class DeviceConnectService : Service() {
     companion object{
         const val CHANNEL_ID_STRING = "channelId"
+        //开启通知
         const val ENABLE_NOTIFY_MSG = 100
+        //同步数据
+        const val SYNC_DATA_MSG = 200
     }
 
     //已连接的设备
@@ -61,8 +64,14 @@ class DeviceConnectService : Service() {
                             connectFailCallback(bleDevice.getMac(),bleDevice.getName(), BleException(BleException.CONNECT_FAIL_CODE,"开启通知失败"),connectCallback)
                         }
                     }
-
                 }
+                SYNC_DATA_MSG->{
+                    syncDataHelper.startSync()
+                    removeMessages(SYNC_DATA_MSG)
+                    //每30分钟同步一次数据
+                    sendEmptyMessageDelayed(SYNC_DATA_MSG,30*60*1000)
+                }
+
             }
         }
     }
@@ -178,7 +187,7 @@ class DeviceConnectService : Service() {
                 ToastUtil.show("连接成功:${device.getMac()}")
                 connectedDeviceList.add(device)
                 connectSuccessCallback(device.getMac(),device.getName(),device,connectCallback)
-                syncTime(device)
+                handler.sendEmptyMessage(SYNC_DATA_MSG)
             }
 
             override fun onFail(exception: BleException) {
@@ -223,19 +232,6 @@ class DeviceConnectService : Service() {
     }
 
 
-    //同步设备时间
-    private fun syncTime(device: BleDevice){
-        device.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE,CommHelper.setDeviceTime(),object :CommCallback{
-            override fun onSuccess(byteArray: ByteArray?) {
-                Logger.i("同步时间成功")
-            }
-
-            override fun onFail(exception: BleException) {
-                Logger.i("同步时间失败：${exception.message}")
-            }
-
-        })
-    }
 
     /**
      * 连接成功
@@ -273,4 +269,6 @@ class DeviceConnectService : Service() {
             it.disconnect()
         }
     }
+
+
 }
