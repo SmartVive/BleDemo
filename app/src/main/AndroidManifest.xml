@@ -33,6 +33,7 @@
         <activity android:name=".ui.activity.BloodPressureDetailsActivity" />
         <activity android:name=".ui.activity.AlarmClockAddActivity" />
         <activity android:name=".ui.activity.AlarmClockActivity" />
+        <activity android:name=".ui.activity.WallpaperActivity" />
 
         <service android:name=".service.DeviceConnectService" />
 

@@ -2,6 +2,7 @@ package com.mountains.bledemo.ble
 
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.ble.callback.ConnectCallback
+import com.mountains.bledemo.ble.callback.NotifyCallback
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -21,7 +22,7 @@ object BleGlobal {
     private val connectCallbackMap = hashMapOf<String, ConnectCallback>()
 
     //通知回调，key为设备mac
-    private val notifyCallbackMap = hashMapOf<String, LinkedList<CommCallback>>()
+    private val notifyCallbackMap = hashMapOf<String, LinkedList<NotifyCallback>>()
 
     //已连接的设备
     private val bleDeviceMap = hashMapOf<String,BleDevice>()
@@ -69,49 +70,21 @@ object BleGlobal {
         commCallbackMap.remove(uuid)
     }
 
-/*
-
-    */
-/**
-     * 根据设备mac获取连接回调接口
-     *//*
-
-    fun getConnectCallback(mac: String): ConnectCallback? {
-        return connectCallbackMap[mac]
-    }
-
-    */
-/**
-     * 添加连接回调接口
-     *//*
-
-    fun putConnectCallback(mac: String, callback: ConnectCallback) {
-        connectCallbackMap.put(mac, callback)
-    }
-
-
-    /**
-     * 删除连接回调接口
-     */
-    fun removeConnectCallback(mac: String) {
-        connectCallbackMap.remove(mac)
-    }
-*/
     /**
      * 根据设备mac获取通知回调
      */
-    fun getNotifyCallback(mac: String): LinkedList<CommCallback>? {
+    fun getNotifyCallback(mac: String): LinkedList<NotifyCallback>? {
         return notifyCallbackMap.get(mac)
     }
 
     /**
      * 添加通知回调
      */
-    fun putNotifyCallback(mac: String, callback: CommCallback) {
-        var linkedList:LinkedList<CommCallback>? = getNotifyCallback(mac)
+    fun putNotifyCallback(mac: String, callback: NotifyCallback) {
+        var linkedList:LinkedList<NotifyCallback>? = getNotifyCallback(mac)
 
         if (linkedList == null) {
-            linkedList = LinkedList<CommCallback>()
+            linkedList = LinkedList<NotifyCallback>()
         }
         linkedList.add(callback)
         notifyCallbackMap.put(mac,linkedList)
@@ -121,7 +94,7 @@ object BleGlobal {
     /**
      * 删除通知回调
      */
-    fun removeNotifyCallback(mac: String, callback: CommCallback){
+    fun removeNotifyCallback(mac: String, callback: NotifyCallback){
         val notifyCallbackList = getNotifyCallback(mac)
         notifyCallbackList?.remove(callback)
     }

@@ -23,4 +23,12 @@ object DeviceManager {
             callback?.onFail(BleException(BleException.DEVICE_NOT_CONNECTED,"设备未连接！"))
         }
     }
+
+    fun writeWallpaperCharacteristic(data: ByteArray,callback: CommCallback? = null){
+        if (bleDevice != null && bleDevice!!.isConnected()){
+            bleDevice?.writeCharacteristic(BaseUUID.SERVICE,BaseUUID.WRITE_WALLPAPER,data,callback)
+        }else{
+            callback?.onFail(BleException(BleException.DEVICE_NOT_CONNECTED,"设备未连接！"))
+        }
+    }
 }

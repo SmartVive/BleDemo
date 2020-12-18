@@ -4,6 +4,7 @@ import android.bluetooth.*
 import android.content.Context
 import com.mountains.bledemo.ble.callback.ConnectCallback
 import com.mountains.bledemo.ble.callback.CommCallback
+import com.mountains.bledemo.ble.callback.NotifyCallback
 import com.orhanobut.logger.Logger
 import java.util.*
 
@@ -120,7 +121,8 @@ class BleDevice(val device: BluetoothDevice) {
             super.onCharacteristicChanged(gatt, characteristic)
             Logger.i("onCharacteristicChanged")
             //SportDataDecodeHelper().decode(characteristic?.value)
-            sendNotifyMsg(characteristic.value)
+
+            sendNotifyMsg(characteristic.uuid.toString(),characteristic.value)
         }
     }
 
@@ -245,14 +247,14 @@ class BleDevice(val device: BluetoothDevice) {
     /**
      * 添加通知回调
      */
-    fun addNotifyCallBack(callback: CommCallback){
+    fun addNotifyCallBack(callback: NotifyCallback){
         BleGlobal.putNotifyCallback(device.address,callback)
     }
 
     /**
      * 删除通知回调
      */
-    fun removeNotifyCallBack(callback: CommCallback){
+    fun removeNotifyCallBack(callback: NotifyCallback){
         BleGlobal.removeNotifyCallback(device.address,callback)
     }
 
@@ -385,7 +387,7 @@ class BleDevice(val device: BluetoothDevice) {
         BleCallBackHandler.sendCommFailMsg(callback,bleException)
     }
 
-    private fun sendNotifyMsg(data: ByteArray) {
-        BleCallBackHandler.sendNotifyMsg(getMac(),data)
+    private fun sendNotifyMsg(uuid: String,data: ByteArray) {
+        BleCallBackHandler.sendNotifyMsg(getMac(),uuid,data)
     }
 }

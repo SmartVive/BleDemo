@@ -23,6 +23,7 @@ import com.mountains.bledemo.service.NotificationService
 import com.mountains.bledemo.ui.activity.AlarmClockActivity
 import com.mountains.bledemo.ui.activity.AlarmClockAddActivity
 import com.mountains.bledemo.ui.activity.BindDeviceActivity
+import com.mountains.bledemo.ui.activity.WallpaperActivity
 import com.mountains.bledemo.view.DeviceView
 import kotlinx.android.synthetic.main.fragment_device.*
 import org.greenrobot.eventbus.EventBus
@@ -117,6 +118,10 @@ class DeviceFragment : BaseFragment<DevicePresenter>(),DeviceView {
             initView()
         }
 
+        layoutWallpaper.setOnClickListener {
+            val intent = Intent(requireContext(), WallpaperActivity::class.java)
+            startActivity(intent)
+        }
 
         //查找手环
         layoutFindDevice.setOnClickListener {

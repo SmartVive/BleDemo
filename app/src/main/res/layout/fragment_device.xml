@@ -68,6 +68,35 @@
             android:background="@color/dividing" />
 
         <LinearLayout
+            android:id="@+id/layoutWallpaper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingTop="24dp"
+                android:paddingBottom="24dp"
+                android:text="壁纸"
+                android:textColor="@color/mainTextColor"
+                android:textSize="16dp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_device_find" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@color/dividing" />
+
+        <LinearLayout
             android:id="@+id/layoutFindDevice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

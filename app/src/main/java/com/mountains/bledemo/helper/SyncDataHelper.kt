@@ -26,7 +26,7 @@ class SyncDataHelper {
         isSyncHistorySportData = true
         isSyncHistorySleepData = true
         isSyncHeartRateData = true
-        isSyncDeviceSetting = true
+        //isSyncDeviceSetting = true
         syncTime()
     }
 

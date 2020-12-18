@@ -28,14 +28,14 @@ object BleCallBackHandler {
 
     const val MAC_KEY = "address"
     const val BLE_EXCEPTION_KEY = "bleException"
-    const val UUID_KEY = "address"
+    const val UUID_KEY = "uuid"
 
     private val handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
             val data = msg.data
             val mac = data.getString(MAC_KEY)
-            val uuid = data.getString(UUID_KEY)
+            val uuid = data.getString(UUID_KEY,"")
             val obj = msg.obj
             when (msg.what) {
                 CONNECT_SUCCESS_MSG -> {
@@ -81,7 +81,7 @@ object BleCallBackHandler {
                         val notifyCallbackList = BleGlobal.getNotifyCallback(mac) ?: return
                         if (obj is ByteArray) {
                             for (callBack in notifyCallbackList) {
-                                callBack.onSuccess(obj)
+                                callBack.onNotify(uuid,obj)
                             }
                         }
                     }
@@ -126,10 +126,11 @@ object BleCallBackHandler {
         handler.sendMessage(message)
     }
 
-    fun sendNotifyMsg(mac: String, data: ByteArray?) {
+    fun sendNotifyMsg(mac: String,uuid:String, data: ByteArray?) {
         val message = handler.obtainMessage(COMM_NOTIFY_MSG, data)
         val bundle = Bundle()
         bundle.putString(MAC_KEY, mac)
+        bundle.putString(UUID_KEY, uuid)
         message.data = bundle
         handler.sendMessage(message)
     }

@@ -225,7 +225,9 @@ object CommHelper {
         return bArr
     }
 
-
+    /**
+     * 获取闹钟
+     */
     fun getAlarmClock():ByteArray{
         val bArr = ByteArray(20)
         bArr[0] = 5
@@ -233,6 +235,23 @@ object CommHelper {
         bArr[2] = 4
         return bArr
     }
+
+    /**
+     * 设置高速传输状态
+     */
+    fun setHighSpeedTransportStatus(z: Boolean): ByteArray {
+        val bArr = ByteArray(20)
+        var i = 0
+        bArr[0] = 5
+        bArr[1] = 2
+        bArr[2] = 17
+        if (z) {
+            i = 1
+        }
+        bArr[3] = i.toByte()
+        return bArr
+    }
+
 
     private fun cutShortString(str:String):String {
         if (str.length > 200) {

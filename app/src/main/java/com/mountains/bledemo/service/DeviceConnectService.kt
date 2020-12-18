@@ -15,6 +15,7 @@ import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.BleManager
 import com.mountains.bledemo.ble.callback.CommCallback
 import com.mountains.bledemo.ble.callback.ConnectCallback
+import com.mountains.bledemo.ble.callback.NotifyCallback
 import com.mountains.bledemo.event.DeviceStateEvent
 import com.mountains.bledemo.event.DisconnectAllDeviceEvent
 import com.mountains.bledemo.helper.*
@@ -208,11 +209,10 @@ class DeviceConnectService : Service() {
      */
     private fun initNotifyCallBack(device: BleDevice){
         val mac = device.getMac()
-        device.addNotifyCallBack(object : CommCallback{
-            override fun onSuccess(byteArray: ByteArray?) {
+        device.addNotifyCallBack(object : NotifyCallback {
+            override fun onNotify(uuid: String, byteArray: ByteArray?) {
                 //解析数据
                 Logger.d(byteArray)
-                Logger.d(HexUtil.bytes2HexString(byteArray))
                 if(byteArray == null){
                     return
                 }
@@ -221,13 +221,7 @@ class DeviceConnectService : Service() {
                 deviceInfoDataDecodeHelper.decode(byteArray,mac)
                 healthDataDecodeHelper.decode(byteArray,mac)
                 sleepDataDecodeHelper.decode(byteArray,mac)
-
             }
-
-            override fun onFail(exception: BleException) {
-
-            }
-
         })
     }
 
