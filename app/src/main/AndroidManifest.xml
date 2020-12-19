@@ -17,7 +17,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity2">
+        <activity android:name=".LineChartActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -33,6 +33,9 @@
         <activity android:name=".ui.activity.BloodPressureDetailsActivity" />
         <activity android:name=".ui.activity.AlarmClockAddActivity" />
         <activity android:name=".ui.activity.AlarmClockActivity" />
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 
         <service android:name=".service.DeviceConnectService" />
 
