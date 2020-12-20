@@ -231,7 +231,7 @@ class BleDevice(val device: BluetoothDevice) {
     /**
      * 开启通知
      */
-    fun enableNotify(serviceUUID: String, characteristicUUID: String, descriptorUUID: String, isEnable:Boolean, callback:CommCallback){
+    fun enableNotify(serviceUUID: String, characteristicUUID: String, descriptorUUID: String, isEnable:Boolean, callback:CommCallback? = null){
         val data:ByteArray
         if(isEnable){
             //开启

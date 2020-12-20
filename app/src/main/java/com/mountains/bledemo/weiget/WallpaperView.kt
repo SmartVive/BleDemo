@@ -23,6 +23,9 @@ class WallpaperView : View {
     private var timeCanMove = false
     private var downX = 0f
     private var downY = 0f
+    //边界数据
+    private val region = Region()
+    private val tempRegion = Region()
 
     constructor(context: Context?) : this(context,null)
     constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs,0)
@@ -40,11 +43,13 @@ class WallpaperView : View {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        setClipPath(w/2f,h/2f+h*0.1f)
+        clipPath.addCircle(w/2f,h/2f+h*0.071f,w*0.6f,Path.Direction.CCW)
+        region.setPath(clipPath,Region(0,0,w,h))
         timePaint.getTextBounds(timeText,0,timeText.length,timeBounds)
-        val timeLeft =  w/2f - timeBounds.width()
-        val timeTop =  h/2f 
-        val timeRight =  timeLeft + timeBounds.width()
+        val textWidth = timePaint.measureText(timeText)
+        val timeLeft =  w/2f - textWidth/2
+        val timeTop =  h/2f - timeBounds.height()/2
+        val timeRight =  timeLeft + textWidth
         val timeBottom =  timeTop + timeBounds.height()
         timeRectF.set(timeLeft,timeTop,timeRight,timeBottom)
     }
@@ -77,11 +82,22 @@ class WallpaperView : View {
                 if (timeCanMove){
                     val distanceX = event.x - downX
                     val distanceY = event.y - downY
-                    timeRectF.left += distanceX
-                    timeRectF.top += distanceY
-                    timeRectF.right += distanceX
-                    timeRectF.bottom += distanceY
-                    invalidate()
+
+                    val left = timeRectF.left + distanceX
+                    val top =  timeRectF.top + distanceY
+                    val right =  timeRectF.right + distanceX
+                    val bottom = timeRectF.bottom + distanceY
+                    tempRegion.set(region)
+                    //当时间超过显示区域则不重绘
+                    //REVERSE_DIFFERENCE：时间区域和显示区域的并集减去显示区域，当为空说明时间区域在显示区域里面
+                    tempRegion.op(left.toInt(),top.toInt(),right.toInt(),bottom.toInt(),Region.Op.REVERSE_DIFFERENCE)
+                    if (tempRegion.isEmpty){
+                        timeRectF.left = left
+                        timeRectF.top = top
+                        timeRectF.right = right
+                        timeRectF.bottom = bottom
+                        invalidate()
+                    }
                     downX = event.x
                     downY = event.y
                 }
@@ -93,6 +109,7 @@ class WallpaperView : View {
         return super.onTouchEvent(event)
     }
 
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         bitmap ?: return
@@ -100,11 +117,11 @@ class WallpaperView : View {
         canvas.clipPath(clipPath)
         canvas.drawBitmap(bitmap!!,bitmapSrc,bitmapDst,bitmapPaint)
 
-        canvas.drawText(timeText,timeRectF.centerX(),timeRectF.centerY(),timePaint)
+        timePaint.color = Color.WHITE
+        canvas.drawText(timeText,timeRectF.left,timeRectF.bottom,timePaint)
     }
 
-    private fun setClipPath(cx:Float,cy:Float){
-        val radius = Math.sqrt((cx*cx+(measuredHeight-cy)*(measuredHeight-cy)).toDouble()).toFloat()
+    private fun setClipPath(cx:Float,cy:Float,radius:Float){
         clipPath.addCircle(cx,cy,radius,Path.Direction.CCW)
     }
 

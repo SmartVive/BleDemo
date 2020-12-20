@@ -1,6 +1,8 @@
 package com.mountains.bledemo.presenter
 
 import android.graphics.Bitmap
+import android.os.Handler
+import android.os.Looper
 import com.mountains.bledemo.base.BasePresenter
 import com.mountains.bledemo.bean.WallpaperPackage
 import com.mountains.bledemo.ble.BleException
@@ -12,77 +14,112 @@ import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.util.HexUtil
 import com.mountains.bledemo.view.WallpaperView
 import com.orhanobut.logger.Logger
+import java.lang.Exception
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.*
 import kotlin.collections.ArrayList
 
 
 class WallpaperPresenter : BasePresenter<WallpaperView>() {
+    private var wallpaperBitmap : Bitmap?= null
+    private var thread : Thread? = null
+
+    private val notifyCallback = object : NotifyCallback {
+        override fun onNotify(uuid: String, byteArray: ByteArray?) {
+            if (uuid == BaseUUID.NOTIFY_WALLPAPER) {
+                Logger.i("NOTIFY_WALLPAPER")
+                synchronized(lock) {
+                    lock.notify()
+                }
+            }else if (uuid == BaseUUID.NOTIFY){
+                if (HexUtil.bytes2HexString(byteArray).startsWith("05021101")){
+                    Logger.i("开启高速模式,开始上传壁纸")
+                    wallpaperBitmap?.let {
+                        uploadWallpaper(it)
+                    }
+                }
+            }
+        }
+
+    }
+
     companion object {
         val lock = Object()
     }
 
-    fun setWallpaper(bitmap: Bitmap) {
-
-
-        DeviceManager.getDevice()?.addNotifyCallBack(object : NotifyCallback {
-            override fun onNotify(uuid: String, byteArray: ByteArray?) {
-                if (uuid == BaseUUID.NOTIFY_WALLPAPER) {
-                    Logger.i("NOTIFY_WALLPAPER")
-                    synchronized(lock) {
-                        lock.notify()
-                    }
-                }else if (uuid == BaseUUID.NOTIFY){
-                    if (HexUtil.bytes2HexString(byteArray).startsWith("05021101")){
-                        Logger.i("开启高速模式,开始上传壁纸")
-                        uploadWallpaper(bitmap)
-                    }
-                }
+    private fun enableNotify(e:()->Unit){
+        DeviceManager.getDevice()?.addNotifyCallBack(notifyCallback)
+        DeviceManager.getDevice()?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, true, object : CommCallback {
+            override fun onSuccess(byteArray: ByteArray?) {
+                Logger.i("开启壁纸通知成功")
+                e()
             }
 
+            override fun onFail(exception: BleException) {
+                Logger.i("开启壁纸通知失败：${exception.message}")
+                wallpaperBitmap = null
+                uploadStop()
+            }
         })
+    }
 
-        DeviceManager.getDevice()
-            ?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, true, object : CommCallback {
-                override fun onSuccess(byteArray: ByteArray?) {
-                    Logger.i("开启壁纸通知成功")
-                }
-
-                override fun onFail(exception: BleException) {
-                    Logger.i("开启壁纸通知失败：${exception.message}")
-                }
-
-            })
-
-        setHighSpeedTransportStatus(true)
-
-
+    fun setWallpaper(bitmap: Bitmap) {
+        view?.onUploadStart()
+        wallpaperBitmap = bitmap
+        enableNotify {
+            setHighSpeedTransportStatus(true)
+        }
     }
 
     private fun uploadWallpaper(bitmap: Bitmap){
-        Thread(Runnable {
-            Thread.sleep(10*1000)
-            synchronized(lock) {
-                val wallpaperPackageList = createWallpaperPackage(bitmap)
-                wallpaperPackageList.forEachIndexed { index, it ->
-                    it.bytes20.forEach {
-                        DeviceManager.writeWallpaperCharacteristic(it)
+        thread = Thread(Runnable {
+            try {
+                synchronized(lock) {
+                    val wallpaperPackageList = createWallpaperPackage(bitmap)
+                    wallpaperPackageList.forEachIndexed { index, it ->
+                        it.bytes20.forEach {
+                            DeviceManager.writeWallpaperCharacteristic(it)
+                        }
+                        uploadWallpaperProgress(index,wallpaperPackageList.size)
+                        Logger.i("WAIT_WALLPAPER,当前：$index,总共:${wallpaperPackageList.size}")
+                        lock.wait()
                     }
-                    Logger.i("WAIT_WALLPAPER,当前：$index,总共:${wallpaperPackageList.size}")
-                    lock.wait()
                 }
-                setHighSpeedTransportStatus(false)
+            }catch (e:Exception){
+                e.printStackTrace()
+            }finally {
+                uploadStop()
             }
-        }).start()
+        })
+        thread?.start()
 
     }
 
-    fun setHighSpeedTransportStatus(open: Boolean) {
+    private fun uploadWallpaperProgress(current:Int,total:Int){
+        Handler(Looper.getMainLooper()).post {
+            view?.onUploadWallpaperProgress(current,total)
+        }
+    }
+
+    private fun uploadStop(){
+        thread?.interrupt()
+        DeviceManager.getDevice()?.removeNotifyCallBack(notifyCallback)
+        DeviceManager.getDevice()?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, false)
+        setHighSpeedTransportStatus(false)
+        Handler(Looper.getMainLooper()).post {
+            view?.onUploadStop()
+        }
+    }
+
+    fun stopUploadWallpaper(){
+        uploadStop()
+    }
+
+    private fun setHighSpeedTransportStatus(open: Boolean) {
         DeviceManager.writeCharacteristic(CommHelper.setHighSpeedTransportStatus(open))
     }
 
-    fun createWallpaperPackage(bitmap: Bitmap): ArrayList<WallpaperPackage> {
+    private fun createWallpaperPackage(bitmap: Bitmap): ArrayList<WallpaperPackage> {
         val convertBitmap = BMP2RGB565bytes(bitmap)
         //一共要发多少个包
         val round = Math.round(convertBitmap.size.toFloat() * 1.0f / 504.0f)
