@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <com.mountains.bledemo.weiget.HistogramView
-        android:id="@+id/histogramView"
-        android:layout_width="match_parent"
-        android:layout_height="280dp"/>
+    <com.mountains.bledemo.weiget.WallpaperView
+        android:id="@+id/wallpaperView"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="50dp"
+        android:layout_width="256dp"
+        android:layout_height="256dp"/>
 
-</FrameLayout>
+    <Button
+        android:id="@+id/btnChoseImage"
+        android:layout_width="wrap_content"
+        android:text="选择图片"
+        android:layout_marginTop="20dp"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>
