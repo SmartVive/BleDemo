@@ -9,7 +9,6 @@ import android.graphics.Region
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.bumptech.glide.Glide
 import com.orhanobut.logger.Logger
 import com.yalantis.ucrop.UCrop
 import kotlinx.android.synthetic.main.acitivy_line_chart.*
@@ -67,7 +66,7 @@ class LineChartActivity : AppCompatActivity() {
             }else if (requestCode == UCrop.REQUEST_CROP && data != null){
                 val resultUri = UCrop.getOutput(data)
                 resultUri?.let {
-                    wallpaperView.setImage(it)
+                    wallpaperView.setWallpaper(it)
                 }
             }
         }

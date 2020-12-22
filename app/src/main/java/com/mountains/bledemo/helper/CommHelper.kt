@@ -241,15 +241,116 @@ object CommHelper {
      */
     fun setHighSpeedTransportStatus(z: Boolean): ByteArray {
         val bArr = ByteArray(20)
-        var i = 0
         bArr[0] = 5
         bArr[1] = 2
         bArr[2] = 17
-        if (z) {
-            i = 1
+        val i = if (z) {
+             1
+        }else{
+            0
         }
         bArr[3] = i.toByte()
         return bArr
+    }
+
+    /**
+     * 获取设备壁纸信息
+     */
+    fun getWallpaperScreenInfo(): ByteArray {
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 1
+        bArr[2] = 20
+        return bArr
+    }
+
+    /**
+     * 获取设备壁纸字体信息
+     */
+    fun getWallpaperFontInfo(): ByteArray {
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 1
+        bArr[2] = 21
+        return bArr
+    }
+
+
+    /**
+     * 开启关闭壁纸
+     */
+    fun setWallpaperEnable(z: Boolean): ByteArray {
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 2
+        bArr[2] = 18
+        val i = if (z) {
+            1
+        }else{
+            2
+        }
+        bArr[3] = i.toByte()
+        return bArr
+    }
+
+    /**
+     * 壁纸信息
+     */
+    fun setWallpaperTimeInfo(
+        isTimeEnable: Boolean,
+        timeFontSizeX: Int,
+        timeFontSizeY: Int,
+        fontColor: Int,
+        timeLocationX: Int,
+        timeLocationY: Int
+    ): ByteArray {
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 2
+        bArr[2] = 19
+        bArr[3] = (if (isTimeEnable) 1 else 2).toByte()
+        bArr[4] = 1
+        bArr[5] = timeFontSizeX.toByte()
+        bArr[6] = timeFontSizeY.toByte()
+        val RGB888ToRGB565: Int = RGB888ToRGB565(fontColor)
+        bArr[7] = (RGB888ToRGB565 shr 8).toByte()
+        bArr[8] = (RGB888ToRGB565 and 255).toByte()
+        bArr[9] = (timeLocationX shr 8).toByte()
+        bArr[10] = (timeLocationX and 255).toByte()
+        bArr[11] = (timeLocationY shr 8).toByte()
+        bArr[12] = (timeLocationY and 255).toByte()
+        return bArr
+    }
+
+    fun setWallpaperStepInfo(
+        isStepEnable: Boolean,
+        stepFontSizeX: Int,
+        stepFontSizeY: Int,
+        fontColor: Int,
+        stepLocationX: Int,
+        stepLocationY: Int
+    ): ByteArray {
+        val bArr = ByteArray(20)
+        bArr[0] = 5
+        bArr[1] = 2
+        bArr[2] = 20
+        bArr[3] = (if (isStepEnable) 1 else 2).toByte()
+        bArr[4] = 1
+        bArr[5] = stepFontSizeX.toByte()
+        bArr[6] = stepFontSizeY.toByte()
+        val RGB888ToRGB565: Int = RGB888ToRGB565(fontColor)
+        bArr[7] = (RGB888ToRGB565 shr 8).toByte()
+        bArr[8] = (RGB888ToRGB565 and 255).toByte()
+        bArr[9] = (stepLocationX shr 8).toByte()
+        bArr[10] = (stepLocationX and 255).toByte()
+        bArr[11] = (stepLocationY shr 8).toByte()
+        bArr[12] = (stepLocationY and 255).toByte()
+        return bArr
+    }
+
+
+    fun RGB888ToRGB565(i: Int): Int {
+        return (i and 255 shr 3 shl 0) + (16711680 and i shr 19 shl 11) + (65280 and i shr 10 shl 5)
     }
 
 

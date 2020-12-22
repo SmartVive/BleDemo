@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import com.mountains.bledemo.base.BasePresenter
+import com.mountains.bledemo.bean.WallpaperInfoBean
 import com.mountains.bledemo.bean.WallpaperPackage
 import com.mountains.bledemo.ble.BleException
 import com.mountains.bledemo.ble.callback.CommCallback
@@ -14,10 +15,8 @@ import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.util.HexUtil
 import com.mountains.bledemo.view.WallpaperView
 import com.orhanobut.logger.Logger
-import java.lang.Exception
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.collections.ArrayList
 
 
 class WallpaperPresenter : BasePresenter<WallpaperView>() {
@@ -38,6 +37,32 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
                         uploadWallpaper(it)
                     }
                 }
+                if (byteArray != null && HexUtil.bytes2HexString(byteArray).startsWith("050114")){
+                    val screenWidth = HexUtil.subBytesToInt(byteArray,2,3,4)
+                    val screenHeight = HexUtil.subBytesToInt(byteArray,2,5,6)
+                    val isSupportWallpaper = byteArray[7].toInt() and 255 == 1
+                    val isWallpaperEnable = byteArray[8].toInt() and 255 == 1
+                    val isTimeEnable = byteArray[9].toInt() and 255 == 1
+                    val isStepEnable = byteArray[10].toInt() and 255 == 1
+
+                    //onLoadWallpaperInfo(isSupportWallpaper, isWallpaperEnable, screenWidth, screenHeight, this.screenType, isTimeEnable isStepEnable, this.fontList, this.wallpaperSrc, zArr[0], this.timeLocation, this.fontColor);
+                    Logger.i("屏幕尺寸:$screenWidth,$screenHeight")
+                    Logger.i("支持屏保:$isSupportWallpaper")
+                    Logger.i("屏保开关:$isWallpaperEnable")
+                    Logger.i("时间开关:$isTimeEnable")
+                    Logger.i("步数开关:$isStepEnable")
+                    writeCharacteristic(CommHelper.getWallpaperFontInfo())
+                }
+
+                if (byteArray != null && HexUtil.bytes2HexString(byteArray).startsWith("050115")){
+                    val b = byteArray[3].toInt() and 255
+                    for (i in 4 until 4 + b*2 step 2){
+                        val timeWidth = byteArray[i].toInt() and 255
+                        val timeHeight = byteArray[i+1].toInt() and 255
+                        Logger.i("timeWidth:$timeWidth")
+                        Logger.i("timeHeight:$timeHeight")
+                    }
+                }
             }
         }
 
@@ -46,6 +71,49 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
     companion object {
         val lock = Object()
     }
+
+    private fun writeCharacteristic(byteArray: ByteArray,e:()->Unit = {}){
+        DeviceManager.writeCharacteristic(byteArray,object : CommCallback{
+            override fun onSuccess(byteArray: ByteArray?) {
+                e()
+            }
+
+            override fun onFail(exception: BleException) {
+
+            }
+        })
+    }
+
+    fun getWallpaperInfo(){
+        enableNotify {
+            writeCharacteristic(CommHelper.getWallpaperScreenInfo()){
+
+
+            }
+        }
+
+    }
+
+    fun setWallpaper(wallpaperInfoBean: WallpaperInfoBean){
+        view?.onUploadStart()
+        wallpaperInfoBean.apply {
+            //是否开启壁纸
+            writeCharacteristic(CommHelper.setWallpaperEnable(enableWallpaper)) {
+                //设置壁纸时间
+                writeCharacteristic(CommHelper.setWallpaperTimeInfo(isTimeEnable,timeFontSizeX,timeFontSizeY,fontColor,timeLocationX, timeLocationY)){
+                    //设置壁纸步数
+                    /*writeCharacteristic(CommHelper.setWallpaperStepInfo(isStepEnable, stepFontSizeX, stepFontSizeY, fontColor, stepLocationX, stepLocationY)){
+                        if (bitmap!=null){
+                            //设置壁纸
+                            setWallpaper(bitmap!!)
+                        }
+                    }*/
+                }
+            }
+        }
+
+    }
+
 
     private fun enableNotify(e:()->Unit){
         DeviceManager.getDevice()?.addNotifyCallBack(notifyCallback)
@@ -112,12 +180,18 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
     }
 
     fun stopUploadWallpaper(){
-        uploadStop()
+        thread?.interrupt()
+        DeviceManager.getDevice()?.removeNotifyCallBack(notifyCallback)
+        DeviceManager.getDevice()?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, false)
+        //uploadStop()
     }
 
     private fun setHighSpeedTransportStatus(open: Boolean) {
         DeviceManager.writeCharacteristic(CommHelper.setHighSpeedTransportStatus(open))
     }
+
+
+
 
     private fun createWallpaperPackage(bitmap: Bitmap): ArrayList<WallpaperPackage> {
         val convertBitmap = BMP2RGB565bytes(bitmap)
