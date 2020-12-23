@@ -59,8 +59,9 @@
             android:textColor="@color/mainTextColor"/>
 
         <Switch
+            android:id="@+id/switchWallpaper"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
 
     </LinearLayout>
 
@@ -81,13 +82,14 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:text="显示脚步"
+            android:text="显示步数"
             android:gravity="center_vertical"
             android:textColor="@color/mainTextColor"/>
 
         <Switch
+            android:id="@+id/switchStep"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
 
     </LinearLayout>
 
@@ -96,6 +98,33 @@
         android:layout_width="match_parent"
         android:layout_height="1px"
         android:background="@color/dividing"/>
+
+    <LinearLayout
+        android:id="@+id/layoutPickColor"
+        android:layout_width="match_parent"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:layout_height="48dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="颜色选择"
+            android:gravity="center_vertical"
+            android:textColor="@color/mainTextColor"/>
+
+
+
+    </LinearLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/dividing"/>
+
+
 
     <View
         android:layout_width="match_parent"

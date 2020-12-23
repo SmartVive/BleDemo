@@ -18,12 +18,12 @@ import com.yalantis.ucrop.UCrop
 import kotlinx.android.synthetic.main.acitivy_line_chart.btnChoseImage
 import kotlinx.android.synthetic.main.acitivy_line_chart.wallpaperView
 import kotlinx.android.synthetic.main.activity_wallpaper.*
+import top.defaults.colorpicker.ColorPickerPopup
 import java.io.File
 import java.text.DecimalFormat
 
 class WallpaperActivity : BaseActivity<WallpaperPresenter>(),WallpaperView {
     private var progressAlertDialog:AlertDialog? = null
-
 
     companion object{
         const val CHOSE_PHOTO_REQUEST_CODE = 100
@@ -43,7 +43,7 @@ class WallpaperActivity : BaseActivity<WallpaperPresenter>(),WallpaperView {
 
     override fun onDestroy() {
         super.onDestroy()
-        presenter.stopUploadWallpaper()
+        presenter.release()
     }
 
     private fun initView(){
@@ -54,6 +54,21 @@ class WallpaperActivity : BaseActivity<WallpaperPresenter>(),WallpaperView {
             startActivityForResult(intent, CHOSE_PHOTO_REQUEST_CODE) // 打开相册
         }
 
+        switchStep.setOnCheckedChangeListener { compoundButton, b ->
+            wallpaperView.setStepShow(b)
+        }
+
+        layoutPickColor.setOnClickListener {
+            ColorPickerPopup.Builder(getContext())
+                .build()
+                .show(object : ColorPickerPopup.ColorPickerObserver(){
+                    override fun onColorPicked(color: Int) {
+                        wallpaperView.setColor(color)
+                    }
+
+                })
+        }
+
         btnSave.setOnClickListener {
             /*val bitmap = wallpaperView.bitmap
             if (bitmap == null){
@@ -62,21 +77,36 @@ class WallpaperActivity : BaseActivity<WallpaperPresenter>(),WallpaperView {
                 presenter.setWallpaper(bitmap)
             }*/
             val timeLocation = wallpaperView.getTimeLocation()
+            val stepLocation = wallpaperView.getStepLocation()
             val wallpaperInfoBean = WallpaperInfoBean().apply {
-                enableWallpaper = true
+                enableWallpaper = switchWallpaper.isChecked
                 isTimeEnable = true
-                timeFontSizeX = 20
-                timeFontSizeY = 24
-                fontColor = -16777216
+                isStepEnable = switchStep.isChecked
+                timeFontWidth = wallpaperView.timeWidth
+                timeFontHeight = wallpaperView.timeHeight
+                stepFontWidth = wallpaperView.stepWidth
+                stepFontHeight = wallpaperView.stepHeight
+                fontColor = wallpaperView.fontColor
                 timeLocationX = timeLocation.x
                 timeLocationY = timeLocation.y
+                stepLocationX = stepLocation.x
+                stepLocationY = stepLocation.y
+                bitmap = wallpaperView.bitmap
             }
             presenter.setWallpaper(wallpaperInfoBean)
         }
     }
 
     private fun initData(){
+        presenter.init()
+    }
+
+    override fun initSuccess() {
         presenter.getWallpaperInfo()
+    }
+
+    override fun initFail() {
+        finish()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -135,4 +165,33 @@ class WallpaperActivity : BaseActivity<WallpaperPresenter>(),WallpaperView {
         val decimalFormat = DecimalFormat("0.00%")
         tvProgress.text = decimalFormat.format(current.toFloat() / total.toFloat())
     }
+
+    override fun onWallpaperInfo(
+        screenWidth: Int,
+        screenHeight: Int,
+        isSupportWallpaper: Boolean,
+        isWallpaperEnable: Boolean,
+        isTimeEnable: Boolean,
+        isStepEnable: Boolean,
+        timeFontSize: IntArray?,
+        stepFontSize: IntArray?
+    ) {
+        if (!isSupportWallpaper){
+            showToast("设备不支持壁纸")
+            finish()
+            return
+        }
+        switchWallpaper.isChecked = isWallpaperEnable
+        switchStep.isChecked = isStepEnable
+        wallpaperView.setWallpaperSize(screenWidth,screenHeight)
+        wallpaperView.setStepShow(isStepEnable)
+        timeFontSize?.let {
+            wallpaperView.setTimeSize(it[0],it[1])
+        }
+        stepFontSize?.let {
+            wallpaperView.setStepSize(it[0],it[1])
+        }
+    }
+
+
 }

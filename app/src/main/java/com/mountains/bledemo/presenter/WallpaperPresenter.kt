@@ -20,8 +20,18 @@ import java.nio.ByteOrder
 
 
 class WallpaperPresenter : BasePresenter<WallpaperView>() {
-    private var wallpaperBitmap : Bitmap?= null
-    private var thread : Thread? = null
+    private var wallpaperBitmap: Bitmap? = null
+    private var thread: Thread? = null
+
+    private var screenWidth: Int = 0
+    private var screenHeight: Int = 0
+    private var isSupportWallpaper: Boolean = false
+    private var isWallpaperEnable: Boolean = false
+    private var isTimeEnable: Boolean = false
+    private var isStepEnable: Boolean = false
+    private var timeFontSize: IntArray? = null
+    private var stepFontSize: IntArray? = null
+
 
     private val notifyCallback = object : NotifyCallback {
         override fun onNotify(uuid: String, byteArray: ByteArray?) {
@@ -30,20 +40,20 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
                 synchronized(lock) {
                     lock.notify()
                 }
-            }else if (uuid == BaseUUID.NOTIFY){
-                if (HexUtil.bytes2HexString(byteArray).startsWith("05021101")){
-                    Logger.i("开启高速模式,开始上传壁纸")
+            } else if (uuid == BaseUUID.NOTIFY) {
+                if (HexUtil.bytes2HexString(byteArray).startsWith("05021101")) {
                     wallpaperBitmap?.let {
+                        Logger.i("已开启高速模式,开始上传壁纸")
                         uploadWallpaper(it)
                     }
                 }
-                if (byteArray != null && HexUtil.bytes2HexString(byteArray).startsWith("050114")){
-                    val screenWidth = HexUtil.subBytesToInt(byteArray,2,3,4)
-                    val screenHeight = HexUtil.subBytesToInt(byteArray,2,5,6)
-                    val isSupportWallpaper = byteArray[7].toInt() and 255 == 1
-                    val isWallpaperEnable = byteArray[8].toInt() and 255 == 1
-                    val isTimeEnable = byteArray[9].toInt() and 255 == 1
-                    val isStepEnable = byteArray[10].toInt() and 255 == 1
+                if (byteArray != null && HexUtil.bytes2HexString(byteArray).startsWith("050114")) {
+                    screenWidth = HexUtil.subBytesToInt(byteArray, 2, 3, 4)
+                    screenHeight = HexUtil.subBytesToInt(byteArray, 2, 5, 6)
+                    isSupportWallpaper = byteArray[7].toInt() and 255 == 1
+                    isWallpaperEnable = byteArray[8].toInt() and 255 == 1
+                    isTimeEnable = byteArray[9].toInt() and 255 == 1
+                    isStepEnable = byteArray[10].toInt() and 255 == 1
 
                     //onLoadWallpaperInfo(isSupportWallpaper, isWallpaperEnable, screenWidth, screenHeight, this.screenType, isTimeEnable isStepEnable, this.fontList, this.wallpaperSrc, zArr[0], this.timeLocation, this.fontColor);
                     Logger.i("屏幕尺寸:$screenWidth,$screenHeight")
@@ -51,17 +61,32 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
                     Logger.i("屏保开关:$isWallpaperEnable")
                     Logger.i("时间开关:$isTimeEnable")
                     Logger.i("步数开关:$isStepEnable")
-                    writeCharacteristic(CommHelper.getWallpaperFontInfo())
+
                 }
 
-                if (byteArray != null && HexUtil.bytes2HexString(byteArray).startsWith("050115")){
+                if (byteArray != null && HexUtil.bytes2HexString(byteArray).startsWith("050115")) {
                     val b = byteArray[3].toInt() and 255
-                    for (i in 4 until 4 + b*2 step 2){
-                        val timeWidth = byteArray[i].toInt() and 255
-                        val timeHeight = byteArray[i+1].toInt() and 255
-                        Logger.i("timeWidth:$timeWidth")
-                        Logger.i("timeHeight:$timeHeight")
+                    val fontSizeList = mutableListOf<IntArray>()
+                    for (i in 4 until 4 + b * 2 step 2) {
+                        val fontWidth = byteArray[i].toInt() and 255
+                        val fontHeight = byteArray[i + 1].toInt() and 255
+                        fontSizeList.add(intArrayOf(fontWidth, fontHeight))
                     }
+                    if (fontSizeList.size > 2) {
+                        timeFontSize = intArrayOf(fontSizeList[0][0], fontSizeList[0][1])
+                        stepFontSize = intArrayOf(fontSizeList[1][0], fontSizeList[1][1])
+                    }
+                    hideLoading()
+                    view?.onWallpaperInfo(
+                        screenWidth,
+                        screenHeight,
+                        isSupportWallpaper,
+                        isWallpaperEnable,
+                        isTimeEnable,
+                        isStepEnable,
+                        timeFontSize,
+                        stepFontSize
+                    )
                 }
             }
         }
@@ -70,44 +95,94 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
 
     companion object {
         val lock = Object()
+        private var isUploadWallpaper = false
     }
 
-    private fun writeCharacteristic(byteArray: ByteArray,e:()->Unit = {}){
-        DeviceManager.writeCharacteristic(byteArray,object : CommCallback{
+
+
+    private fun writeCharacteristic(byteArray: ByteArray, e: () -> Unit = {}) {
+        DeviceManager.writeCharacteristic(byteArray, object : CommCallback {
             override fun onSuccess(byteArray: ByteArray?) {
                 e()
             }
 
             override fun onFail(exception: BleException) {
-
+                showToast("发生错误:${exception.message}")
+                hideLoading()
             }
         })
     }
 
-    fun getWallpaperInfo(){
-        enableNotify {
-            writeCharacteristic(CommHelper.getWallpaperScreenInfo()){
 
+    //开启通知
+    fun init() {
+        showLoading()
+        DeviceManager.getDevice()?.addNotifyCallBack(notifyCallback)
+        DeviceManager.getDevice()?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, true, object : CommCallback {
+                override fun onSuccess(byteArray: ByteArray?) {
+                    Logger.i("开启壁纸通知成功")
+                    hideLoading()
+                    view?.initSuccess()
+                }
 
-            }
-        }
-
+                override fun onFail(exception: BleException) {
+                    Logger.i("开启壁纸通知失败：${exception.message}")
+                    showToast("开启壁纸通知失败")
+                    hideLoading()
+                    view?.initFail()
+                }
+            })
     }
 
-    fun setWallpaper(wallpaperInfoBean: WallpaperInfoBean){
-        view?.onUploadStart()
+    //释放，关闭通知
+    fun release() {
+        thread?.interrupt()
+        DeviceManager.getDevice()?.removeNotifyCallBack(notifyCallback)
+        DeviceManager.getDevice()?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, false)
+    }
+
+
+    fun getWallpaperInfo() {
+        showLoading()
+        writeCharacteristic(CommHelper.getWallpaperScreenInfo()) {
+            writeCharacteristic(CommHelper.getWallpaperFontInfo())
+        }
+    }
+
+    fun setWallpaper(wallpaperInfoBean: WallpaperInfoBean) {
+        showLoading()
         wallpaperInfoBean.apply {
             //是否开启壁纸
             writeCharacteristic(CommHelper.setWallpaperEnable(enableWallpaper)) {
                 //设置壁纸时间
-                writeCharacteristic(CommHelper.setWallpaperTimeInfo(isTimeEnable,timeFontSizeX,timeFontSizeY,fontColor,timeLocationX, timeLocationY)){
+                writeCharacteristic(
+                    CommHelper.setWallpaperTimeInfo(
+                        isTimeEnable,
+                        timeFontWidth,
+                        timeFontHeight,
+                        fontColor,
+                        timeLocationX,
+                        timeLocationY
+                    )
+                ) {
                     //设置壁纸步数
-                    /*writeCharacteristic(CommHelper.setWallpaperStepInfo(isStepEnable, stepFontSizeX, stepFontSizeY, fontColor, stepLocationX, stepLocationY)){
-                        if (bitmap!=null){
+                    writeCharacteristic(
+                        CommHelper.setWallpaperStepInfo(
+                            isStepEnable,
+                            stepFontWidth,
+                            stepFontHeight,
+                            fontColor,
+                            stepLocationX,
+                            stepLocationY
+                        )
+                    ) {
+                        hideLoading()
+                        if (bitmap != null) {
                             //设置壁纸
+                            Logger.i("开始上传壁纸")
                             setWallpaper(bitmap!!)
                         }
-                    }*/
+                    }
                 }
             }
         }
@@ -115,47 +190,43 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
     }
 
 
-    private fun enableNotify(e:()->Unit){
-        DeviceManager.getDevice()?.addNotifyCallBack(notifyCallback)
-        DeviceManager.getDevice()?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, true, object : CommCallback {
-            override fun onSuccess(byteArray: ByteArray?) {
-                Logger.i("开启壁纸通知成功")
-                e()
-            }
-
-            override fun onFail(exception: BleException) {
-                Logger.i("开启壁纸通知失败：${exception.message}")
-                wallpaperBitmap = null
-                uploadStop()
-            }
-        })
-    }
-
     fun setWallpaper(bitmap: Bitmap) {
         view?.onUploadStart()
+        uploadWallpaperProgress(0, 100)
         wallpaperBitmap = bitmap
-        enableNotify {
-            setHighSpeedTransportStatus(true)
-        }
+        setHighSpeedTransportStatus(true)
     }
 
-    private fun uploadWallpaper(bitmap: Bitmap){
+    private fun uploadWallpaper(bitmap: Bitmap) {
+        if (isUploadWallpaper) {
+            return
+        }
+        isUploadWallpaper = true
         thread = Thread(Runnable {
             try {
                 synchronized(lock) {
                     val wallpaperPackageList = createWallpaperPackage(bitmap)
-                    wallpaperPackageList.forEachIndexed { index, it ->
-                        it.bytes20.forEach {
+                    for (index in wallpaperPackageList.indices) {
+                        //if (thread!=null && thread!!.isInterrupted){
+                        //    break
+                       // }
+                        wallpaperPackageList[index].bytes20.forEach {
                             DeviceManager.writeWallpaperCharacteristic(it)
                         }
-                        uploadWallpaperProgress(index,wallpaperPackageList.size)
-                        Logger.i("WAIT_WALLPAPER,当前：$index,总共:${wallpaperPackageList.size}")
+                        uploadWallpaperProgress(index, wallpaperPackageList.size - 1)
+                        Logger.i("WAIT_WALLPAPER,当前：$index,总共:${wallpaperPackageList.size - 1}")
                         lock.wait()
                     }
                 }
-            }catch (e:Exception){
+            } catch (e:InterruptedException){
                 e.printStackTrace()
-            }finally {
+                Logger.i("中断上传")
+            }catch (e: Exception) {
+                e.printStackTrace()
+                showToast("上传壁纸发送错误")
+            } finally {
+                isUploadWallpaper = false
+                wallpaperBitmap = null
                 uploadStop()
             }
         })
@@ -163,34 +234,44 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
 
     }
 
-    private fun uploadWallpaperProgress(current:Int,total:Int){
+    private fun uploadWallpaperProgress(current: Int, total: Int) {
         Handler(Looper.getMainLooper()).post {
-            view?.onUploadWallpaperProgress(current,total)
+            view?.onUploadWallpaperProgress(current, total)
         }
     }
 
-    private fun uploadStop(){
+    private fun showLoading() {
+        Handler(Looper.getMainLooper()).post {
+            view?.showLoading()
+        }
+    }
+
+    private fun hideLoading() {
+        Handler(Looper.getMainLooper()).post {
+            view?.hideLoading()
+        }
+    }
+
+    private fun showToast(message:String){
+        Handler(Looper.getMainLooper()).post {
+            view?.showToast(message)
+        }
+    }
+
+
+    private fun uploadStop() {
         thread?.interrupt()
-        DeviceManager.getDevice()?.removeNotifyCallBack(notifyCallback)
-        DeviceManager.getDevice()?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, false)
         setHighSpeedTransportStatus(false)
         Handler(Looper.getMainLooper()).post {
+            hideLoading()
             view?.onUploadStop()
         }
     }
 
-    fun stopUploadWallpaper(){
-        thread?.interrupt()
-        DeviceManager.getDevice()?.removeNotifyCallBack(notifyCallback)
-        DeviceManager.getDevice()?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, false)
-        //uploadStop()
-    }
 
     private fun setHighSpeedTransportStatus(open: Boolean) {
         DeviceManager.writeCharacteristic(CommHelper.setHighSpeedTransportStatus(open))
     }
-
-
 
 
     private fun createWallpaperPackage(bitmap: Bitmap): ArrayList<WallpaperPackage> {

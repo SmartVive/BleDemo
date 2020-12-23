@@ -6,10 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
+import com.billy.android.loading.Gloading
 import com.mountains.bledemo.util.ToastUtil
+
 
 abstract class BaseFragment<P:BasePresenter<*>>:Fragment(),BaseView {
     lateinit var presenter : P
+    private lateinit var holder:Gloading.Holder
 
     abstract fun createPresenter():P
 
@@ -28,7 +31,9 @@ abstract class BaseFragment<P:BasePresenter<*>>:Fragment(),BaseView {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(setContentView(), container, false)
+        val inflate = inflater.inflate(setContentView(), container, false)
+        holder = Gloading.getDefault().wrap(inflate)
+        return holder.wrapper
     }
 
     override fun showToast(message: String) {

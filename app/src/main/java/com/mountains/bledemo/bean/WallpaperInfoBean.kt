@@ -19,8 +19,8 @@ class WallpaperInfoBean {
     var timeLocationY = 0
 
     //时间字体坐标
-    var timeFontSizeX = 0
-    var timeFontSizeY = 0
+    var timeFontWidth = 0
+    var timeFontHeight = 0
 
 
     //是否显示步数
@@ -31,7 +31,7 @@ class WallpaperInfoBean {
     var stepLocationY = 0
 
     //步数字体坐标
-    var stepFontSizeX = 0
-    var stepFontSizeY = 0
+    var stepFontWidth = 0
+    var stepFontHeight = 0
 
 }

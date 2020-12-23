@@ -66,4 +66,8 @@ dependencies {
     implementation 'com.github.anzaizai:EasySwipeMenuLayout:1.1.4'
     //图片裁剪
     implementation 'com.github.yalantis:ucrop:2.2.6'
+    //加载
+    implementation 'com.billy.android:gloading:1.1.0'
+    //颜色选择
+    implementation 'com.github.duanhong169:colorpicker:1.1.6'
 }

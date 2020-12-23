@@ -6,17 +6,20 @@ import android.os.Bundle
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.billy.android.loading.Gloading
 import com.mountains.bledemo.util.ToastUtil
 
+
 abstract class BaseActivity<P : BasePresenter<*>> : AppCompatActivity(),BaseView {
+    private lateinit var holder:Gloading.Holder
     lateinit var presenter:P
 
     abstract  fun createPresenter(): P
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        holder = Gloading.getDefault().wrap(this)
         initWindow()
         presenter = createPresenter()
         presenter.attachView(this)
@@ -39,15 +42,15 @@ abstract class BaseActivity<P : BasePresenter<*>> : AppCompatActivity(),BaseView
     }
 
     override fun showLoading() {
-
+        holder.showLoading()
     }
 
     override fun hideLoading() {
-
+        holder.showLoadSuccess()
     }
 
     override fun showError() {
-
+        holder.showLoadFailed()
     }
 
     override fun showToast(message: String) {
