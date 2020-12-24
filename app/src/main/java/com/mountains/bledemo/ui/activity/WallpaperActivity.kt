@@ -4,7 +4,9 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
 import android.widget.ProgressBar
@@ -12,7 +14,9 @@ import android.widget.TextView
 import com.mountains.bledemo.R
 import com.mountains.bledemo.base.BaseActivity
 import com.mountains.bledemo.bean.WallpaperInfoBean
+import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.presenter.WallpaperPresenter
+import com.mountains.bledemo.ui.fragment.ColorPickerDialogFragment
 import com.mountains.bledemo.view.WallpaperView
 import com.yalantis.ucrop.UCrop
 import kotlinx.android.synthetic.main.acitivy_line_chart.btnChoseImage
@@ -37,8 +41,10 @@ class WallpaperActivity : BaseActivity<WallpaperPresenter>(),WallpaperView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wallpaper)
-        initView()
-        initData()
+        checkDevice {
+            initView()
+            initData()
+        }
     }
 
     override fun onDestroy() {
@@ -59,26 +65,20 @@ class WallpaperActivity : BaseActivity<WallpaperPresenter>(),WallpaperView {
         }
 
         layoutPickColor.setOnClickListener {
-            ColorPickerPopup.Builder(getContext())
-                .build()
-                .show(object : ColorPickerPopup.ColorPickerObserver(){
-                    override fun onColorPicked(color: Int) {
-                        wallpaperView.setColor(color)
-                    }
+            ColorPickerDialogFragment().show(supportFragmentManager,javaClass.simpleName,wallpaperView.fontColor,object : ColorPickerDialogFragment.OnPickColorListener{
+                override fun onPickColor(color: Int) {
+                    colorView.setBackgroundColor(color)
+                    wallpaperView.setColor(color)
+                }
 
-                })
+            })
         }
 
         btnSave.setOnClickListener {
-            /*val bitmap = wallpaperView.bitmap
-            if (bitmap == null){
-                showToast("请设置壁纸")
-            }else{
-                presenter.setWallpaper(bitmap)
-            }*/
             val timeLocation = wallpaperView.getTimeLocation()
             val stepLocation = wallpaperView.getStepLocation()
             val wallpaperInfoBean = WallpaperInfoBean().apply {
+                mac = DeviceManager.getDevice()?.getMac()
                 enableWallpaper = switchWallpaper.isChecked
                 isTimeEnable = true
                 isStepEnable = switchStep.isChecked
@@ -167,6 +167,7 @@ class WallpaperActivity : BaseActivity<WallpaperPresenter>(),WallpaperView {
     }
 
     override fun onWallpaperInfo(
+        wallpaperBitmap:Bitmap?,
         screenWidth: Int,
         screenHeight: Int,
         isSupportWallpaper: Boolean,
@@ -174,17 +175,26 @@ class WallpaperActivity : BaseActivity<WallpaperPresenter>(),WallpaperView {
         isTimeEnable: Boolean,
         isStepEnable: Boolean,
         timeFontSize: IntArray?,
-        stepFontSize: IntArray?
+        stepFontSize: IntArray?,
+        fontColor : Int,
+        timeLocation:Point?
     ) {
         if (!isSupportWallpaper){
             showToast("设备不支持壁纸")
             finish()
             return
         }
+
         switchWallpaper.isChecked = isWallpaperEnable
         switchStep.isChecked = isStepEnable
+        wallpaperBitmap?.let {
+            wallpaperView.setWallpaper(wallpaperBitmap)
+        }
         wallpaperView.setWallpaperSize(screenWidth,screenHeight)
         wallpaperView.setStepShow(isStepEnable)
+        wallpaperView.setColor(fontColor)
+        colorView.setBackgroundColor(fontColor)
+        wallpaperView.setTimeLocation(timeLocation)
         timeFontSize?.let {
             wallpaperView.setTimeSize(it[0],it[1])
         }

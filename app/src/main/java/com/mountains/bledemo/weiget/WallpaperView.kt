@@ -34,6 +34,7 @@ class WallpaperView : View {
     private val timeBounds = Rect()
     private var timeCanMove = false
 
+
     //步数
     val stepText = "03450"
     private var isStepShow = true
@@ -75,13 +76,12 @@ class WallpaperView : View {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
+        clipPath.addCircle(w/2f,h/2f+h*0.071f,w*0.6f,Path.Direction.CCW)
+        region.setPath(clipPath,Region(0,0,w,h))
         calculateWidget(w, h)
     }
 
     private fun calculateWidget(w:Int,h: Int){
-        clipPath.addCircle(w/2f,h/2f+h*0.071f,w*0.6f,Path.Direction.CCW)
-        region.setPath(clipPath,Region(0,0,w,h))
-
         //计算timeTextSize
         timePaint.textSize = 1f
         while (timePaint.measureText(timeText) < w / wallpaperWidth * timeWidth * timeText.length){
@@ -95,8 +95,8 @@ class WallpaperView : View {
 
         timePaint.getTextBounds(timeText,0,timeText.length,timeBounds)
         val timeTextWidth = timePaint.measureText(timeText)
-        val timeLeft =  w/2f - timeTextWidth/2
-        val timeTop =  h/2f - timeBounds.height()/2
+        //val timeLeft =  w/2f - timeTextWidth/2
+        //val timeTop =  h/2f - timeBounds.height()/2
         val timeRight =  timeLeft + timeTextWidth
         val timeBottom =  timeTop + timeBounds.height()
         timeRectF.set(timeLeft,timeTop,timeRight,timeBottom)
@@ -119,11 +119,18 @@ class WallpaperView : View {
         stepBitmapDst.set(stepBitmapLeft,stepBitmapTop,stepBitmapRight,stepBitmapBottom)
     }
 
+    fun setWallpaper(bitmap: Bitmap){
+        this.bitmap = bitmap
+        bitmap.let {
+            bitmapSrc.set(0,0,it.width,it.height)
+            bitmapDst.set(0,0,measuredWidth,measuredHeight)
+        }
+        invalidate()
+    }
+
     fun setWallpaper(uri:Uri){
         bitmap = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
         bitmap?.let {
-            bitmapSrc.top = 0
-            bitmapSrc.left = 0
             bitmapSrc.set(0,0,it.width,it.height)
             bitmapDst.set(0,0,measuredWidth,measuredHeight)
         }
@@ -143,6 +150,32 @@ class WallpaperView : View {
         return Point(x,y)
     }
 
+    var timeLeft: Float = 0f
+    var timeTop: Float = 0f
+    fun setTimeLocation(point: Point?) {
+        post {
+            if (point != null){
+                timeLeft = width.toFloat() / wallpaperWidth.toFloat() * point.x
+                timeTop =  height.toFloat() / wallpaperHeight.toFloat() * point.y
+                calculateWidget(width,height)
+                if (!isContainsClip()){
+                    resetWidgetLocation()
+                }
+            }else{
+                resetWidgetLocation()
+            }
+            invalidate()
+        }
+    }
+
+    private fun resetWidgetLocation(){
+        timePaint.getTextBounds(timeText,0,timeText.length,timeBounds)
+        val timeTextWidth = timePaint.measureText(timeText)
+        timeLeft =  width/2f - timeTextWidth/2
+        timeTop =  height/2f - timeBounds.height()/2
+        calculateWidget(width,height)
+    }
+
     fun setWallpaperSize(width: Int,height: Int){
         wallpaperWidth = width
         wallpaperHeight = height
@@ -160,12 +193,16 @@ class WallpaperView : View {
     }
 
     fun setStepShow(isShow:Boolean){
-        isStepShow = isShow
-        if (!isContainsClip()){
-            calculateWidget(width, height)
+        post {
+            isStepShow = isShow
+            if (!isContainsClip()){
+                resetWidgetLocation()
+            }
+            invalidate()
         }
-        invalidate()
+
     }
+
 
     fun setColor(color:Int){
         fontColor = color
@@ -244,12 +281,6 @@ class WallpaperView : View {
             canvas.drawBitmap(stepBitmap,stepBitmapSrc,stepBitmapDst,stepBitmapPaint)
         }
     }
-
-    private fun setClipPath(cx:Float,cy:Float,radius:Float){
-        clipPath.addCircle(cx,cy,radius,Path.Direction.CCW)
-    }
-
-
 
     private fun dp2px(dpValue: Float): Float {
         val density = resources.displayMetrics.density

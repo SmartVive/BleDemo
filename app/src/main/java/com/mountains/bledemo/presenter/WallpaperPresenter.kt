@@ -1,8 +1,12 @@
 package com.mountains.bledemo.presenter
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Point
 import android.os.Handler
 import android.os.Looper
+import com.mountains.bledemo.App
+import com.mountains.bledemo.R
 import com.mountains.bledemo.base.BasePresenter
 import com.mountains.bledemo.bean.WallpaperInfoBean
 import com.mountains.bledemo.bean.WallpaperPackage
@@ -15,12 +19,16 @@ import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.util.HexUtil
 import com.mountains.bledemo.view.WallpaperView
 import com.orhanobut.logger.Logger
+import org.litepal.LitePal
+import org.litepal.extension.find
+import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 
 class WallpaperPresenter : BasePresenter<WallpaperView>() {
     private var wallpaperBitmap: Bitmap? = null
+    private var wallpaperInfo:WallpaperInfoBean? = null
     private var thread: Thread? = null
 
     private var screenWidth: Int = 0
@@ -31,6 +39,11 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
     private var isStepEnable: Boolean = false
     private var timeFontSize: IntArray? = null
     private var stepFontSize: IntArray? = null
+
+    companion object {
+        val lock = Object()
+        private var isUploadWallpaper = false
+    }
 
 
     private val notifyCallback = object : NotifyCallback {
@@ -76,8 +89,30 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
                         timeFontSize = intArrayOf(fontSizeList[0][0], fontSizeList[0][1])
                         stepFontSize = intArrayOf(fontSizeList[1][0], fontSizeList[1][1])
                     }
+
+                    var wallpaperBitmap :Bitmap? = null
+                    var timeLocation:Point? = null
+                    var fontColor:Int = -1
+                    DeviceManager.getDevice()?.getMac()?.let {
+                        val wallpaperInfoBean = LitePal.where("mac = ?", it).find<WallpaperInfoBean>().lastOrNull()
+                        wallpaperInfoBean?.let {
+                            timeLocation = Point().apply {
+                                x = it.timeLocationX
+                                y = it.timeLocationY
+                            }
+                            fontColor = it.fontColor
+                            wallpaperBitmap = if (it.bitmapPath == null){
+                                BitmapFactory.decodeFile(it.bitmapPath)
+                            }else{
+                                BitmapFactory.decodeResource(App.context.resources, R.drawable.ic_default_wallpaper)
+                            }
+                        }
+                    }
+
+
                     hideLoading()
                     view?.onWallpaperInfo(
+                        wallpaperBitmap,
                         screenWidth,
                         screenHeight,
                         isSupportWallpaper,
@@ -85,7 +120,9 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
                         isTimeEnable,
                         isStepEnable,
                         timeFontSize,
-                        stepFontSize
+                        stepFontSize,
+                        fontColor,
+                        timeLocation
                     )
                 }
             }
@@ -93,10 +130,6 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
 
     }
 
-    companion object {
-        val lock = Object()
-        private var isUploadWallpaper = false
-    }
 
 
 
@@ -141,7 +174,7 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
         DeviceManager.getDevice()?.enableNotify(BaseUUID.SERVICE, BaseUUID.NOTIFY_WALLPAPER, BaseUUID.DESC, false)
     }
 
-
+    //获取设备壁纸信息
     fun getWallpaperInfo() {
         showLoading()
         writeCharacteristic(CommHelper.getWallpaperScreenInfo()) {
@@ -149,8 +182,10 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
         }
     }
 
+
     fun setWallpaper(wallpaperInfoBean: WallpaperInfoBean) {
         showLoading()
+        wallpaperInfo = wallpaperInfoBean
         wallpaperInfoBean.apply {
             //是否开启壁纸
             writeCharacteristic(CommHelper.setWallpaperEnable(enableWallpaper)) {
@@ -190,7 +225,7 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
     }
 
 
-    fun setWallpaper(bitmap: Bitmap) {
+    private fun setWallpaper(bitmap: Bitmap) {
         view?.onUploadStart()
         uploadWallpaperProgress(0, 100)
         wallpaperBitmap = bitmap
@@ -205,11 +240,11 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
         thread = Thread(Runnable {
             try {
                 synchronized(lock) {
-                    val wallpaperPackageList = createWallpaperPackage(bitmap)
+                    val wallpaperPackageList = CommHelper.createWallpaperPackage(bitmap)
                     for (index in wallpaperPackageList.indices) {
-                        //if (thread!=null && thread!!.isInterrupted){
-                        //    break
-                       // }
+                        if (thread!=null && thread!!.isInterrupted){
+                            break
+                        }
                         wallpaperPackageList[index].bytes20.forEach {
                             DeviceManager.writeWallpaperCharacteristic(it)
                         }
@@ -217,6 +252,7 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
                         Logger.i("WAIT_WALLPAPER,当前：$index,总共:${wallpaperPackageList.size - 1}")
                         lock.wait()
                     }
+                    uploadSuccess()
                 }
             } catch (e:InterruptedException){
                 e.printStackTrace()
@@ -240,6 +276,39 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
         }
     }
 
+
+    private fun uploadStop() {
+        thread?.interrupt()
+        setHighSpeedTransportStatus(false)
+        Handler(Looper.getMainLooper()).post {
+            hideLoading()
+            view?.onUploadStop()
+        }
+    }
+
+    private fun uploadSuccess(){
+        wallpaperInfo?.let {
+            //保存bitmap，保存路径存进数据库
+            it.bitmap?.let {bitmap->
+                val file = File(App.context.filesDir, "${it.mac}${System.currentTimeMillis()}.jpg")
+                bitmap.compress(Bitmap.CompressFormat.JPEG,100,file.outputStream())
+                it.bitmapPath = file.path
+                Logger.i("保存壁纸，路径${file.path}")
+            }
+
+            val wallpaperInfo = LitePal.where("mac = ?", it.mac).find<WallpaperInfoBean>().lastOrNull()
+            if (wallpaperInfo != null){
+                it.assignBaseObjId(wallpaperInfo.id)
+           }
+            it.save()
+        }
+    }
+
+    private fun setHighSpeedTransportStatus(open: Boolean) {
+        DeviceManager.writeCharacteristic(CommHelper.setHighSpeedTransportStatus(open))
+    }
+
+
     private fun showLoading() {
         Handler(Looper.getMainLooper()).post {
             view?.showLoading()
@@ -256,108 +325,6 @@ class WallpaperPresenter : BasePresenter<WallpaperView>() {
         Handler(Looper.getMainLooper()).post {
             view?.showToast(message)
         }
-    }
-
-
-    private fun uploadStop() {
-        thread?.interrupt()
-        setHighSpeedTransportStatus(false)
-        Handler(Looper.getMainLooper()).post {
-            hideLoading()
-            view?.onUploadStop()
-        }
-    }
-
-
-    private fun setHighSpeedTransportStatus(open: Boolean) {
-        DeviceManager.writeCharacteristic(CommHelper.setHighSpeedTransportStatus(open))
-    }
-
-
-    private fun createWallpaperPackage(bitmap: Bitmap): ArrayList<WallpaperPackage> {
-        val convertBitmap = BMP2RGB565bytes(bitmap)
-        //一共要发多少个包
-        val round = Math.round(convertBitmap.size.toFloat() * 1.0f / 504.0f)
-        val arrayList = ArrayList<WallpaperPackage>()
-        for (i in convertBitmap.indices step 504) {
-            if (i + 504 < convertBitmap.size) {
-                val byteArray = ByteArray(512)
-                System.arraycopy(convertBitmap, i, byteArray, 8, 504)
-                addWallpaperHeader(arrayList.size.toLong(), round.toLong(), byteArray)
-                arrayList.add(WallpaperPackage(getBytes(byteArray)));
-            } else {
-                val bArr2 = ByteArray(convertBitmap.size + 8 - i)
-                System.arraycopy(convertBitmap, i, bArr2, 8, bArr2.size - 8)
-                addWallpaperHeader(arrayList.size.toLong(), round.toLong(), bArr2)
-                arrayList.add(WallpaperPackage(getBytes(bArr2)))
-            }
-        }
-        return arrayList
-    }
-
-    //头信息
-    private fun addWallpaperHeader(index: Long, round: Long, bArr: ByteArray) {
-        var i = 0
-        for (i2 in 8 until bArr.size) {
-            i += bArr[i2]
-        }
-        val i3: Long = index or (round or 0 shl 14)
-        val length = (bArr.size - 8).toLong() shl 1 or 0 shl 1 or 0 shl 4 or 0
-        bArr[0] = 5
-        bArr[1] = (i and 255).toByte()
-        bArr[2] = (i3 shr 24 and 255).toInt().toByte()
-        bArr[3] = (i3 shr 16 and 255).toInt().toByte()
-        bArr[4] = (i3 shr 8 and 255).toInt().toByte()
-        bArr[5] = (i3 and 255).toInt().toByte()
-        bArr[6] = (length shr 8 and 255).toInt().toByte()
-        bArr[7] = (length and 255).toInt().toByte()
-
-    }
-
-    private fun getBytes(bArr: ByteArray): List<ByteArray> {
-        val arrayList = ArrayList<ByteArray>()
-        var i = 0
-        while (i < bArr.size) {
-            if (i + 20 < bArr.size) {
-                val bArr2 = ByteArray(20)
-                System.arraycopy(bArr, i, bArr2, 0, bArr2.size)
-                arrayList.add(bArr2)
-            } else {
-                val bArr3 = ByteArray(bArr.size - i)
-                System.arraycopy(bArr, i, bArr3, 0, bArr3.size)
-                arrayList.add(bArr3)
-            }
-            i += 20
-        }
-        return arrayList
-    }
-
-
-    private fun BMP2RGB565bytes(bitmap: Bitmap): ByteArray {
-        val createScaledBitmap = Bitmap.createScaledBitmap(
-            bitmap.copy(Bitmap.Config.RGB_565, false),
-            240,
-            240,
-            false
-        )
-        val allocate: ByteBuffer = ByteBuffer.allocate(createScaledBitmap.width * createScaledBitmap.height * 2)
-        allocate.order(ByteOrder.BIG_ENDIAN)
-        createScaledBitmap.copyPixelsToBuffer(allocate)
-        allocate.order(ByteOrder.LITTLE_ENDIAN)
-        return converting(allocate.array())
-    }
-
-    private fun converting(bArr: ByteArray): ByteArray {
-        val length = bArr.size
-        val bArr2 = ByteArray(length)
-        var i = 0
-        while (i < length) {
-            val i2 = i + 1
-            bArr2[i] = bArr[i2]
-            bArr2[i2] = bArr[i]
-            i += 2
-        }
-        return bArr2
     }
 
 }

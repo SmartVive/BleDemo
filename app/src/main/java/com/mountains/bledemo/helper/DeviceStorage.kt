@@ -1,5 +1,6 @@
 package com.mountains.bledemo.helper
 
+import com.mountains.bledemo.bean.WallpaperInfoBean
 import org.litepal.LitePal
 import org.litepal.crud.LitePalSupport
 import org.litepal.extension.findAll
@@ -37,10 +38,9 @@ class DeviceStorage private constructor() {
         private var instance:DeviceStorage? = null
         fun getInstance():DeviceStorage{
             if (instance == null){
-                val deviceList = LitePal.findAll<Device>()
+                val device = LitePal.findAll<Device>().lastOrNull()
                 instance = DeviceStorage()
-                if (deviceList.isNotEmpty()){
-                    val device = deviceList.last()
+                if (device != null){
                     instance!!.id = device.id
                     instance!!.mac = device.mac
                     instance!!.name = device.name

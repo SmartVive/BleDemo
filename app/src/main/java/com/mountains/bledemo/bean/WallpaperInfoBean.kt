@@ -1,9 +1,16 @@
 package com.mountains.bledemo.bean
 
 import android.graphics.Bitmap
+import org.litepal.annotation.Column
+import org.litepal.crud.LitePalSupport
 
-class WallpaperInfoBean {
+class WallpaperInfoBean:LitePalSupport() {
+    var id:Long = 0
+    var mac: String? = null
+
+    @Column(ignore = true)
     var bitmap: Bitmap? = null
+    var bitmapPath : String? = null
 
     //是否启用壁纸
     var enableWallpaper = true

@@ -8,6 +8,7 @@ import android.view.Window
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.billy.android.loading.Gloading
+import com.mountains.bledemo.helper.DeviceManager
 import com.mountains.bledemo.util.ToastUtil
 
 
@@ -32,6 +33,15 @@ abstract class BaseActivity<P : BasePresenter<*>> : AppCompatActivity(),BaseView
         //window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         window.getDecorView().setSystemUiVisibility( View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
         window.setStatusBarColor(Color.WHITE)
+    }
+
+    fun checkDevice(e:()->Unit){
+        if (DeviceManager.getDevice()!= null && DeviceManager.getDevice()!!.isConnected()){
+            e()
+        }else{
+            showToast("设备未连接")
+            finish()
+        }
     }
 
     fun getContext(): Context = this

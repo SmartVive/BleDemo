@@ -1,5 +1,7 @@
 package com.mountains.bledemo.view
 
+import android.graphics.Bitmap
+import android.graphics.Point
 import com.mountains.bledemo.base.BaseView
 
 interface WallpaperView : BaseView {
@@ -15,6 +17,7 @@ interface WallpaperView : BaseView {
     fun onUploadStop()
 
     fun onWallpaperInfo(
+        wallpaperBitmap: Bitmap?,
         screenWidth: Int,
         screenHeight: Int,
         isSupportWallpaper: Boolean,
@@ -22,6 +25,8 @@ interface WallpaperView : BaseView {
         isTimeEnable: Boolean,
         isStepEnable: Boolean,
         timeFontSize: IntArray?,
-        stepFontSize: IntArray?
+        stepFontSize: IntArray?,
+        fontColor : Int,
+        timeLocation:Point?
     )
 }

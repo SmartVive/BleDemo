@@ -52,7 +52,6 @@ class CalendarDialogFragment : DialogFragment() {
                 tvDate.text = "${calendar.year}年${calendar.month}月"
                 if (isClick){
                     listener?.onCalendarSelect(calendar.timeInMillis)
-                    listener = null
                     dismiss()
                 }
             }
@@ -67,6 +66,11 @@ class CalendarDialogFragment : DialogFragment() {
             tvDate.text = "${year}年${month}月"
         }
 
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        listener = null
     }
 
     private fun setSelectCalendar(){
@@ -94,6 +98,8 @@ class CalendarDialogFragment : DialogFragment() {
         this.listener = listener
         show(fragmentManager, tag)
     }
+
+
 
     interface OnCalendarSelectListener{
         fun onCalendarSelect(calendarTime:Long)

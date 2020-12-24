@@ -1,6 +1,10 @@
 package com.mountains.bledemo.helper
 
+import android.graphics.Bitmap
 import androidx.recyclerview.widget.ItemTouchHelper
+import com.mountains.bledemo.bean.WallpaperPackage
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.*
 
 
@@ -346,6 +350,92 @@ object CommHelper {
         bArr[11] = (stepLocationY shr 8).toByte()
         bArr[12] = (stepLocationY and 255).toByte()
         return bArr
+    }
+
+    fun createWallpaperPackage(bitmap: Bitmap): ArrayList<WallpaperPackage> {
+        val convertBitmap = BMP2RGB565bytes(bitmap)
+        //一共要发多少个包
+        val round = Math.round(convertBitmap.size.toFloat() * 1.0f / 504.0f)
+        val arrayList = ArrayList<WallpaperPackage>()
+        for (i in convertBitmap.indices step 504) {
+            if (i + 504 < convertBitmap.size) {
+                val byteArray = ByteArray(512)
+                System.arraycopy(convertBitmap, i, byteArray, 8, 504)
+                addWallpaperHeader(arrayList.size.toLong(), round.toLong(), byteArray)
+                arrayList.add(WallpaperPackage(getBytes(byteArray)));
+            } else {
+                val bArr2 = ByteArray(convertBitmap.size + 8 - i)
+                System.arraycopy(convertBitmap, i, bArr2, 8, bArr2.size - 8)
+                addWallpaperHeader(arrayList.size.toLong(), round.toLong(), bArr2)
+                arrayList.add(WallpaperPackage(getBytes(bArr2)))
+            }
+        }
+        return arrayList
+    }
+
+    //头信息
+    private fun addWallpaperHeader(index: Long, round: Long, bArr: ByteArray) {
+        var i = 0
+        for (i2 in 8 until bArr.size) {
+            i += bArr[i2]
+        }
+        val i3: Long = index or (round or 0 shl 14)
+        val length = (bArr.size - 8).toLong() shl 1 or 0 shl 1 or 0 shl 4 or 0
+        bArr[0] = 5
+        bArr[1] = (i and 255).toByte()
+        bArr[2] = (i3 shr 24 and 255).toInt().toByte()
+        bArr[3] = (i3 shr 16 and 255).toInt().toByte()
+        bArr[4] = (i3 shr 8 and 255).toInt().toByte()
+        bArr[5] = (i3 and 255).toInt().toByte()
+        bArr[6] = (length shr 8 and 255).toInt().toByte()
+        bArr[7] = (length and 255).toInt().toByte()
+
+    }
+
+    private fun getBytes(bArr: ByteArray): List<ByteArray> {
+        val arrayList = ArrayList<ByteArray>()
+        var i = 0
+        while (i < bArr.size) {
+            if (i + 20 < bArr.size) {
+                val bArr2 = ByteArray(20)
+                System.arraycopy(bArr, i, bArr2, 0, bArr2.size)
+                arrayList.add(bArr2)
+            } else {
+                val bArr3 = ByteArray(bArr.size - i)
+                System.arraycopy(bArr, i, bArr3, 0, bArr3.size)
+                arrayList.add(bArr3)
+            }
+            i += 20
+        }
+        return arrayList
+    }
+
+
+    private fun BMP2RGB565bytes(bitmap: Bitmap): ByteArray {
+        val createScaledBitmap = Bitmap.createScaledBitmap(
+            bitmap.copy(Bitmap.Config.RGB_565, false),
+            240,
+            240,
+            false
+        )
+        val allocate: ByteBuffer = ByteBuffer.allocate(createScaledBitmap.width * createScaledBitmap.height * 2)
+        allocate.order(ByteOrder.BIG_ENDIAN)
+        createScaledBitmap.copyPixelsToBuffer(allocate)
+        allocate.order(ByteOrder.LITTLE_ENDIAN)
+        return converting(allocate.array())
+    }
+
+    private fun converting(bArr: ByteArray): ByteArray {
+        val length = bArr.size
+        val bArr2 = ByteArray(length)
+        var i = 0
+        while (i < length) {
+            val i2 = i + 1
+            bArr2[i] = bArr[i2]
+            bArr2[i2] = bArr[i]
+            i += 2
+        }
+        return bArr2
     }
 
 
