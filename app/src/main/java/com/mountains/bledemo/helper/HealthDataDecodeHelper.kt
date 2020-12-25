@@ -82,7 +82,7 @@ class HealthDataDecodeHelper  : IDataDecodeHelper {
                         val date = CalendarUtil.format("yyyy-MM-dd HH:mm:ss", mHeartRateDataCalendar)
                         Logger.i("心率大数据:%d,index:%d,时间:%s", heart, timeIndex, date)
                         if (heart < 55 || heart > 200) {
-                            Logger.w("心率大数据:数据异常,心率:%d", heart)
+                            //Logger.w("心率大数据:数据异常,心率:%d", heart)
                             heart = 0
                         }
                         heartRates.add(HeartRateBean(mac,mHeartRateDataCalendar.timeInMillis,timeIndex, heart))
