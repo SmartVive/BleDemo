@@ -6,8 +6,6 @@
    <img src="https://github.com/SmartVive/BleDemo/blob/main/screenShot/116680912166434847.jpg"  height="600" width="270">
 </div>
 
---
-
 <div>
    <img src="https://github.com/SmartVive/BleDemo/blob/main/screenShot/41865219170645244.jpg"  height="600" width="270">
 </div>
